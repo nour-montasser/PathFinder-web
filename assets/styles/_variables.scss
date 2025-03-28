@@ -92,6 +92,13 @@ $yellow:  #ffc107 !default;
 $green:   #198754 !default;
 $teal:    #20c997 !default;
 $cyan:    #0dcaf0 !default;
+$khrawi:    rgb(59, 38, 29) !default;
+$khrawi-300:    #F5E4C3FF !default;
+$khrawi-200:    #c4a484 !default;
+$khrawi-100:    #613f1d !default;
+
+
+
 
 // scss-docs-start colors-map
 $colors: (
@@ -111,8 +118,8 @@ $colors: (
 ) !default;
 // scss-docs-end colors-map
 
-$primary:       $blue !default;
-$secondary:     $gray-600 !default;
+$primary:       $khrawi !default;
+$secondary:     $khrawi-200 !default;
 $success:       $green !default;
 $info:          $cyan !default;
 $warning:       $yellow !default;
@@ -492,7 +499,7 @@ $headings-font-family:        null !default;
 $headings-font-style:         null !default;
 $headings-font-weight:        700 !default;
 $headings-line-height:        1.2 !default;
-$headings-color:              #25396f !default;
+$headings-color:              $khrawi-100 !default;
 
 // scss-docs-start display-headings
 $display-font-sizes: (
