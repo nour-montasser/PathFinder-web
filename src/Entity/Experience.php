@@ -3,24 +3,24 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
+use App\Entity\Cv;
 
 #[ORM\Entity]
 class Experience
 {
-
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
-    private string $id_experience;
+    private int $id_experience;
 
-    #[ORM\Column(type: "bigint")]
-    private string $id_cv;
-
-    #[ORM\Column(type: "string", length: 255)]
-    private string $TYPE;
+    #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "experiences")]
+    #[ORM\JoinColumn(name: "id_cv", referencedColumnName: "id_cv", onDelete: "CASCADE")]
+    private Cv $cv;
 
     #[ORM\Column(type: "string", length: 255)]
-    private string $POSITION;
+    private string $type;
+
+    #[ORM\Column(type: "string", length: 255)]
+    private string $position;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $location_name;
@@ -34,83 +34,91 @@ class Experience
     #[ORM\Column(type: "string", length: 500)]
     private string $description;
 
-    public function getId_experience()
+    public function getId_experience(): int
     {
         return $this->id_experience;
     }
 
-    public function setId_experience($value)
+    public function setId_experience(int $id_experience): self
     {
-        $this->id_experience = $value;
+        $this->id_experience = $id_experience;
+        return $this;
     }
 
-    public function getId_cv()
+    public function getCv(): Cv
     {
-        return $this->id_cv;
+        return $this->cv;
     }
 
-    public function setId_cv($value)
+    public function setCv(?Cv $cv): self
     {
-        $this->id_cv = $value;
+        $this->cv = $cv;
+        return $this;
     }
 
-    public function getTYPE()
+    public function getType(): string
     {
-        return $this->TYPE;
+        return $this->type;
     }
 
-    public function setTYPE($value)
+    public function setType(string $type): self
     {
-        $this->TYPE = $value;
+        $this->type = $type;
+        return $this;
     }
 
-    public function getPOSITION()
+    public function getPosition(): string
     {
-        return $this->POSITION;
+        return $this->position;
     }
 
-    public function setPOSITION($value)
+    public function setPosition(string $position): self
     {
-        $this->POSITION = $value;
+        $this->position = $position;
+        return $this;
     }
 
-    public function getLocation_name()
+    public function getLocation_name(): string
     {
         return $this->location_name;
     }
 
-    public function setLocation_name($value)
+    public function setLocation_name(string $location_name): self
     {
-        $this->location_name = $value;
+        $this->location_name = $location_name;
+        return $this;
     }
 
-    public function getStart_date()
+    public function getStart_date(): \DateTimeInterface
     {
         return $this->start_date;
     }
 
-    public function setStart_date($value)
+    public function setStart_date(\DateTimeInterface $start_date): self
     {
-        $this->start_date = $value;
+        $this->start_date = $start_date;
+        return $this;
     }
 
-    public function getEnd_date()
+    public function getEnd_date(): \DateTimeInterface
     {
         return $this->end_date;
     }
 
-    public function setEnd_date($value)
+    public function setEnd_date(\DateTimeInterface $end_date): self
     {
-        $this->end_date = $value;
+        $this->end_date = $end_date;
+        return $this;
     }
 
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function setDescription($value)
+    public function setDescription(string $description): self
     {
-        $this->description = $value;
+        $this->description = $description;
+        return $this;
     }
 }

@@ -3,14 +3,12 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
 use Doctrine\Common\Collections\Collection;
-use App\Entity\Applicationservice;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity]
 class Serviceoffre
 {
-
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
     private string $id_service;
@@ -48,153 +46,172 @@ class Serviceoffre
     #[ORM\Column(type: "string", length: 20)]
     private string $status;
 
-    public function getId_service()
+    // OneToMany relationship with Applicationservice
+    #[ORM\OneToMany(mappedBy: "service", targetEntity: Applicationservice::class)]
+    private Collection $applicationservices;
+
+    public function __construct()
+    {
+        $this->applicationservices = new ArrayCollection();
+    }
+
+    // Getters and setters
+    public function getId_service(): string
     {
         return $this->id_service;
     }
 
-    public function setId_service($value)
+    public function setId_service(string $value): self
     {
         $this->id_service = $value;
+        return $this;
     }
 
-    public function getId_user()
+    public function getId_user(): string
     {
         return $this->id_user;
     }
 
-    public function setId_user($value)
+    public function setId_user(string $value): self
     {
         $this->id_user = $value;
+        return $this;
     }
 
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function setDescription($value)
+    public function setDescription(string $value): self
     {
         $this->description = $value;
+        return $this;
     }
 
-    public function getTitle()
+    public function getTitle(): string
     {
         return $this->title;
     }
 
-    public function setTitle($value)
+    public function setTitle(string $value): self
     {
         $this->title = $value;
+        return $this;
     }
 
-    public function getDate_posted()
+    public function getDate_posted(): \DateTimeInterface
     {
         return $this->date_posted;
     }
 
-    public function setDate_posted($value)
+    public function setDate_posted(\DateTimeInterface $value): self
     {
         $this->date_posted = $value;
+        return $this;
     }
 
-    public function getField()
+    public function getField(): string
     {
         return $this->field;
     }
 
-    public function setField($value)
+    public function setField(string $value): self
     {
         $this->field = $value;
+        return $this;
     }
 
-    public function getPrice()
+    public function getPrice(): float
     {
         return $this->price;
     }
 
-    public function setPrice($value)
+    public function setPrice(float $value): self
     {
         $this->price = $value;
+        return $this;
     }
 
-    public function getRequired_education()
+    public function getRequired_education(): string
     {
         return $this->required_education;
     }
 
-    public function setRequired_education($value)
+    public function setRequired_education(string $value): self
     {
         $this->required_education = $value;
+        return $this;
     }
 
-    public function getSkills()
+    public function getSkills(): string
     {
         return $this->skills;
     }
 
-    public function setSkills($value)
+    public function setSkills(string $value): self
     {
         $this->skills = $value;
+        return $this;
     }
 
-    public function getExperience_level()
+    public function getExperience_level(): string
     {
         return $this->experience_level;
     }
 
-    public function setExperience_level($value)
+    public function setExperience_level(string $value): self
     {
         $this->experience_level = $value;
+        return $this;
     }
 
-    public function getDuration()
+    public function getDuration(): string
     {
         return $this->duration;
     }
 
-    public function setDuration($value)
+    public function setDuration(string $value): self
     {
         $this->duration = $value;
+        return $this;
     }
 
-    public function getStatus()
+    public function getStatus(): string
     {
         return $this->status;
     }
 
-    public function setStatus($value)
+    public function setStatus(string $value): self
     {
         $this->status = $value;
+        return $this;
     }
 
-    #[ORM\OneToMany(mappedBy: "id_service", targetEntity: Applicationservice::class)]
-    private Collection $applicationservices;
+    // Getters for related Applicationservice entities
+    public function getApplicationservices(): Collection
+    {
+        return $this->applicationservices;
+    }
 
-        public function getApplicationservices(): Collection
-        {
-            return $this->applicationservices;
+    public function addApplicationservice(Applicationservice $applicationservice): self
+    {
+        if (!$this->applicationservices->contains($applicationservice)) {
+            $this->applicationservices[] = $applicationservice;
+            $applicationservice->setService($this);
         }
-    
-        public function addApplicationservice(Applicationservice $applicationservice): self
-        {
-            if (!$this->applicationservices->contains($applicationservice)) {
-                $this->applicationservices[] = $applicationservice;
-                $applicationservice->setId_service($this);
+
+        return $this;
+    }
+
+    public function removeApplicationservice(Applicationservice $applicationservice): self
+    {
+        if ($this->applicationservices->removeElement($applicationservice)) {
+            if ($applicationservice->getService() === $this) {
+                $applicationservice->setService(null);
             }
-    
-            return $this;
         }
-    
-        public function removeApplicationservice(Applicationservice $applicationservice): self
-        {
-            if ($this->applicationservices->removeElement($applicationservice)) {
-                // set the owning side to null (unless already changed)
-                if ($applicationservice->getId_service() === $this) {
-                    $applicationservice->setId_service(null);
-                }
-            }
-    
-            return $this;
-        }
+
+        return $this;
+    }
 }

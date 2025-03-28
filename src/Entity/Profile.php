@@ -3,15 +3,15 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
+use App\Entity\App_user;
 
 #[ORM\Entity]
 class Profile
 {
-
     #[ORM\Id]
-    #[ORM\Column(type: "bigint")]
-    private string $id_user;
+    #[ORM\OneToOne(targetEntity: App_user::class)]
+    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
+    private App_user $user;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $address;
@@ -25,79 +25,86 @@ class Profile
     #[ORM\Column(type: "string", length: 255)]
     private string $current_occupation;
 
-    #[ORM\Column(type: "string", length: 255)]
-    private string $photo;
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $photo = null;
 
-    #[ORM\Column(type: "string", length: 500)]
+    #[ORM\Column(type: "text", length: 500)]
     private string $bio;
 
-    public function getId_user()
+    public function getUser(): App_user
     {
-        return $this->id_user;
+        return $this->user;
     }
 
-    public function setId_user($value)
+    public function setUser(App_user $user): self
     {
-        $this->id_user = $value;
+        $this->user = $user;
+        return $this;
     }
 
-    public function getAddress()
+    public function getAddress(): string
     {
         return $this->address;
     }
 
-    public function setAddress($value)
+    public function setAddress(string $address): self
     {
-        $this->address = $value;
+        $this->address = $address;
+        return $this;
     }
 
-    public function getBirthday()
+    public function getBirthday(): \DateTimeInterface
     {
         return $this->birthday;
     }
 
-    public function setBirthday($value)
+    public function setBirthday(\DateTimeInterface $birthday): self
     {
-        $this->birthday = $value;
+        $this->birthday = $birthday;
+        return $this;
     }
 
-    public function getPhone()
+    public function getPhone(): string
     {
         return $this->phone;
     }
 
-    public function setPhone($value)
+    public function setPhone(string $phone): self
     {
-        $this->phone = $value;
+        $this->phone = $phone;
+        return $this;
     }
 
-    public function getCurrent_occupation()
+    public function getCurrent_occupation(): string
     {
         return $this->current_occupation;
     }
 
-    public function setCurrent_occupation($value)
+    public function setCurrent_occupation(string $current_occupation): self
     {
-        $this->current_occupation = $value;
+        $this->current_occupation = $current_occupation;
+        return $this;
     }
 
-    public function getPhoto()
+    public function getPhoto(): ?string
     {
         return $this->photo;
     }
 
-    public function setPhoto($value)
+    public function setPhoto(?string $photo): self
     {
-        $this->photo = $value;
+        $this->photo = $photo;
+        return $this;
     }
 
-    public function getBio()
+    public function getBio(): string
     {
         return $this->bio;
     }
 
-    public function setBio($value)
+    public function setBio(string $bio): self
     {
-        $this->bio = $value;
+        $this->bio = $bio;
+        return $this;
     }
 }

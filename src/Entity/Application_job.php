@@ -3,21 +3,24 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
+use App\Entity\Job_offer;
+use App\Entity\App_user;
+use App\Entity\Cv;
 
 #[ORM\Entity]
 class Application_job
 {
-
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
-    private string $application_id;
+    private int $application_id;
 
-    #[ORM\Column(type: "bigint")]
-    private string $job_offer_id;
+    #[ORM\ManyToOne(targetEntity: Job_offer::class, inversedBy: "applications")]
+    #[ORM\JoinColumn(name: "job_offer_id", referencedColumnName: "id_offer")]
+    private Job_offer $jobOffer;
 
-    #[ORM\Column(type: "bigint")]
-    private string $id_user;
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "jobApplications")]
+    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user")]
+    private App_user $user;
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $date_application;
@@ -25,66 +28,73 @@ class Application_job
     #[ORM\Column(type: "string", length: 50)]
     private string $status;
 
-    #[ORM\Column(type: "bigint")]
-    private string $cv_id;
+    #[ORM\ManyToOne(targetEntity: Cv::class)]
+    #[ORM\JoinColumn(name: "cv_id", referencedColumnName: "id_cv")]
+    private Cv $cv;
 
-    public function getApplication_id()
+    public function getApplication_id(): string
     {
         return $this->application_id;
     }
 
-    public function setApplication_id($value)
+    public function setApplication_id(string $value): self
     {
         $this->application_id = $value;
+        return $this;
     }
 
-    public function getJob_offer_id()
+    public function getJobOffer(): Job_offer
     {
-        return $this->job_offer_id;
+        return $this->jobOffer;
     }
 
-    public function setJob_offer_id($value)
+    public function setJobOffer(?Job_offer $jobOffer): self
     {
-        $this->job_offer_id = $value;
+        $this->jobOffer = $jobOffer;
+        return $this;
     }
 
-    public function getId_user()
+    public function getUser(): App_user
     {
-        return $this->id_user;
+        return $this->user;
     }
 
-    public function setId_user($value)
+    public function setUser(App_user $user): self
     {
-        $this->id_user = $value;
+        $this->user = $user;
+        return $this;
     }
 
-    public function getDate_application()
+    public function getDate_application(): \DateTimeInterface
     {
         return $this->date_application;
     }
 
-    public function setDate_application($value)
+    public function setDate_application(\DateTimeInterface $value): self
     {
         $this->date_application = $value;
+        return $this;
     }
 
-    public function getStatus()
+    public function getStatus(): string
     {
         return $this->status;
     }
 
-    public function setStatus($value)
+    public function setStatus(string $value): self
     {
         $this->status = $value;
+        return $this;
     }
 
-    public function getCv_id()
+    public function getCv(): Cv
     {
-        return $this->cv_id;
+        return $this->cv;
     }
 
-    public function setCv_id($value)
+    public function setCv(?Cv $cv): self
     {
-        $this->cv_id = $value;
+        $this->cv = $cv;
+        return $this;
     }
 }

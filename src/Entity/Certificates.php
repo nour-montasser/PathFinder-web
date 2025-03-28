@@ -3,18 +3,18 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
+use App\Entity\Cv;
 
 #[ORM\Entity]
 class Certificates
 {
-
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
-    private string $id_certificate;
+    private int $id_certificate;
 
-    #[ORM\Column(type: "bigint")]
-    private string $id_cv;
+    #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "certificates")]
+    #[ORM\JoinColumn(name: "id_cv", referencedColumnName: "id_cv", onDelete: "CASCADE")]
+    private Cv $cv;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $title;
@@ -31,73 +31,80 @@ class Certificates
     #[ORM\Column(type: "string", length: 255)]
     private string $issued_by;
 
-    public function getId_certificate()
+    public function getId_certificate(): int
     {
         return $this->id_certificate;
     }
 
-    public function setId_certificate($value)
+    public function setId_certificate(int $id_certificate): self
     {
-        $this->id_certificate = $value;
+        $this->id_certificate = $id_certificate;
+        return $this;
     }
 
-    public function getId_cv()
+    public function getCv(): Cv
     {
-        return $this->id_cv;
+        return $this->cv;
     }
 
-    public function setId_cv($value)
+    public function setCv(?Cv $cv): self
     {
-        $this->id_cv = $value;
+        $this->cv = $cv;
+        return $this;
     }
 
-    public function getTitle()
+    public function getTitle(): string
     {
         return $this->title;
     }
 
-    public function setTitle($value)
+    public function setTitle(string $title): self
     {
-        $this->title = $value;
+        $this->title = $title;
+        return $this;
     }
 
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function setDescription($value)
+    public function setDescription(string $description): self
     {
-        $this->description = $value;
+        $this->description = $description;
+        return $this;
     }
 
-    public function getMedia()
+    public function getMedia(): string
     {
         return $this->media;
     }
 
-    public function setMedia($value)
+    public function setMedia(string $media): self
     {
-        $this->media = $value;
+        $this->media = $media;
+        return $this;
     }
 
-    public function getIssue_date()
+    public function getIssue_date(): \DateTimeInterface
     {
         return $this->issue_date;
     }
 
-    public function setIssue_date($value)
+    public function setIssue_date(\DateTimeInterface $issue_date): self
     {
-        $this->issue_date = $value;
+        $this->issue_date = $issue_date;
+        return $this;
     }
 
-    public function getIssued_by()
+    public function getIssued_by(): string
     {
         return $this->issued_by;
     }
 
-    public function setIssued_by($value)
+    public function setIssued_by(string $issued_by): self
     {
-        $this->issued_by = $value;
+        $this->issued_by = $issued_by;
+        return $this;
     }
 }

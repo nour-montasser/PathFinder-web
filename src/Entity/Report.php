@@ -4,20 +4,20 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-
 #[ORM\Entity]
 class Report
 {
-
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
     private string $id_report;
 
-    #[ORM\Column(type: "bigint")]
-    private string $id_user_sender;
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "sentReports")]
+    #[ORM\JoinColumn(name: "id_user_sender", referencedColumnName: "id_user", onDelete: "CASCADE")]
+    private App_user $userSender;
 
-    #[ORM\Column(type: "bigint")]
-    private string $id_user_target;
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "targetReports")]
+    #[ORM\JoinColumn(name: "id_user_target", referencedColumnName: "id_user", onDelete: "CASCADE")]
+    private App_user $userTarget;
 
     #[ORM\Column(type: "string", length: 500)]
     private string $description;
@@ -35,24 +35,26 @@ class Report
         $this->id_report = $value;
     }
 
-    public function getId_user_sender()
+    public function getUserSender(): App_user
     {
-        return $this->id_user_sender;
+        return $this->userSender;
     }
 
-    public function setId_user_sender($value)
+    public function setUserSender(App_user $userSender): self
     {
-        $this->id_user_sender = $value;
+        $this->userSender = $userSender;
+        return $this;
     }
 
-    public function getId_user_target()
+    public function getUserTarget(): App_user
     {
-        return $this->id_user_target;
+        return $this->userTarget;
     }
 
-    public function setId_user_target($value)
+    public function setUserTarget(App_user $userTarget): self
     {
-        $this->id_user_target = $value;
+        $this->userTarget = $userTarget;
+        return $this;
     }
 
     public function getDescription()

@@ -4,17 +4,16 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-
 #[ORM\Entity]
 class Languages
 {
-
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
     private string $id_language;
 
-    #[ORM\Column(type: "bigint")]
-    private string $id_cv;
+    #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "languages")]
+    #[ORM\JoinColumn(name: "id_cv", referencedColumnName: "id_cv", onDelete: "CASCADE")]
+    private Cv $cv;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $language_name;
@@ -22,43 +21,49 @@ class Languages
     #[ORM\Column(type: "string", length: 255)]
     private string $level;
 
-    public function getId_language()
+    // Getters and Setters
+
+    public function getId_language(): string
     {
         return $this->id_language;
     }
 
-    public function setId_language($value)
+    public function setId_language(string $id_language): self
     {
-        $this->id_language = $value;
+        $this->id_language = $id_language;
+        return $this;
     }
 
-    public function getId_cv()
+    public function getCv(): Cv
     {
-        return $this->id_cv;
+        return $this->cv;
     }
 
-    public function setId_cv($value)
+    public function setCv(?Cv $cv): self
     {
-        $this->id_cv = $value;
+        $this->cv = $cv;
+        return $this;
     }
 
-    public function getLanguage_name()
+    public function getLanguage_name(): string
     {
         return $this->language_name;
     }
 
-    public function setLanguage_name($value)
+    public function setLanguage_name(string $language_name): self
     {
-        $this->language_name = $value;
+        $this->language_name = $language_name;
+        return $this;
     }
 
-    public function getLevel()
+    public function getLevel(): string
     {
         return $this->level;
     }
 
-    public function setLevel($value)
+    public function setLevel(string $level): self
     {
-        $this->level = $value;
+        $this->level = $level;
+        return $this;
     }
 }

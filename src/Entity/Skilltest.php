@@ -4,14 +4,13 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-
 #[ORM\Entity]
 class Skilltest
 {
 
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
-    private string $id_test;
+    private int $id_test;  // Change to integer
 
     #[ORM\Column(type: "string", length: 255)]
     private string $title;
@@ -20,70 +19,71 @@ class Skilltest
     private string $description;
 
     #[ORM\Column(type: "bigint")]
-    private string $duration;
+    private int $duration;  // Change to integer
+
+    #[ORM\ManyToOne(targetEntity: Job_Offer::class, inversedBy: "skilltests")]
+    #[ORM\JoinColumn(name: "id_job_offer", referencedColumnName: "id_offer")]
+    private Job_Offer $jobOffer;  // Define relationship explicitly
 
     #[ORM\Column(type: "bigint")]
-    private string $id_job_offer;
+    private int $score_required;  // Change to integer
 
-    #[ORM\Column(type: "bigint")]
-    private string $score_required;
-
-    public function getId_test()
+    public function getId_test(): int
     {
         return $this->id_test;
     }
 
-    public function setId_test($value)
+    public function setId_test(int $value): void
     {
         $this->id_test = $value;
     }
 
-    public function getTitle()
+    public function getTitle(): string
     {
         return $this->title;
     }
 
-    public function setTitle($value)
+    public function setTitle(string $value): void
     {
         $this->title = $value;
     }
 
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function setDescription($value)
+    public function setDescription(string $value): void
     {
         $this->description = $value;
     }
 
-    public function getDuration()
+    public function getDuration(): int
     {
         return $this->duration;
     }
 
-    public function setDuration($value)
+    public function setDuration(int $value): void
     {
         $this->duration = $value;
     }
 
-    public function getId_job_offer()
+    public function getJobOffer(): Job_Offer
     {
-        return $this->id_job_offer;
+        return $this->jobOffer;
     }
 
-    public function setId_job_offer($value)
+    public function setJobOffer(?Job_Offer $jobOffer): void
     {
-        $this->id_job_offer = $value;
+        $this->jobOffer = $jobOffer;
     }
 
-    public function getScore_required()
+    public function getScore_required(): int
     {
         return $this->score_required;
     }
 
-    public function setScore_required($value)
+    public function setScore_required(int $value): void
     {
         $this->score_required = $value;
     }

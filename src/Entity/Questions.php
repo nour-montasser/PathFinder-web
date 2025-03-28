@@ -4,11 +4,9 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-
 #[ORM\Entity]
 class Questions
 {
-
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
     private string $id_question;
@@ -16,8 +14,9 @@ class Questions
     #[ORM\Column(type: "string", length: 1000)]
     private string $question;
 
-    #[ORM\Column(type: "bigint")]
-    private string $id_test;
+    #[ORM\ManyToOne(targetEntity: SkillTest::class, inversedBy: "questions")]
+    #[ORM\JoinColumn(name: "id_test", referencedColumnName: "id_test", onDelete: "CASCADE")]
+    private SkillTest $skillTest;
 
     #[ORM\Column(type: "string", length: 1000)]
     private string $responses;
@@ -48,14 +47,15 @@ class Questions
         $this->question = $value;
     }
 
-    public function getId_test()
+    public function getSkillTest(): SkillTest
     {
-        return $this->id_test;
+        return $this->skillTest;
     }
 
-    public function setId_test($value)
+    public function setSkillTest(SkillTest $skillTest): self
     {
-        $this->id_test = $value;
+        $this->skillTest = $skillTest;
+        return $this;
     }
 
     public function getResponses()

@@ -3,78 +3,81 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
 use App\Entity\App_user;
 
 #[ORM\Entity]
 class Channel
 {
-
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
-    private string $id_channel;
+    private int $id_channel;
 
-        #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "channels")]
-    #[ORM\JoinColumn(name: 'id_user1', referencedColumnName: 'id_user', onDelete: 'CASCADE')]
-    private App_user $id_user1;
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "channelsInitiated")]
+    #[ORM\JoinColumn(name: "id_user1", referencedColumnName: "id_user", onDelete: "CASCADE")]
+    private App_user $initiator;
 
-        #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "channels")]
-    #[ORM\JoinColumn(name: 'id_user2', referencedColumnName: 'id_user', onDelete: 'CASCADE')]
-    private App_user $id_user2;
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "channelsReceived")]
+    #[ORM\JoinColumn(name: "id_user2", referencedColumnName: "id_user", onDelete: "CASCADE")]
+    private App_user $receiver;
 
-    #[ORM\Column(type: "bigint")]
-    private string $rating;
+    #[ORM\Column(type: "integer")]
+    private int $rating;
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $time_created;
 
-    public function getId_channel()
+    public function getId_channel(): int
     {
         return $this->id_channel;
     }
 
-    public function setId_channel($value)
+    public function setId_channel(int $id_channel): self
     {
-        $this->id_channel = $value;
+        $this->id_channel = $id_channel;
+        return $this;
     }
 
-    public function getId_user1()
+    public function getInitiator(): App_user
     {
-        return $this->id_user1;
+        return $this->initiator;
     }
 
-    public function setId_user1($value)
+    public function setInitiator(App_user $initiator): self
     {
-        $this->id_user1 = $value;
+        $this->initiator = $initiator;
+        return $this;
     }
 
-    public function getId_user2()
+    public function getReceiver(): App_user
     {
-        return $this->id_user2;
+        return $this->receiver;
     }
 
-    public function setId_user2($value)
+    public function setReceiver(App_user $receiver): self
     {
-        $this->id_user2 = $value;
+        $this->receiver = $receiver;
+        return $this;
     }
 
-    public function getRating()
+    public function getRating(): int
     {
         return $this->rating;
     }
 
-    public function setRating($value)
+    public function setRating(int $rating): self
     {
-        $this->rating = $value;
+        $this->rating = $rating;
+        return $this;
     }
 
-    public function getTime_created()
+    public function getTime_created(): \DateTimeInterface
     {
         return $this->time_created;
     }
 
-    public function setTime_created($value)
+    public function setTime_created(\DateTimeInterface $time_created): self
     {
-        $this->time_created = $value;
+        $this->time_created = $time_created;
+        return $this;
     }
 }

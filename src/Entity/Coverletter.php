@@ -3,62 +3,66 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
+use App\Entity\Application_job;
 
 #[ORM\Entity]
 class Coverletter
 {
-
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
-    private string $id_CoverLetter;
+    private int $id_cover_letter;
 
-    #[ORM\Column(type: "bigint")]
-    private string $id_app;
+    #[ORM\OneToOne(targetEntity: Application_job::class)]
+    #[ORM\JoinColumn(name: "id_app", referencedColumnName: "application_id")]
+    private Application_job $application;
 
-    #[ORM\Column(type: "string", length: 5000)]
+    #[ORM\Column(type: "text", length: 5000)]
     private string $content;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $subject;
 
-    public function getId_CoverLetter()
+    public function getId_cover_letter(): int
     {
-        return $this->id_CoverLetter;
+        return $this->id_cover_letter;
     }
 
-    public function setId_CoverLetter($value)
+    public function setId_cover_letter(int $id_cover_letter): self
     {
-        $this->id_CoverLetter = $value;
+        $this->id_cover_letter = $id_cover_letter;
+        return $this;
     }
 
-    public function getId_app()
+    public function getApplication(): Application_job
     {
-        return $this->id_app;
+        return $this->application;
     }
 
-    public function setId_app($value)
+    public function setApplication(Application_job $application): self
     {
-        $this->id_app = $value;
+        $this->application = $application;
+        return $this;
     }
 
-    public function getContent()
+    public function getContent(): string
     {
         return $this->content;
     }
 
-    public function setContent($value)
+    public function setContent(string $content): self
     {
-        $this->content = $value;
+        $this->content = $content;
+        return $this;
     }
 
-    public function getSubject()
+    public function getSubject(): string
     {
         return $this->subject;
     }
 
-    public function setSubject($value)
+    public function setSubject(string $subject): self
     {
-        $this->subject = $value;
+        $this->subject = $subject;
+        return $this;
     }
 }

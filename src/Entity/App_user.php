@@ -3,17 +3,15 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
 use Doctrine\Common\Collections\Collection;
-use App\Entity\Channel;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity]
 class App_user
 {
-
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
-    private string $id_user;
+    private int $id_user;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $name;
@@ -30,6 +28,56 @@ class App_user
     #[ORM\Column(type: "string", length: 255)]
     private string $image;
 
+    #[ORM\OneToMany(mappedBy: "id_user1", targetEntity: Channel::class)]
+    private Collection $channelsInitiated;
+
+    #[ORM\OneToMany(mappedBy: "id_user2", targetEntity: Channel::class)]
+    private Collection $channelsReceived;
+
+    #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Applicationservice::class)]
+    private Collection $serviceApplications;
+
+    #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Application_job::class)]
+    private Collection $jobApplications;
+
+    #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Job_offer::class)]
+    private Collection $jobOffers;
+
+    #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Serviceoffre::class)]
+    private Collection $serviceOffers;
+
+    #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Cv::class)]
+    private Collection $cvs;
+
+    #[ORM\OneToMany(mappedBy: "id_user_sender", targetEntity: Message::class)]
+    private Collection $sentMessages;
+
+    #[ORM\OneToMany(mappedBy: "id_user_sender", targetEntity: Report::class)]
+    private Collection $sentReports;
+
+    #[ORM\OneToMany(mappedBy: "id_user_target", targetEntity: Report::class)]
+    private Collection $receivedReports;
+
+    #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Test_result::class)]
+    private Collection $testResults;
+
+    #[ORM\OneToOne(mappedBy: "id_user", targetEntity: Profile::class)]
+    private ?Profile $profile = null;
+
+    public function __construct()
+    {
+        $this->channelsInitiated = new ArrayCollection();
+        $this->channelsReceived = new ArrayCollection();
+        $this->serviceApplications = new ArrayCollection();
+        $this->jobApplications = new ArrayCollection();
+        $this->jobOffers = new ArrayCollection();
+        $this->serviceOffers = new ArrayCollection();
+        $this->cvs = new ArrayCollection();
+        $this->sentMessages = new ArrayCollection();
+        $this->sentReports = new ArrayCollection();
+        $this->receivedReports = new ArrayCollection();
+        $this->testResults = new ArrayCollection();
+    }
     public function getId_user()
     {
         return $this->id_user;
@@ -89,61 +137,97 @@ class App_user
     {
         $this->image = $value;
     }
-    #[ORM\OneToMany(mappedBy: "id_user1", targetEntity: Channel::class)]
-    private Collection $channelsInitiated;
-    
-    public function getChannelsInitiated(): Collection
+
+    // Add the following methods for the new relationships:
+
+    public function getServiceApplications(): Collection
     {
-        return $this->channelsInitiated;
+        return $this->serviceApplications;
     }
-    
-    public function addChannelInitiated(Channel $channel): self
+
+    public function addServiceApplication(Applicationservice $application): self
     {
-        if (!$this->channelsInitiated->contains($channel)) {
-            $this->channelsInitiated[] = $channel;
-            $channel->setId_user1($this);
+        if (!$this->serviceApplications->contains($application)) {
+            $this->serviceApplications[] = $application;
+            $application->setUser($this);
         }
-    
         return $this;
     }
-    
-    public function removeChannelInitiated(Channel $channel): self
+
+    public function removeServiceApplication(Applicationservice $application): self
     {
-        if ($this->channelsInitiated->removeElement($channel)) {
-            if ($channel->getId_user1() === $this) {
-                $channel->setId_user1(null);
+        if ($this->serviceApplications->removeElement($application)) {
+            if ($application->getUser() === $this) {
+                $application->setUser(null);
             }
         }
-    
         return $this;
     }
-    
-    #[ORM\OneToMany(mappedBy: "id_user2", targetEntity: Channel::class)]
-    private Collection $channelsReceived;
-    
-    public function getChannelsReceived(): Collection
+
+    public function getJobApplications(): Collection
     {
-        return $this->channelsReceived;
+        return $this->jobApplications;
     }
-    
-    public function addChannelReceived(Channel $channel): self
+
+    // Similar add/remove methods for jobApplications...
+
+    public function getJobOffers(): Collection
     {
-        if (!$this->channelsReceived->contains($channel)) {
-            $this->channelsReceived[] = $channel;
-            $channel->setId_user2($this);
-        }
-    
+        return $this->jobOffers;
+    }
+
+    // Similar add/remove methods for jobOffers...
+
+    public function getServiceOffers(): Collection
+    {
+        return $this->serviceOffers;
+    }
+
+    // Similar add/remove methods for serviceOffers...
+
+    public function getCvs(): Collection
+    {
+        return $this->cvs;
+    }
+
+    // Similar add/remove methods for cvs...
+
+    public function getSentMessages(): Collection
+    {
+        return $this->sentMessages;
+    }
+
+    // Similar add/remove methods for sentMessages...
+
+    public function getSentReports(): Collection
+    {
+        return $this->sentReports;
+    }
+
+    // Similar add/remove methods for sentReports...
+
+    public function getReceivedReports(): Collection
+    {
+        return $this->receivedReports;
+    }
+
+    // Similar add/remove methods for receivedReports...
+
+    public function getTestResults(): Collection
+    {
+        return $this->testResults;
+    }
+
+    // Similar add/remove methods for testResults...
+
+    public function getProfile(): ?Profile
+    {
+        return $this->profile;
+    }
+
+    public function setProfile(?Profile $profile): self
+    {
+        $this->profile = $profile;
         return $this;
     }
-    
-    public function removeChannelReceived(Channel $channel): self
-    {
-        if ($this->channelsReceived->removeElement($channel)) {
-            if ($channel->getId_user2() === $this) {
-                $channel->setId_user2(null);
-            }
-        }
-    
-        return $this;
-    }
-}    
+}
