@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Questions
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private string $id_question;
 

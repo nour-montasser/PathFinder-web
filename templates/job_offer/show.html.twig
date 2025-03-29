@@ -1,0 +1,197 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ job_offer.title }}{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+    <div class="row">
+        <!-- Left Sidebar (1/4 width) -->
+        <div class="col-lg-3">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="position-relative mb-3">
+                        <img src="{{ asset(job_offer.user.image ?: 'images/default-company.png') }}" 
+                             class="rounded-circle border border-3 border-primary" 
+                             width="120" 
+                             alt="Company Logo">
+                        <span class="position-absolute bottom-0 end-0 bg-success p-2 rounded-circle">
+                            <i class="bi bi-check-lg text-white"></i>
+                        </span>
+                    </div>
+                    <h4>{{ job_offer.user.name }}</h4>
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge bg-light text-dark">
+                            <i class="bi bi-building me-1"></i> Tech
+                        </span>
+                        <span class="badge bg-light text-dark">
+                            <i class="bi bi-people me-1"></i> 150+
+                        </span>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye"></i> View Profile
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-bookmark"></i> Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Job Snapshot</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-calendar text-primary me-2"></i>
+                            <strong>Posted:</strong> {{ job_offer.datePosted|date('M d, Y') }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-briefcase text-primary me-2"></i>
+                            <strong>Type:</strong> {{ job_offer.type }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-geo-alt text-primary me-2"></i>
+                            <strong>Location:</strong> {{ job_offer.address }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-cash-stack text-primary me-2"></i>
+                            <strong>Salary:</strong> $70k - $90k
+                        </li>
+                        <li>
+                            <i class="bi bi-clock text-primary me-2"></i>
+                            <strong>Deadline:</strong> May 15, 2023
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content (1/2 width) -->
+        <div class="col-lg-6">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-1">{{ job_offer.title }}</h1>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-white text-primary">
+                            <i class="bi bi-star-fill me-1"></i> Featured
+                        </span>
+                        <span class="badge bg-light text-dark">
+                            <i class="bi bi-lightning-charge me-1"></i> Urgent
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h3 class="h5"><i class="bi bi-file-text"></i> Description</h3>
+                        <p>{{ job_offer.description }}</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h3 class="h5"><i class="bi bi-list-check"></i> Requirements</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <i class="bi bi-mortarboard text-primary me-2"></i>
+                                        {{ job_offer.requiredEducation }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="bi bi-briefcase text-primary me-2"></i>
+                                        {{ job_offer.requiredExperience }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <i class="bi bi-tools text-primary me-2"></i>
+                                        {{ job_offer.skills }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="bi bi-people text-primary me-2"></i>
+                                        {{ job_offer.numberOfSpots }} openings
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill"></i> 
+                        Applications functionality coming soon. Check back later!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar (1/4 width) -->
+        <div class="col-lg-3">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Views</span>
+                            <strong>124</strong>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-info" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Applications</span>
+                            <strong>18</strong>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Your Match</span>
+                            <strong>82%</strong>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" style="width: 82%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-share"></i> Share This Job</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary">
+                            <i class="bi bi-linkedin"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-info">
+                            <i class="bi bi-twitter"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger">
+                            <i class="bi bi-envelope"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary">
+                            <i class="bi bi-link-45deg"></i>
+                        </button>
+                    </div>
+                    <hr>
+                    <button class="btn btn-primary w-100">
+                        <i class="bi bi-bell"></i> Set Alert for Similar Jobs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

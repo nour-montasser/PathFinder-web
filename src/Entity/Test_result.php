@@ -9,6 +9,7 @@ class Test_result
 {
 
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_result;  // Change to integer or big integer
 
@@ -28,9 +29,9 @@ class Test_result
     private bool $status;
 
     // Adding relationships for easier ORM mapping
-    #[ORM\ManyToOne(targetEntity: App_user::class)]
+    #[ORM\ManyToOne(targetEntity: AppUser::class)]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user")]
-    private App_user $user;
+    private AppUser $user;
 
     #[ORM\ManyToOne(targetEntity: Skilltest::class)]
     #[ORM\JoinColumn(name: "id_test", referencedColumnName: "id_test")]
@@ -46,12 +47,12 @@ class Test_result
         $this->id_result = $value;
     }
 
-    public function getId_user(): int
+    public function getid_user(): int
     {
         return $this->id_user;
     }
 
-    public function setId_user(int $value): void
+    public function setid_user(int $value): void
     {
         $this->id_user = $value;
     }
@@ -97,13 +98,13 @@ class Test_result
     }
 
     // Getter for user relationship
-    public function getUser(): App_user
+    public function getUser(): AppUser
     {
         return $this->user;
     }
 
     // Setter for user relationship
-    public function setUser(App_user $user): void
+    public function setUser(AppUser $user): void
     {
         $this->user = $user;
     }

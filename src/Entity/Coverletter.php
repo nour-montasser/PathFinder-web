@@ -3,18 +3,19 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Application_job;
+use App\Entity\ApplicationJob;
 
 #[ORM\Entity]
 class Coverletter
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_cover_letter;
 
-    #[ORM\OneToOne(targetEntity: Application_job::class)]
+    #[ORM\OneToOne(targetEntity: ApplicationJob::class)]
     #[ORM\JoinColumn(name: "id_app", referencedColumnName: "application_id")]
-    private Application_job $application;
+    private ApplicationJob $application;
 
     #[ORM\Column(type: "text", length: 5000)]
     private string $content;
@@ -33,12 +34,12 @@ class Coverletter
         return $this;
     }
 
-    public function getApplication(): Application_job
+    public function getApplication(): ApplicationJob
     {
         return $this->application;
     }
 
-    public function setApplication(Application_job $application): self
+    public function setApplication(ApplicationJob $application): self
     {
         $this->application = $application;
         return $this;

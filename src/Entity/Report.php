@@ -8,16 +8,17 @@ use Doctrine\ORM\Mapping as ORM;
 class Report
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private string $id_report;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "sentReports")]
+    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "sentReports")]
     #[ORM\JoinColumn(name: "id_user_sender", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private App_user $userSender;
+    private AppUser $userSender;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "targetReports")]
+    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "targetReports")]
     #[ORM\JoinColumn(name: "id_user_target", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private App_user $userTarget;
+    private AppUser $userTarget;
 
     #[ORM\Column(type: "string", length: 500)]
     private string $description;
@@ -35,23 +36,23 @@ class Report
         $this->id_report = $value;
     }
 
-    public function getUserSender(): App_user
+    public function getUserSender(): AppUser
     {
         return $this->userSender;
     }
 
-    public function setUserSender(App_user $userSender): self
+    public function setUserSender(AppUser $userSender): self
     {
         $this->userSender = $userSender;
         return $this;
     }
 
-    public function getUserTarget(): App_user
+    public function getUserTarget(): AppUser
     {
         return $this->userTarget;
     }
 
-    public function setUserTarget(App_user $userTarget): self
+    public function setUserTarget(AppUser $userTarget): self
     {
         $this->userTarget = $userTarget;
         return $this;
