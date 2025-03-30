@@ -15,7 +15,7 @@ class ApplicationJob
     private int $application_id;
 
     #[ORM\ManyToOne(targetEntity: JobOffer::class, inversedBy: "applications")]
-    #[ORM\JoinColumn(name: "JobOffer_id", referencedColumnName: "idOffer")]
+    #[ORM\JoinColumn(name: "JobOffer_id", referencedColumnName: "id_offer")]
     private JobOffer $jobOffer;
 
     #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "jobApplications")]

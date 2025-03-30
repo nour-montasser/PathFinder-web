@@ -1,4 +1,8 @@
-<form method="post" action="{{ path('app_job_offer_delete', {'idOffer': job_offer.idOffer}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ job_offer.idOffer) }}">
-    <button class="btn">Delete</button>
+<form method="post" action="{{ path('app_job_offer_delete', {'id_offer': job_offer.getIdOffer()}) }}" 
+      onsubmit="return confirm('Are you sure you want to delete this job offer?');"
+      class="d-inline">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ job_offer.getIdOffer()) }}">
+    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+        <i class="bi bi-trash"></i>
+    </button>
 </form>

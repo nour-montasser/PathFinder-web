@@ -23,7 +23,7 @@ class Skilltest
     private int $duration;  // Change to integer
 
     #[ORM\ManyToOne(targetEntity: JobOffer::class, inversedBy: "skilltests")]
-    #[ORM\JoinColumn(name: "id_JobOffer", referencedColumnName: "idOffer")]
+    #[ORM\JoinColumn(name: "id_JobOffer", referencedColumnName: "id_offer")]
     private JobOffer $jobOffer;  // Define relationship explicitly
 
     #[ORM\Column(type: "bigint")]

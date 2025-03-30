@@ -15,7 +15,7 @@ class JobOffer
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
-    private int $idOffer;
+    private int $id_offer;
 
     #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "jobOffers")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
@@ -33,13 +33,13 @@ class JobOffer
     #[ORM\Column(type: "string", length: 255)]
     private string $type;
 
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(name: "number_of_spots", type: "integer")]
     private int $numberOfSpots;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(name: "required_education" , type: "string", length: 255)]
     private string $requiredEducation;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(name: "required_experience" , type: "string", length: 255)]
     private string $requiredExperience;
 
     #[ORM\Column(type: "string", length: 255)]
@@ -49,7 +49,7 @@ class JobOffer
     private string $field;
 
     #[ORM\Column(type: "string", length: 255)]
-    private string $address;
+    private string $address = '';
 
     #[ORM\OneToMany(mappedBy: "jobOffer", targetEntity: ApplicationJob::class)]
     private Collection $applications;
@@ -65,12 +65,12 @@ class JobOffer
 
     public function getidOffer(): int
     {
-        return $this->idOffer;
+        return $this->id_offer;
     }
 
     public function setidOffer(int $idOffer): self
     {
-        $this->idOffer = $idOffer;
+        $this->id_offer = $idOffer;
         return $this;
     }
 
@@ -189,11 +189,7 @@ class JobOffer
         return $this->address;
     }
 
-    public function setAddress(string $address): self
-    {
-        $this->address = $address;
-        return $this;
-    }
+  
 
     public function getApplications(): Collection
     {
@@ -242,4 +238,64 @@ class JobOffer
         }
         return $this;
     }
+
+
+
+
+public const JOB_TYPES = [
+    'Full-time',
+    'Part-time', 
+    'Fixed-term contract',
+    'Long-term contract'
+];
+
+public const FIELDS = [
+    'IT jobs',
+    'Sales jobs',
+    'Unknown'
+];
+
+public const EDUCATION_LEVELS = [
+    'High School',
+    'Bachelor\'s degree',
+    'Licence',
+    'Master\'s degree',
+    'Doctorate',
+    'Postdoc',
+    'PhD'
+];
+
+public function setAddress(string $address): self
+{
+    $this->address = $address;
+    return $this;
+}
+
+// Add these new methods to handle city/country
+public function getCity(): ?string
+{
+    $parts = explode(',', $this->address);
+    return $parts[0] ?? null;
+}
+
+public function getCountry(): ?string
+{
+    $parts = explode(',', $this->address);
+    return trim($parts[1] ?? '');
+}
+
+public static function getJobTypes(): array
+{
+    return self::JOB_TYPES;
+}
+
+public static function getFields(): array
+{
+    return self::FIELDS;
+}
+
+public static function getEducationLevels(): array
+{
+    return self::EDUCATION_LEVELS;
+}
 }
