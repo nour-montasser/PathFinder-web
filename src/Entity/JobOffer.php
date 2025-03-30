@@ -5,20 +5,21 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
-use App\Entity\App_user;
-use App\Entity\Application_job;
+use App\Entity\AppUser;
+use App\Entity\ApplicationJob;
 use App\Entity\Skilltest;
 
 #[ORM\Entity]
-class Job_offer
+class JobOffer
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
-    private int $id_offer;
+    private int $idOffer;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "jobOffers")]
+    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "jobOffers")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private App_user $user;
+    private AppUser $user;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $title;
@@ -27,19 +28,19 @@ class Job_offer
     private string $description;
 
     #[ORM\Column(type: "datetime")]
-    private \DateTimeInterface $date_posted;
+    private \DateTimeInterface $datePosted;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $type;
 
     #[ORM\Column(type: "integer")]
-    private int $number_of_spots;
+    private int $numberOfSpots;
 
     #[ORM\Column(type: "string", length: 255)]
-    private string $required_education;
+    private string $requiredEducation;
 
     #[ORM\Column(type: "string", length: 255)]
-    private string $required_experience;
+    private string $requiredExperience;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $skills;
@@ -50,7 +51,7 @@ class Job_offer
     #[ORM\Column(type: "string", length: 255)]
     private string $address;
 
-    #[ORM\OneToMany(mappedBy: "jobOffer", targetEntity: Application_job::class)]
+    #[ORM\OneToMany(mappedBy: "jobOffer", targetEntity: ApplicationJob::class)]
     private Collection $applications;
 
     #[ORM\OneToMany(mappedBy: "jobOffer", targetEntity: Skilltest::class)]
@@ -62,23 +63,23 @@ class Job_offer
         $this->skillTests = new ArrayCollection();
     }
 
-    public function getId_offer(): int
+    public function getidOffer(): int
     {
-        return $this->id_offer;
+        return $this->idOffer;
     }
 
-    public function setId_offer(int $id_offer): self
+    public function setidOffer(int $idOffer): self
     {
-        $this->id_offer = $id_offer;
+        $this->idOffer = $idOffer;
         return $this;
     }
 
-    public function getUser(): App_user
+    public function getUser(): AppUser
     {
         return $this->user;
     }
 
-    public function setUser(App_user $user): self
+    public function setUser(AppUser $user): self
     {
         $this->user = $user;
         return $this;
@@ -106,14 +107,14 @@ class Job_offer
         return $this;
     }
 
-    public function getDate_posted(): \DateTimeInterface
+    public function getdatePosted(): \DateTimeInterface
     {
-        return $this->date_posted;
+        return $this->datePosted;
     }
 
-    public function setDate_posted(\DateTimeInterface $date_posted): self
+    public function setdatePosted(\DateTimeInterface $datePosted): self
     {
-        $this->date_posted = $date_posted;
+        $this->datePosted = $datePosted;
         return $this;
     }
 
@@ -128,36 +129,36 @@ class Job_offer
         return $this;
     }
 
-    public function getNumber_of_spots(): int
+    public function getNumberOfSpots(): int
     {
-        return $this->number_of_spots;
+        return $this->numberOfSpots;
     }
 
-    public function setNumber_of_spots(int $number_of_spots): self
+    public function setNumberOfSpots(int $numberOfSpots): self
     {
-        $this->number_of_spots = $number_of_spots;
+        $this->numberOfSpots = $numberOfSpots;
         return $this;
     }
 
-    public function getRequired_education(): string
+    public function getRequiredEducation(): string
     {
-        return $this->required_education;
+        return $this->requiredEducation;
     }
 
-    public function setRequired_education(string $required_education): self
+    public function setRequiredEducation(string $requiredEducation): self
     {
-        $this->required_education = $required_education;
+        $this->requiredEducation = $requiredEducation;
         return $this;
     }
 
-    public function getRequired_experience(): string
+    public function getRequiredExperience(): string
     {
-        return $this->required_experience;
+        return $this->requiredExperience;
     }
 
-    public function setRequired_experience(string $required_experience): self
+    public function setRequiredExperience(string $requiredExperience): self
     {
-        $this->required_experience = $required_experience;
+        $this->requiredExperience = $requiredExperience;
         return $this;
     }
 
@@ -199,7 +200,7 @@ class Job_offer
         return $this->applications;
     }
 
-    public function addApplication(Application_job $application): self
+    public function addApplication(ApplicationJob $application): self
     {
         if (!$this->applications->contains($application)) {
             $this->applications[] = $application;
@@ -208,7 +209,7 @@ class Job_offer
         return $this;
     }
 
-    public function removeApplication(Application_job $application): self
+    public function removeApplication(ApplicationJob $application): self
     {
         if ($this->applications->removeElement($application)) {
             if ($application->getJobOffer() === $this) {

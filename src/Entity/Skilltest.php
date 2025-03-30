@@ -9,6 +9,7 @@ class Skilltest
 {
 
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_test;  // Change to integer
 
@@ -21,9 +22,9 @@ class Skilltest
     #[ORM\Column(type: "bigint")]
     private int $duration;  // Change to integer
 
-    #[ORM\ManyToOne(targetEntity: Job_Offer::class, inversedBy: "skilltests")]
-    #[ORM\JoinColumn(name: "id_job_offer", referencedColumnName: "id_offer")]
-    private Job_Offer $jobOffer;  // Define relationship explicitly
+    #[ORM\ManyToOne(targetEntity: JobOffer::class, inversedBy: "skilltests")]
+    #[ORM\JoinColumn(name: "id_JobOffer", referencedColumnName: "idOffer")]
+    private JobOffer $jobOffer;  // Define relationship explicitly
 
     #[ORM\Column(type: "bigint")]
     private int $score_required;  // Change to integer
@@ -68,12 +69,12 @@ class Skilltest
         $this->duration = $value;
     }
 
-    public function getJobOffer(): Job_Offer
+    public function getJobOffer(): JobOffer
     {
         return $this->jobOffer;
     }
 
-    public function setJobOffer(?Job_Offer $jobOffer): void
+    public function setJobOffer(?JobOffer $jobOffer): void
     {
         $this->jobOffer = $jobOffer;
     }

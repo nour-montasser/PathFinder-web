@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 class Serviceoffre
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private string $id_service;
 
@@ -67,12 +68,12 @@ class Serviceoffre
         return $this;
     }
 
-    public function getId_user(): string
+    public function getid_user(): string
     {
         return $this->id_user;
     }
 
-    public function setId_user(string $value): self
+    public function setid_user(string $value): self
     {
         $this->id_user = $value;
         return $this;

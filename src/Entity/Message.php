@@ -3,22 +3,23 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\App_user;
+use App\Entity\AppUser;
 use App\Entity\Channel;
 
 #[ORM\Entity]
 class Message
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_message;
 
     #[ORM\Column(type: "text", length: 500)]
     private string $content;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class)]
+    #[ORM\ManyToOne(targetEntity: AppUser::class)]
     #[ORM\JoinColumn(name: "id_user_sender", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private App_user $sender;
+    private AppUser $sender;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $media = null;
@@ -52,12 +53,12 @@ class Message
         return $this;
     }
 
-    public function getSender(): App_user
+    public function getSender(): AppUser
     {
         return $this->sender;
     }
 
-    public function setSender(App_user $sender): self
+    public function setSender(AppUser $sender): self
     {
         $this->sender = $sender;
         return $this;

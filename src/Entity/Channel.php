@@ -3,22 +3,23 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\App_user;
+use App\Entity\AppUser;
 
 #[ORM\Entity]
 class Channel
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_channel;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "channelsInitiated")]
+    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "channelsInitiated")]
     #[ORM\JoinColumn(name: "id_user1", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private App_user $initiator;
+    private AppUser $initiator;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "channelsReceived")]
+    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "channelsReceived")]
     #[ORM\JoinColumn(name: "id_user2", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private App_user $receiver;
+    private AppUser $receiver;
 
     #[ORM\Column(type: "integer")]
     private int $rating;
@@ -37,23 +38,23 @@ class Channel
         return $this;
     }
 
-    public function getInitiator(): App_user
+    public function getInitiator(): AppUser
     {
         return $this->initiator;
     }
 
-    public function setInitiator(App_user $initiator): self
+    public function setInitiator(AppUser $initiator): self
     {
         $this->initiator = $initiator;
         return $this;
     }
 
-    public function getReceiver(): App_user
+    public function getReceiver(): AppUser
     {
         return $this->receiver;
     }
 
-    public function setReceiver(App_user $receiver): self
+    public function setReceiver(AppUser $receiver): self
     {
         $this->receiver = $receiver;
         return $this;

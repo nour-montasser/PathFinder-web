@@ -3,24 +3,24 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Job_offer;
-use App\Entity\App_user;
+use App\Entity\JobOffer;
+use App\Entity\AppUser;
 use App\Entity\Cv;
 
 #[ORM\Entity]
-class Application_job
+class ApplicationJob
 {
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
     private int $application_id;
 
-    #[ORM\ManyToOne(targetEntity: Job_offer::class, inversedBy: "applications")]
-    #[ORM\JoinColumn(name: "job_offer_id", referencedColumnName: "id_offer")]
-    private Job_offer $jobOffer;
+    #[ORM\ManyToOne(targetEntity: JobOffer::class, inversedBy: "applications")]
+    #[ORM\JoinColumn(name: "JobOffer_id", referencedColumnName: "idOffer")]
+    private JobOffer $jobOffer;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "jobApplications")]
+    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "jobApplications")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user")]
-    private App_user $user;
+    private AppUser $user;
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $date_application;
@@ -43,23 +43,23 @@ class Application_job
         return $this;
     }
 
-    public function getJobOffer(): Job_offer
+    public function getJobOffer(): JobOffer
     {
         return $this->jobOffer;
     }
 
-    public function setJobOffer(?Job_offer $jobOffer): self
+    public function setJobOffer(?JobOffer $jobOffer): self
     {
         $this->jobOffer = $jobOffer;
         return $this;
     }
 
-    public function getUser(): App_user
+    public function getUser(): AppUser
     {
         return $this->user;
     }
 
-    public function setUser(App_user $user): self
+    public function setUser(AppUser $user): self
     {
         $this->user = $user;
         return $this;

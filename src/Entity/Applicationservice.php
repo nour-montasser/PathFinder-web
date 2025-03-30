@@ -4,12 +4,13 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Serviceoffre;
-use App\Entity\App_user;
+use App\Entity\AppUser;
 
 #[ORM\Entity]
 class Applicationservice
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_app;
 
@@ -17,9 +18,9 @@ class Applicationservice
     #[ORM\JoinColumn(name: 'id_service', referencedColumnName: 'id_service', onDelete: 'CASCADE')]
     private Serviceoffre $service;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class)]
+    #[ORM\ManyToOne(targetEntity: AppUser::class)]
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user')]
-    private App_user $user;
+    private AppUser $user;
 
     #[ORM\Column(type: "float")]
     private float $price_offre;
@@ -52,12 +53,12 @@ class Applicationservice
         return $this;
     }
 
-    public function getUser(): App_user
+    public function getUser(): AppUser
     {
         return $this->user;
     }
 
-    public function setUser(?App_user $user): self
+    public function setUser(?AppUser $user): self
     {
         $this->user = $user;
         return $this;

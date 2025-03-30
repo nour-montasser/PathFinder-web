@@ -3,15 +3,15 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\App_user;
+use App\Entity\AppUser;
 
 #[ORM\Entity]
 class Profile
 {
     #[ORM\Id]
-    #[ORM\OneToOne(targetEntity: App_user::class)]
+    #[ORM\OneToOne(targetEntity: AppUser::class, inversedBy: 'profile')]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private App_user $user;
+    private AppUser $user;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $address;
@@ -31,12 +31,12 @@ class Profile
     #[ORM\Column(type: "text", length: 500)]
     private string $bio;
 
-    public function getUser(): App_user
+    public function getUser(): AppUser
     {
         return $this->user;
     }
 
-    public function setUser(App_user $user): self
+    public function setUser(AppUser $user): self
     {
         $this->user = $user;
         return $this;

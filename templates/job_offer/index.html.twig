@@ -1,24 +1,100 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello JobOfferController!{% endblock %}
+{% block title %}Job Offers{% endblock %}
 
 {% block body %}
+<section class="section">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="card-title">Job Offers</h4>
+            <a href="{{ path('app_job_offer_new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create New
+            </a>
+        </div>
+        <div class="card-body">
+            {% if job_offers is empty %}
+                <div class="alert alert-info">No job offers found</div>
+            {% else %}
+                <div class="row">
+                    {% for job_offer in job_offers %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 job-card">
+                            <div class="card-header bg-light-primary">
+                                <h5 class="card-title mb-0">{{ job_offer.title }}</h5>
+                                <small class="text-muted">#{{ job_offer.idOffer }}</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3 text-truncate" style="max-height: 100px; overflow: hidden;">
+                                    {{ job_offer.description }}
+                                </div>
+                                
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <span class="badge bg-primary">{{ job_offer.type }}</span>
+                                    <span class="badge bg-secondary">{{ job_offer.field }}</span>
+                                    <span class="badge bg-info">{{ job_offer.numberOfSpots }} positions</span>
+                                </div>
+                                
+                                <div class="job-meta mb-3">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="bi bi-mortarboard me-2"></i>
+                                        <span>{{ job_offer.requiredEducation }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="bi bi-briefcase me-2"></i>
+                                        <span>{{ job_offer.requiredExperience }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-geo-alt me-2"></i>
+                                        <span>{{ job_offer.address }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="skills mb-3">
+                                    <h6 class="small text-muted mb-1">Skills:</h6>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for skill in job_offer.skills|split(',') %}
+                                            <span class="badge bg-light text-dark border">{{ skill|trim }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent d-flex justify-content-between">
+                                <small class="text-muted">
+                                    Posted: {{ job_offer.datePosted ? job_offer.datePosted|date('M d, Y') : 'N/A' }}
+                                </small>
+                                <div class="action-buttons">
+                                    <a href="{{ path('app_job_offer_show', {'idOffer': job_offer.idOffer}) }}" 
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="View details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_job_offer_edit', {'idOffer': job_offer.idOffer}) }}" 
+                                       class="btn btn-sm btn-outline-secondary"
+                                       title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
 <style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+    .job-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .job-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .job-meta i {
+        min-width: 20px;
+        text-align: center;
+    }
 </style>
-
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/xampp/htdocs/PathFinder/src/Controller/JobOfferController.php</code></li>
-        <li>Your template at <code>C:/xampp/htdocs/PathFinder/templates/job_offer/index.html.twig</code></li>
-    </ul>
-</div>
-
-
-  <a href="#" class="btn btn-secondary rounded-pill icon">Primary</a>
-  <h1>Job Offers</h1>
 {% endblock %}
