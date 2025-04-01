@@ -15,7 +15,7 @@ class Report
     #[ORM\JoinColumn(name: "id_user_sender", referencedColumnName: "id_user", onDelete: "CASCADE")]
     private App_user $userSender;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "targetReports")]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "receivedReports")]
     #[ORM\JoinColumn(name: "id_user_target", referencedColumnName: "id_user", onDelete: "CASCADE")]
     private App_user $userTarget;
 

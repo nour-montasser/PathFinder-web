@@ -17,7 +17,7 @@ class Applicationservice
     #[ORM\JoinColumn(name: 'id_service', referencedColumnName: 'id_service', onDelete: 'CASCADE')]
     private Serviceoffre $service;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class)]
+    #[ORM\ManyToOne(targetEntity: App_user::class,inversedBy: "serviceApplications")]
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user')]
     private App_user $user;
 

@@ -28,9 +28,10 @@ class Application_job
     #[ORM\Column(type: "string", length: 50)]
     private string $status;
 
-    #[ORM\ManyToOne(targetEntity: Cv::class)]
+    #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "applications")]
     #[ORM\JoinColumn(name: "cv_id", referencedColumnName: "id_cv")]
     private Cv $cv;
+    
 
     public function getApplication_id(): string
     {

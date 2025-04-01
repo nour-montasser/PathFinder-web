@@ -73,6 +73,16 @@ class Cv
         $this->id_cv = $id_cv;
         return $this;
     }
+    public function getId(): int
+    {
+        return $this->id_cv;
+    }
+
+    public function setId(int $id_cv): self
+    {
+        $this->id_cv = $id_cv;
+        return $this;
+    }
 
     public function getUser(): App_user
     {

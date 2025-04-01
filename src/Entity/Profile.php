@@ -9,9 +9,11 @@ use App\Entity\App_user;
 class Profile
 {
     #[ORM\Id]
-    #[ORM\OneToOne(targetEntity: App_user::class)]
+    #[ORM\OneToOne(targetEntity: App_user::class, inversedBy: "profile")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
     private App_user $user;
+    
+    
 
     #[ORM\Column(type: "string", length: 255)]
     private string $address;

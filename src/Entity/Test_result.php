@@ -27,10 +27,10 @@ class Test_result
     #[ORM\Column(type: "boolean")]
     private bool $status;
 
-    // Adding relationships for easier ORM mapping
-    #[ORM\ManyToOne(targetEntity: App_user::class)]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "testResults")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user")]
     private App_user $user;
+    
 
     #[ORM\ManyToOne(targetEntity: Skilltest::class)]
     #[ORM\JoinColumn(name: "id_test", referencedColumnName: "id_test")]
