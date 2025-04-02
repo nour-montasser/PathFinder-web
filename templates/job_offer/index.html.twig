@@ -35,8 +35,8 @@
                                                     <small class="text-muted">{{ job_offer.user.name }}</small>
                                                 </div>
                                             </div>
-                                            <span class="badge bg-{{ job_offer.numberOfSpots > 0 ? 'success' : 'danger' }}">
-                                                {{ job_offer.numberOfSpots }} spots
+                                            <span class="badge bg-{{ job_offer.getNumberOfSpots() > 0 ? 'success' : 'danger' }}">
+                                                {{ job_offer.getNumberOfSpots }} spots
                                             </span>
                                         </div>
                                         <div class="card-body">
@@ -47,7 +47,7 @@
                                             <div class="d-flex flex-wrap gap-2 mb-3">
                                                 <span class="badge bg-primary">{{ job_offer.type }}</span>
                                                 <span class="badge bg-secondary">{{ job_offer.field }}</span>
-                                                {% if job_offer.datePosted > date('-2days') %}
+                                                {% if job_offer.getDatePosted > date('-2days') %}
                                                     <span class="badge bg-danger">New</span>
                                                 {% endif %}
                                             </div>
@@ -55,11 +55,11 @@
                                             <div class="job-meta mb-3">
                                                 <div class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-mortarboard me-2 text-primary"></i>
-                                                    <span>{{ job_offer.requiredEducation }}</span>
+                                                    <span>{{ job_offer.getRequiredEducation }}</span>
                                                 </div>
                                                 <div class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-briefcase me-2 text-primary"></i>
-                                                    <span>{{ job_offer.requiredExperience }}</span>
+                                                    <span>{{ job_offer.getRequiredExperience }}</span>
                                                 </div>
                                             </div>
                                             <div class="skills mb-3">
@@ -79,7 +79,7 @@
                                         <div class="card-footer bg-transparent">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <small class="text-muted">
-                                                    <i class="bi bi-calendar"></i> {{ job_offer.datePosted|date('M d, Y') }}
+                                                    <i class="bi bi-calendar"></i> {{ job_offer.getDatePosted|date('M d, Y') }}
                                                 </small>
                                                 <div class="btn-group" role="group">
                                                     <a href="{{ path('app_job_offer_show', {'id_offer': job_offer.getIdOffer()}) }}" 
@@ -137,11 +137,25 @@
                     <div class="card-body">
                         <form method="get" action="{{ path('app_job_offer_index') }}">
                             <input type="hidden" name="search" value="{{ app.request.query.get('search') }}">
-                            
+                            <!-- My Jobs Only Filter -->
+<div class="mb-3">
+    <div class="form-check form-switch">
+        <input class="form-check-input" 
+               type="checkbox" 
+               id="my_jobs"
+               name="my_jobs"
+               value="1"
+               {% if only_my_jobs %}checked{% endif %}
+               onchange="this.form.submit()">
+        <label class="form-check-label" for="my_jobs">
+            <i class="bi bi-person-check"></i> Show only my job offers
+        </label>
+    </div>
+</div>
                            <!-- Job Type Filter -->
                             <div class="mb-3">
                                 <h6 class="mb-2">Job Type</h6>
-                                {% for type in constant('App\\Entity\\JobOffer::JOB_TYPES') %}
+                                {% for type in constant('App\\Entity\\Job_offer::JOB_TYPES') %}
                                 <div class="form-check">
                                     <input class="form-check-input" 
                                         type="checkbox" 
@@ -157,7 +171,7 @@
                             <!-- Field Filter -->
                             <div class="mb-3">
                                 <h6 class="mb-2">Field</h6>
-                                {% for field in constant('App\\Entity\\JobOffer::FIELDS') %}
+                                {% for field in constant('App\\Entity\\Job_offer::FIELDS') %}
                                 <div class="form-check">
                                     <input class="form-check-input" 
                                         type="checkbox" 
@@ -173,7 +187,7 @@
                             <!-- Education Level Filter -->
                             <div class="mb-3">
                                 <h6 class="mb-2">Education Level</h6>
-                                {% for education in constant('App\\Entity\\JobOffer::EDUCATION_LEVELS') %}
+                                {% for education in constant('App\\Entity\\Job_offer::EDUCATION_LEVELS') %}
                                 <div class="form-check">
                                     <input class="form-check-input" 
                                         type="checkbox" 
@@ -219,7 +233,7 @@
                                class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h6 class="mb-1">{{ recent_offer.title }}</h6>
-                                    <small>{{ recent_offer.datePosted|date('M d') }}</small>
+                                    <small>{{ recent_offer.getDatePosted|date('M d') }}</small>
                                 </div>
                                 <small class="text-muted">{{ recent_offer.user.name ?? 'Unknown' }}</small>
                             </a>
@@ -261,13 +275,39 @@
     .list-group-item:last-child {
         border-bottom: 0;
     }
+    .loading {
+        position: relative;
+        opacity: 0.7;
+    }
+    .loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.7);
+        z-index: 10;
+    }
+
 </style>
 {% endblock %}
 
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // You can add any JavaScript for enhanced filtering here if needed
+    // Handle the toggle switch
+    const myJobsToggle = document.getElementById('my_jobs');
+    if (myJobsToggle) {
+        myJobsToggle.addEventListener('change', function() {
+            // Show loading indicator
+            const cardBody = this.closest('.card-body');
+            cardBody.classList.add('loading');
+            
+            // Submit the form
+            this.form.submit();
+        });
+    }
 });
 </script>
 {% endblock %}

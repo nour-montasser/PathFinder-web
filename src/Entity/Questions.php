@@ -53,7 +53,7 @@ class Questions
         return $this->skillTest;
     }
 
-    public function setSkillTest(SkillTest $skillTest): self
+    public function setSkillTest(?SkillTest $skillTest): self
     {
         $this->skillTest = $skillTest;
         return $this;

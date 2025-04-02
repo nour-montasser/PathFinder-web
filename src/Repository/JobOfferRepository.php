@@ -2,16 +2,16 @@
 
 namespace App\Repository;
 
-use App\Entity\JobOffer;
+use App\Entity\Job_offer;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use App\Entity\AppUser;
+use App\Entity\App_user;
 
 class JobOfferRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, JobOffer::class);
+        parent::__construct($registry, Job_offer::class);
     }
 
    // src/Repository/JobOfferRepository.php
@@ -20,18 +20,18 @@ class JobOfferRepository extends ServiceEntityRepository
 public function findFilteredJobOffers(
     string $searchTerm = '',
     array $filters = [],
-    ?AppUser $user = null
+    ?App_user $user = null
 ): array {
     $qb = $this->createQueryBuilder('j')
         ->leftJoin('j.user', 'u')
-        ->orderBy('j.datePosted', 'DESC');
+        ->orderBy('j.date_posted', 'DESC');
 
     // Case-insensitive search across multiple fields
     if ($searchTerm) {
         $qb->andWhere('LOWER(j.title) LIKE LOWER(:search) OR 
                       LOWER(j.description) LIKE LOWER(:search) OR
                       LOWER(j.skills) LIKE LOWER(:search) OR
-                      LOWER(j.requiredExperience) LIKE LOWER(:search)')
+                      LOWER(j.required_experience) LIKE LOWER(:search)')
            ->setParameter('search', '%'.strtolower($searchTerm).'%');
     }
 
@@ -47,13 +47,13 @@ public function findFilteredJobOffers(
     }
 
     if (!empty($filters['education'])) {
-        $qb->andWhere('j.requiredEducation IN (:education)')
+        $qb->andWhere('j.required_education IN (:education)')
            ->setParameter('education', $filters['education']);
     }
 
     if ($user) {
-        $qb->andWhere('u.id = :userId')
-           ->setParameter('userId', $user->getId());
+        $qb->andWhere('u.id_user = :userId')
+           ->setParameter('userId', $user->getId_user());
     }
 
     return $qb->getQuery()->getResult();
@@ -62,7 +62,7 @@ public function findFilteredJobOffers(
 public function findRecentJobOffers(int $limit = 5): array
 {
     return $this->createQueryBuilder('j')
-        ->orderBy('j.datePosted', 'DESC')
+        ->orderBy('j.date_posted', 'DESC')
         ->setMaxResults($limit)
         ->getQuery()
         ->getResult();

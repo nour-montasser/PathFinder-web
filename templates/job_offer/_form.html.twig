@@ -99,7 +99,7 @@
                             <label class="col-form-label col-md-3">Open Positions</label>
                             <div class="col-md-9">
                                 <div class="input-group">
-                                    {{ form_widget(form.numberOfSpots, {'attr': {
+                                    {{ form_widget(form.number_of_spots, {'attr': {
                                         'class': 'form-control',
                                         'min': 1
                                     }}) }}
@@ -115,11 +115,11 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label>Education</label>
-                                        {{ form_widget(form.requiredEducation, {'attr': {'class': 'form-select'}}) }}
+                                        {{ form_widget(form.required_education, {'attr': {'class': 'form-select'}}) }}
                                     </div>
                                     <div class="col-md-6">
                                         <label>Experience</label>
-                                        {{ form_widget(form.requiredExperience, {'attr': {
+                                        {{ form_widget(form.required_experience, {'attr': {
                                             'class': 'form-control',
                                             'placeholder': 'E.g. 3+ years'
                                         }}) }}

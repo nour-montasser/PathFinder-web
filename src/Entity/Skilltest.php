@@ -1,8 +1,11 @@
 <?php
-
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use App\Entity\Job_offer;
+use App\Entity\Questions;
 
 #[ORM\Entity]
 class Skilltest
@@ -22,13 +25,43 @@ class Skilltest
     #[ORM\Column(type: "bigint")]
     private int $duration;  // Change to integer
 
-    #[ORM\ManyToOne(targetEntity: JobOffer::class, inversedBy: "skilltests")]
-    #[ORM\JoinColumn(name: "id_JobOffer", referencedColumnName: "id_offer")]
-    private JobOffer $jobOffer;  // Define relationship explicitly
+    #[ORM\ManyToOne(targetEntity: Job_offer::class, inversedBy: "skillTests")]
+    #[ORM\JoinColumn(name: "id_job_offer", referencedColumnName: "id_offer")]
+    private Job_offer $jobOffer;
 
     #[ORM\Column(type: "bigint")]
     private int $score_required;  // Change to integer
+        // NEW: Add the inverse side for Questions
+        #[ORM\OneToMany(mappedBy: "skillTest", targetEntity: Questions::class)]
+        private Collection $questions;
+        public function __construct()
+        {
+            $this->questions = new ArrayCollection();
+        }    
 
+        public function getQuestions(): Collection
+        {
+            return $this->questions;
+        }
+    
+        public function addQuestion(Questions $question): self
+        {
+            if (!$this->questions->contains($question)) {
+                $this->questions[] = $question;
+                $question->setSkillTest($this);
+            }
+            return $this;
+        }
+    
+        public function removeQuestion(Questions $question): self
+        {
+            if ($this->questions->removeElement($question)) {
+                if ($question->getSkillTest() === $this) {
+                    $question->setSkillTest(null);
+                }
+            }
+            return $this;
+        }
     public function getId_test(): int
     {
         return $this->id_test;
@@ -69,12 +102,12 @@ class Skilltest
         $this->duration = $value;
     }
 
-    public function getJobOffer(): JobOffer
+    public function getJobOffer(): Job_Offer
     {
         return $this->jobOffer;
     }
 
-    public function setJobOffer(?JobOffer $jobOffer): void
+    public function setJobOffer(?Job_Offer $jobOffer): void
     {
         $this->jobOffer = $jobOffer;
     }

@@ -2,7 +2,7 @@
 
 namespace App\Form;
 
-use App\Entity\JobOffer;
+use App\Entity\Job_offer;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -11,7 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use App\Entity\AppUser; // Assuming you have an AppUser entity
+use App\Entity\App_user; // Assuming you have an AppUser entity
 
 class JobOfferType extends AbstractType
 {
@@ -25,46 +25,31 @@ class JobOfferType extends AbstractType
                 'attr' => ['class' => 'form-control', 'rows' => 5]
             ])
             ->add('type', ChoiceType::class, [
-                'choices' => [
-                    'Full-time' => 'Full-time',
-                    'Part-time' => 'Part-time',
-                    'Fixed-term contract' => 'Fixed-term contract',
-                    'Long-term contract' => 'Long-term contract'
-                ],
+                'choices' => array_combine(Job_offer::JOB_TYPES, Job_offer::JOB_TYPES),
                 'attr' => ['class' => 'form-select']
             ])
-            ->add('numberOfSpots', IntegerType::class, [
+            ->add('number_of_spots', IntegerType::class, [
                 'attr' => ['class' => 'form-control', 'min' => 1],
-                'label' => 'Number of Spots'
+                'label' => 'Number of Spots',
             ])
-            ->add('requiredEducation', ChoiceType::class, [
-                'choices' => [
-                    'High School' => 'High School',
-                    'Bachelor\'s degree' => 'Bachelor\'s degree',
-                    'Licence' => 'Licence',
-                    'Master\'s degree' => 'Master\'s degree',
-                    'Doctorate' => 'Doctorate',
-                    'Postdoc' => 'Postdoc',
-                    'PhD' => 'PhD'
-                ],
-                'attr' => ['class' => 'form-select']
+            ->add('required_education', ChoiceType::class, [
+                'choices' => array_combine(Job_offer::EDUCATION_LEVELS, Job_offer::EDUCATION_LEVELS),
+                'attr' => ['class' => 'form-select'],
+                'property_path' => 'required_education'
             ])
-            ->add('requiredExperience', TextType::class, [
-                'attr' => ['class' => 'form-control']
+            ->add('required_experience', TextType::class, [
+                'attr' => ['class' => 'form-control'],
+                'property_path' => 'required_experience'
             ])
             ->add('skills', TextType::class, [
                 'attr' => ['class' => 'form-control'],
                 'label' => 'Skills (comma separated)'
             ])
             ->add('field', ChoiceType::class, [
-                'choices' => [
-                    'IT jobs' => 'IT jobs',
-                    'Sales jobs' => 'Sales jobs',
-                    'Unknown' => 'Unknown'
-                ],
+                'choices' => array_combine(Job_offer::FIELDS, Job_offer::FIELDS),
                 'attr' => ['class' => 'form-select']
             ])
-            // Add these new fields (they won't be mapped to the entity)
+            // Champs non mappés pour la ville et le pays
             ->add('city', TextType::class, [
                 'attr' => ['class' => 'form-control'],
                 'required' => false,
@@ -76,18 +61,16 @@ class JobOfferType extends AbstractType
                     'Canada' => 'Canada',
                     'United Kingdom' => 'United Kingdom',
                     'France' => 'France',
-                    // Add more countries as needed
                 ],
                 'attr' => ['class' => 'form-select'],
                 'required' => false,
                 'mapped' => false,
                 'placeholder' => 'Select a country'
             ])
-              
             ->add('user', EntityType::class, [
-                'class' => AppUser::class,
-                'choice_label' => function(AppUser $user) {
-                    return $user->getName(); // Assuming you have a getName() method
+                'class' => App_user::class,
+                'choice_label' => function(App_user $user) {
+                    return $user->getName(); // Assurez-vous que la méthode existe
                 },
                 'placeholder' => 'Select a user',
                 'attr' => ['class' => 'form-select'],
@@ -98,7 +81,8 @@ class JobOfferType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => JobOffer::class,
+            'data_class' => Job_offer::class,
+            'allow_extra_fields' => true,
         ]);
     }
 }

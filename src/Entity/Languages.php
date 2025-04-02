@@ -10,7 +10,7 @@ class Languages
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
-    private string $id_language;
+    private int $id_language;
 
     #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "languages")]
     #[ORM\JoinColumn(name: "id_cv", referencedColumnName: "id_cv", onDelete: "CASCADE")]
@@ -29,7 +29,7 @@ class Languages
         return $this->id_language;
     }
 
-    public function setId_language(string $id_language): self
+    public function setId_language(int $id_language): self
     {
         $this->id_language = $id_language;
         return $this;
