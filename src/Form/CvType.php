@@ -8,28 +8,35 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+
+
 
 class CvType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('id_cv')
-            ->add('title')
+         
+            
             ->add('user_title')
             ->add('introduction')
-            ->add('date_creation', null, [
-                'widget' => 'single_text',
+             ->add('skills')
+             ->add('certificates', CollectionType::class, [
+                'entry_type' => CertificateType::class,
+                'allow_add' => true,
+                'allow_delete' => true,
+                'by_reference' => false,
             ])
-            ->add('skills')
-            ->add('last_viewed', null, [
-                'widget' => 'single_text',
+            ->add('experiences', CollectionType::class, [
+                'entry_type' => ExperienceType::class,
+                'allow_add' => true,
+                'allow_delete' => true,
+                'by_reference' => false,
             ])
-            ->add('favorite')
-            ->add('user', EntityType::class, [
-                'class' => App_user::class,
-                'choice_label' => 'id',
-            ])
+            
+         
+          
         ;
     }
 

@@ -15,6 +15,7 @@ use App\Entity\Application_job;
 class Cv
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_cv;
 
@@ -106,16 +107,17 @@ class Cv
         return $this;
     }
 
-    public function getUser_title(): string
+    public function getUserTitle(): string
     {
         return $this->user_title;
     }
-
-    public function setUser_title(string $user_title): self
+    
+    public function setUserTitle(string $user_title): self
     {
         $this->user_title = $user_title;
         return $this;
     }
+    
 
     public function getIntroduction(): string
     {
@@ -128,12 +130,12 @@ class Cv
         return $this;
     }
 
-    public function getDate_creation(): \DateTimeInterface
+    public function getDateCreation(): \DateTimeInterface
     {
         return $this->date_creation;
     }
 
-    public function setDate_creation(\DateTimeInterface $date_creation): self
+    public function setDateCreation(\DateTimeInterface $date_creation): self
     {
         $this->date_creation = $date_creation;
         return $this;
@@ -150,12 +152,12 @@ class Cv
         return $this;
     }
 
-    public function getLast_viewed(): \DateTimeInterface
+    public function getLastViewed(): \DateTimeInterface
     {
         return $this->last_viewed;
     }
 
-    public function setLast_viewed(\DateTimeInterface $last_viewed): self
+    public function setLastViewed(\DateTimeInterface $last_viewed): self
     {
         $this->last_viewed = $last_viewed;
         return $this;
