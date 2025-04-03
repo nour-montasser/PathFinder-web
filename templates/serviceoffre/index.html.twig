@@ -1,0 +1,156 @@
+{# templates/serviceoffre/index.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Service Offers{% endblock %}
+
+{% block body %}
+<!-- Main Content (Listing) -->
+<div style="background-color: #F5EDE1; min-height: 100vh;">
+  <div class="container py-5">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+      <h2 style="color: #3B261D; margin: 0;">Service Offers</h2>
+      <button class="btn btn-primary" onclick="openFormDrawer()">Create New</button>
+    </div>
+    
+    <p style="color: #6c757d;">Find Your Ideal Service</p>
+
+    <!-- Example listing of services -->
+    <div class="row">
+      {% for service in serviceoffres %}
+        <div class="col-md-4 mb-4">
+          <div class="card p-3" style="background: #fff; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+            <h5 style="color: #3B261D;">{{ service.title }}</h5>
+            <p>{{ service.description|u.truncate(60, '...') }}</p>
+            <p><strong>Price:</strong> {{ service.price|format_currency('USD') }}</p>
+            <p><strong>Duration:</strong> {{ service.duration }}</p>
+            <div class="d-flex justify-content-between mt-3">
+              <a href="{{ path('app_serviceoffre_show', {'idService': service.idService}) }}" class="btn btn-info btn-sm">
+                View
+              </a>
+              <button class="btn btn-success btn-sm">Apply</button>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="col-12 text-center">
+          <p>No service offers found</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Side Drawer for the Form -->
+<div id="formDrawer" style="
+  position: fixed;
+  top: 0;
+  right: -50%;
+  width: 50%;
+  height: 100%;
+  background-color: #F5EDE1;
+  color: #3B261D;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+  overflow-y: auto;
+  transition: right 0.3s;
+  z-index: 9999;
+  padding: 20px;">
+  
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="m-0" style="color: #3B261D;">Create New Service Offer</h3>
+    <button class="btn btn-sm btn-secondary" onclick="closeFormDrawer()">Close</button>
+  </div>
+  
+  {{ form_start(form) }}
+    <!-- Title -->
+    <div class="mb-3">
+      {{ form_label(form.title, 'Title', {'label_attr': {'class': 'form-label'}}) }}
+      {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    
+    <!-- Description -->
+    <div class="mb-3">
+      {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+      {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+    </div>
+    
+    <!-- Field -->
+    <div class="mb-3">
+      {{ form_label(form.field, 'Type', {'label_attr': {'class': 'form-label'}}) }}
+      {{ form_widget(form.field, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    
+    <!-- Start / End Date -->
+    <div class="row">
+      <div class="col mb-3">
+        {{ form_label(form.startDate, 'Start Date', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.startDate, {'attr': {'class': 'form-control'}}) }}
+      </div>
+      <div class="col mb-3">
+        {{ form_label(form.endDate, 'End Date', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.endDate, {'attr': {'class': 'form-control'}}) }}
+      </div>
+    </div>
+    
+    <!-- Education -->
+    <div class="mb-3">
+      {{ form_label(form.required_education, 'Education', {'label_attr': {'class': 'form-label'}}) }}
+      {{ form_widget(form.required_education, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    
+    <!-- Experience Level -->
+    <div class="mb-3">
+      {{ form_label(form.experience_level, 'Experience Level', {'label_attr': {'class': 'form-label'}}) }}
+      {{ form_widget(form.experience_level, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    
+    <!-- Price -->
+    <div class="mb-3">
+      {{ form_label(form.price, 'Price', {'label_attr': {'class': 'form-label'}}) }}
+      {{ form_widget(form.price, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    
+    <!-- Skills -->
+    <div class="mb-3">
+      {{ form_label(form.skills, 'Skills', {'label_attr': {'class': 'form-label'}}) }}
+      {{ form_widget(form.skills, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    
+    <!-- Status (if needed) -->
+    {% if form.status is defined %}
+      <div class="mb-3">
+        {{ form_label(form.status, 'Status', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.status, {'attr': {'class': 'form-control'}}) }}
+      </div>
+    {% endif %}
+    
+    <div class="text-center mt-4">
+      <button type="submit" class="btn btn-brown">Save</button>
+      <button type="button" class="btn btn-secondary" onclick="closeFormDrawer()">Cancel</button>
+    </div>
+  {{ form_end(form) }}
+</div>
+
+<style>
+  .btn-brown {
+    background-color: #3B261D;
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    transition: all 0.3s ease;
+  }
+  .btn-brown:hover {
+    background-color: #5a3e2e;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(59, 38, 29, 0.2);
+  }
+</style>
+
+<script>
+function openFormDrawer() {
+  document.getElementById('formDrawer').style.right = '0';
+}
+function closeFormDrawer() {
+  document.getElementById('formDrawer').style.right = '-50%';
+}
+</script>
+{% endblock %}

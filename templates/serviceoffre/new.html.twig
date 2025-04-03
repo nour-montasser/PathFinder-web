@@ -1,0 +1,177 @@
+
+{# templates/serviceoffre/_create_form_modal.html.twig #}
+
+<!-- Modal Container -->
+<div id="createServiceModal" class="custom-modal" style="display: none;">
+    <div class="custom-modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Create New Service Offer</h3>
+            <button type="button" class="close-btn" onclick="closeCreateFormModal()">×</button>
+        </div>
+        
+        <div class="modal-body">
+            {{ form_start(form) }}
+            
+            <!-- Title Field -->
+            <div class="mb-3">
+                {{ form_label(form.title, 'Title', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Enter job title'}}) }}
+            </div>
+            
+            <!-- Description Field -->
+            <div class="mb-3">
+                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+            </div>
+            
+            <!-- Field -->
+            <div class="mb-3">
+                {{ form_label(form.field, 'Type', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.field, {'attr': {'class': 'form-control', 'placeholder': 'Select type'}}) }}
+            </div>
+            
+            <!-- Start / End Date -->
+            <div class="row">
+                <div class="col">
+                    <div class="mb-3">
+                        {{ form_label(form.startDate, 'Start Date', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.startDate, {'attr': {'class': 'form-control', 'placeholder': 'Start Date'}}) }}
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="mb-3">
+                        {{ form_label(form.endDate, 'End Date', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.endDate, {'attr': {'class': 'form-control', 'placeholder': 'End Date'}}) }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Education -->
+            <div class="mb-3">
+                {{ form_label(form.required_education, 'Education', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.required_education, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            
+            <!-- Experience Level -->
+            <div class="mb-3">
+                {{ form_label(form.experience_level, 'Experience Level', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.experience_level, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            
+            <!-- Price -->
+            <div class="mb-3">
+                {{ form_label(form.price, 'Price', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.price, {'attr': {'class': 'form-control', 'placeholder': 'Enter price'}}) }}
+            </div>
+            
+            <!-- Skills -->
+            <div class="mb-3">
+                {{ form_label(form.skills, 'Skills', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.skills, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            
+            <!-- Status (if needed) -->
+            {% if form.status is defined %}
+                <div class="mb-3">
+                    {{ form_label(form.status, 'Status', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.status, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            {% endif %}
+            
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-brown">
+                    Save
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeCreateFormModal()">
+                    Cancel
+                </button>
+            </div>
+            
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+
+<!-- Modal CSS & JS -->
+<style>
+    /* Modal overlay - no background dimming, so background remains visible */
+    .custom-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        background: transparent; /* No dimming effect */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .custom-modal-content {
+        background-color: #F5EDE1;
+        color: #3B261D;
+        width: 400px;
+        max-width: 90%;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        position: relative;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .modal-title {
+        margin: 0;
+        color: #3B261D;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #3B261D;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #3B261D;
+    }
+
+    .btn-brown {
+        background-color: #3B261D;
+        color: #fff;
+        border: none;
+        padding: 10px 25px;
+        transition: all 0.3s ease;
+    }
+    .btn-brown:hover {
+        background-color: #5a3e2e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(59, 38, 29, 0.2);
+    }
+</style>
+
+<script>
+function closeCreateFormModal() {
+    const modal = document.getElementById('createServiceModal');
+    modal.style.display = 'none';
+}
+</script>
+
+<script>
+function handleWriteWithAI() {
+    // Implement the functionality to fetch AI-generated content
+    // For now, just a placeholder example:
+    document.getElementById("titleField").value = "AI-generated Title";
+    document.getElementById("descriptionField").value = "AI-generated Description...";
+}
+</script>
+
+

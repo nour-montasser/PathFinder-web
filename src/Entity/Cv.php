@@ -5,23 +5,22 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
-use App\Entity\AppUser;
+use App\Entity\App_user;
 use App\Entity\Certificates;
 use App\Entity\Experience;
 use App\Entity\Languages;
-use App\Entity\ApplicationJob;
+use App\Entity\Application_Job;
 
 #[ORM\Entity]
 class Cv
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_cv;
 
-    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "cvs")]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "cvs")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private AppUser $user;
+    private App_user $user;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $title;
@@ -53,7 +52,7 @@ class Cv
     #[ORM\OneToMany(mappedBy: "cv", targetEntity: Languages::class, cascade: ["persist", "remove"])]
     private Collection $languages;
 
-    #[ORM\OneToMany(mappedBy: "cv", targetEntity: ApplicationJob::class)]
+    #[ORM\OneToMany(mappedBy: "cv", targetEntity: Application_job::class)]
     private Collection $applications;
 
     public function __construct()
@@ -74,13 +73,23 @@ class Cv
         $this->id_cv = $id_cv;
         return $this;
     }
+    public function getId(): int
+    {
+        return $this->id_cv;
+    }
 
-    public function getUser(): AppUser
+    public function setId(int $id_cv): self
+    {
+        $this->id_cv = $id_cv;
+        return $this;
+    }
+
+    public function getUser(): App_user
     {
         return $this->user;
     }
 
-    public function setUser(AppUser $user): self
+    public function setUser(App_user $user): self
     {
         $this->user = $user;
         return $this;
@@ -240,7 +249,7 @@ class Cv
         return $this->applications;
     }
 
-    public function addApplication(ApplicationJob $application): self
+    public function addApplication(Application_job $application): self
     {
         if (!$this->applications->contains($application)) {
             $this->applications[] = $application;
@@ -249,7 +258,7 @@ class Cv
         return $this;
     }
 
-    public function removeApplication(ApplicationJob $application): self
+    public function removeApplication(Application_job $application): self
     {
         if ($this->applications->removeElement($application)) {
             if ($application->getCv() === $this) {

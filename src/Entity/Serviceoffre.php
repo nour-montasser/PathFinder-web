@@ -5,17 +5,21 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use App\Entity\Applicationservice;
+use App\Entity\App_user;
 
 #[ORM\Entity]
 class Serviceoffre
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: "IDENTITY")]
     #[ORM\Column(type: "bigint")]
-    private string $id_service;
+    private ?int $idService= null;
 
-    #[ORM\Column(type: "bigint")]
-    private string $id_user;
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "serviceOffers")]
+    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
+    private App_user $user;
+    
 
     #[ORM\Column(type: "text")]
     private string $description;
@@ -47,7 +51,9 @@ class Serviceoffre
     #[ORM\Column(type: "string", length: 20)]
     private string $status;
 
-    // OneToMany relationship with Applicationservice
+
+
+
     #[ORM\OneToMany(mappedBy: "service", targetEntity: Applicationservice::class)]
     private Collection $applicationservices;
 
@@ -56,26 +62,22 @@ class Serviceoffre
         $this->applicationservices = new ArrayCollection();
     }
 
-    // Getters and setters
-    public function getId_service(): string
+    // Getter and setter for idService
+    public function getIdService(): ?int
     {
-        return $this->id_service;
+        return $this->idService;
     }
 
-    public function setId_service(string $value): self
+
+    // Getter and setter for the App_user association
+    public function getUser(): App_user
     {
-        $this->id_service = $value;
-        return $this;
+        return $this->user;
     }
 
-    public function getid_user(): string
+    public function setUser(App_user $user): self
     {
-        return $this->id_user;
-    }
-
-    public function setid_user(string $value): self
-    {
-        $this->id_user = $value;
+        $this->user = $user;
         return $this;
     }
 
@@ -84,9 +86,9 @@ class Serviceoffre
         return $this->description;
     }
 
-    public function setDescription(string $value): self
+    public function setDescription(string $description): self
     {
-        $this->description = $value;
+        $this->description = $description;
         return $this;
     }
 
@@ -95,20 +97,20 @@ class Serviceoffre
         return $this->title;
     }
 
-    public function setTitle(string $value): self
+    public function setTitle(string $title): self
     {
-        $this->title = $value;
+        $this->title = $title;
         return $this;
     }
 
-    public function getDate_posted(): \DateTimeInterface
+    public function getDatePosted(): \DateTimeInterface
     {
         return $this->date_posted;
     }
 
-    public function setDate_posted(\DateTimeInterface $value): self
+    public function setDatePosted(\DateTimeInterface $date_posted): self
     {
-        $this->date_posted = $value;
+        $this->date_posted = $date_posted;
         return $this;
     }
 
@@ -117,9 +119,9 @@ class Serviceoffre
         return $this->field;
     }
 
-    public function setField(string $value): self
+    public function setField(string $field): self
     {
-        $this->field = $value;
+        $this->field = $field;
         return $this;
     }
 
@@ -128,42 +130,43 @@ class Serviceoffre
         return $this->price;
     }
 
-    public function setPrice(float $value): self
+    public function setPrice(float $price): self
     {
-        $this->price = $value;
+        $this->price = $price;
         return $this;
     }
 
-    public function getRequired_education(): string
-    {
-        return $this->required_education;
-    }
+    public function getRequiredEducation(): string
+{
+    return $this->required_education;
+}
 
-    public function setRequired_education(string $value): self
-    {
-        $this->required_education = $value;
-        return $this;
-    }
+
+public function setRequiredEducation(string $required_education): self
+{
+    $this->required_education = $required_education;
+    return $this;
+}
 
     public function getSkills(): string
     {
         return $this->skills;
     }
 
-    public function setSkills(string $value): self
+    public function setSkills(string $skills): self
     {
-        $this->skills = $value;
+        $this->skills = $skills;
         return $this;
     }
 
-    public function getExperience_level(): string
+    public function getExperienceLevel(): string
     {
         return $this->experience_level;
     }
 
-    public function setExperience_level(string $value): self
+    public function setExperienceLevel(string $experience_level): self
     {
-        $this->experience_level = $value;
+        $this->experience_level = $experience_level;
         return $this;
     }
 
@@ -172,9 +175,9 @@ class Serviceoffre
         return $this->duration;
     }
 
-    public function setDuration(string $value): self
+    public function setDuration(string $duration): self
     {
-        $this->duration = $value;
+        $this->duration = $duration;
         return $this;
     }
 
@@ -183,13 +186,15 @@ class Serviceoffre
         return $this->status;
     }
 
-    public function setStatus(string $value): self
+    public function setStatus(string $status): self
     {
-        $this->status = $value;
+        $this->status = $status;
         return $this;
     }
 
-    // Getters for related Applicationservice entities
+   
+
+
     public function getApplicationservices(): Collection
     {
         return $this->applicationservices;
@@ -201,7 +206,6 @@ class Serviceoffre
             $this->applicationservices[] = $applicationservice;
             $applicationservice->setService($this);
         }
-
         return $this;
     }
 
@@ -212,7 +216,6 @@ class Serviceoffre
                 $applicationservice->setService(null);
             }
         }
-
         return $this;
     }
 }

@@ -3,24 +3,24 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\JobOffer;
-use App\Entity\AppUser;
+use App\Entity\Job_offer;
+use App\Entity\App_user;
 use App\Entity\Cv;
 
 #[ORM\Entity]
-class ApplicationJob
+class Application_Job
 {
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
     private int $application_id;
 
-    #[ORM\ManyToOne(targetEntity: JobOffer::class, inversedBy: "applications")]
-    #[ORM\JoinColumn(name: "JobOffer_id", referencedColumnName: "idOffer")]
-    private JobOffer $jobOffer;
+    #[ORM\ManyToOne(targetEntity: Job_offer::class, inversedBy: "applications")]
+    #[ORM\JoinColumn(name: "job_offer_id", referencedColumnName: "id_offer")]
+    private Job_offer $jobOffer;
 
-    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "jobApplications")]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "jobApplications")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user")]
-    private AppUser $user;
+    private App_user $user;
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $date_application;
@@ -28,9 +28,10 @@ class ApplicationJob
     #[ORM\Column(type: "string", length: 50)]
     private string $status;
 
-    #[ORM\ManyToOne(targetEntity: Cv::class)]
+    #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "applications")]
     #[ORM\JoinColumn(name: "cv_id", referencedColumnName: "id_cv")]
     private Cv $cv;
+    
 
     public function getApplication_id(): string
     {
@@ -43,23 +44,23 @@ class ApplicationJob
         return $this;
     }
 
-    public function getJobOffer(): JobOffer
+    public function getJobOffer(): Job_offer
     {
         return $this->jobOffer;
     }
 
-    public function setJobOffer(?JobOffer $jobOffer): self
+    public function setJobOffer(?Job_offer $jobOffer): self
     {
         $this->jobOffer = $jobOffer;
         return $this;
     }
 
-    public function getUser(): AppUser
+    public function getUser(): App_user
     {
         return $this->user;
     }
 
-    public function setUser(AppUser $user): self
+    public function setUser(App_user $user): self
     {
         $this->user = $user;
         return $this;
