@@ -1,0 +1,322 @@
+
+
+
+{% block body %}
+<section class="section">
+    <div class="container">
+        <div class="row">
+            <!-- Left Sidebar -->
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-list-check me-2"></i>Creation Steps</h6>
+                        <ul class="nav flex-column creation-steps">
+                            <li class="nav-item active mb-2 p-2 rounded">
+                                <i class="bi bi-1-circle me-2"></i>Job Details
+                            </li>
+                            <li class="nav-item mb-2 p-2 rounded">
+                                <i class="bi bi-2-circle me-2"></i>Requirements
+                            </li>
+                            <li class="nav-item mb-2 p-2 rounded">
+                                <i class="bi bi-3-circle me-2"></i>Location
+                            </li>
+                            <li class="nav-item p-2 rounded">
+                                <i class="bi bi-4-circle me-2"></i>Review
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-lightbulb me-2"></i>Pro Tips</h6>
+                        <ul class="list-unstyled tips-list">
+                            <li class="mb-2 p-2 rounded">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Use clear, specific job titles
+                            </li>
+                            <li class="mb-2 p-2 rounded">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Highlight key benefits
+                            </li>
+                            <li class="mb-2 p-2 rounded">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Be specific about requirements
+                            </li>
+                            <li class="p-2 rounded">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Include salary range if possible
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Form -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="card-title text-white">
+                            <i class="bi bi-briefcase me-2"></i>Create New Job Offer
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(form, {'attr': {'class': 'form form-horizontal'}}) }}
+
+                        <!-- Job Title -->
+                        <div class="form-group row mb-4">
+                            <label class="col-form-label col-md-3">Job Title</label>
+                            <div class="col-md-9">
+                                {{ form_widget(form.title, {'attr': {
+                                    'class': 'form-control',
+                                    'placeholder': 'E.g. Senior PHP Developer'
+                                }}) }}
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group row mb-4">
+                            <label class="col-form-label col-md-3">Description</label>
+                            <div class="col-md-9">
+                                {{ form_widget(form.description, {'attr': {
+                                    'class': 'form-control',
+                                    'rows': 5,
+                                    'placeholder': 'Describe responsibilities, expectations...'
+                                }}) }}
+                            </div>
+                        </div>
+
+                        <!-- Job Type Dropdown -->
+                        <div class="form-group row mb-4">
+                            <label class="col-form-label col-md-3">Job Type</label>
+                            <div class="col-md-9">
+                                {{ form_widget(form.type, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+                        </div>
+
+                        <!-- Open Positions -->
+                        <div class="form-group row mb-4">
+                            <label class="col-form-label col-md-3">Open Positions</label>
+                            <div class="col-md-9">
+                                <div class="input-group">
+                                    {{ form_widget(form.numberOfSpots, {'attr': {
+                                        'class': 'form-control',
+                                        'min': 1
+                                    }}) }}
+                                    <span class="input-group-text">positions</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Requirements -->
+                        <div class="form-group row mb-4">
+                            <label class="col-form-label col-md-3">Requirements</label>
+                            <div class="col-md-9">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label>Education</label>
+                                        {{ form_widget(form.requiredEducation, {'attr': {'class': 'form-select'}}) }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>Experience</label>
+                                        {{ form_widget(form.requiredExperience, {'attr': {
+                                            'class': 'form-control',
+                                            'placeholder': 'E.g. 3+ years'
+                                        }}) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Skills -->
+                        <div class="form-group row mb-4">
+                            <label class="col-form-label col-md-3">Skills</label>
+                            <div class="col-md-9">
+                                {{ form_widget(form.skills, {'attr': {
+                                    'class': 'form-control',
+                                    'placeholder': 'PHP, Symfony, MySQL...'
+                                }}) }}
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-group row mb-4">
+                            <label class="col-form-label col-md-3">Location</label>
+                            <div class="col-md-9">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label>City</label>
+                                        {{ form_widget(form.city, {'attr': {
+                                            'class': 'form-control',
+                                            'placeholder': 'City'
+                                        }}) }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>Country</label>
+                                        {{ form_widget(form.country, {'attr': {
+                                            'class': 'form-select'
+                                        }}) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Field -->
+                        <div class="form-group row mb-4">
+                            <label class="col-form-label col-md-3">Field</label>
+                            <div class="col-md-9">
+                                {{ form_widget(form.field, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+                        </div>
+                        <div class="form-group row mb-4">
+                            <label class="col-form-label col-md-3">Posted By</label>
+                            <div class="col-md-9">
+                                {{ form_widget(form.user, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+                        </div>
+                        
+
+                        <!-- Form Actions -->
+                        <div class="form-group row mb-4">
+                            <div class="col-md-9 offset-md-3">
+                                <div class="d-flex justify-content-end gap-3">
+                                    <a href="{{ path('app_job_offer_index') }}" class="btn btn-light">
+                                        <i class="bi bi-x-circle me-1"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save me-1"></i> Save Job Offer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-files me-2"></i>Your Templates</h6>
+                        <div class="list-group template-list">
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+                                <i class="bi bi-file-earmark-text me-2"></i>
+                                Software Engineer
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+                                <i class="bi bi-file-earmark-text me-2"></i>
+                                Marketing Manager
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+                                <i class="bi bi-file-earmark-text me-2"></i>
+                                Sales Representative
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center text-primary">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Create New Template
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-graph-up me-2"></i>Your Stats</h6>
+                        <div class="stats-container">
+                            <div class="stat-item d-flex justify-content-between align-items-center p-2 mb-2 rounded">
+                                <span>Active Posts:</span>
+                                <span class="badge bg-primary rounded-pill">12</span>
+                            </div>
+                            <div class="stat-item d-flex justify-content-between align-items-center p-2 mb-2 rounded">
+                                <span>Avg. Applications:</span>
+                                <span class="badge bg-success rounded-pill">24</span>
+                            </div>
+                            <div class="stat-item d-flex justify-content-between align-items-center p-2 rounded">
+                                <span>Conversion Rate:</span>
+                                <span class="badge bg-info rounded-pill">18%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-robot me-2"></i>AI Assistant</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-magic me-1"></i> Improve Description
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-lightbulb me-1"></i> Suggest Skills
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-currency-dollar me-1"></i> Recommend Salary
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .creation-steps .nav-item.active {
+        background-color: #e9f7fe;
+        color: #0d6efd;
+    }
+    .tips-list li:hover {
+        background-color: #f8f9fa;
+    }
+    .template-list a:hover {
+        background-color: #f8f9fa;
+    }
+    .stat-item:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+
+<script>
+// Initialize tags input for skills
+document.addEventListener('DOMContentLoaded', function() {
+    const tagsInput = document.querySelector('.tags-input');
+    if (tagsInput) {
+        new Tagify(tagsInput, {
+            delimiters: ',',
+            pattern: /^[a-zA-Z0-9\s-]+$/,
+            dropdown: {
+                enabled: 1,
+                maxItems: 10
+            }
+        });
+    }
+
+    // Template click handler
+    document.querySelectorAll('.template-list a').forEach(item => {
+        item.addEventListener('click', function(e) {
+            if (!this.querySelector('.bi-plus-circle')) {
+                e.preventDefault();
+                // Load template logic would go here
+                console.log('Loading template: ' + this.textContent.trim());
+            }
+        });
+    });
+
+    // AI Assistant buttons
+    document.querySelectorAll('.btn-outline-primary').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.textContent.trim();
+            console.log('AI Action: ' + action);
+            // Implement AI functionality here
+        });
+    });
+});
+</script>
+{% endblock %}

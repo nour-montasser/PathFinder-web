@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Chat{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Your Chats</h1>
+
+        <div class="list-group">
+            {% for channel in channels %}
+                {% set otherUser = channel.idUser1 == app.user ? channel.idUser2 : channel.idUser1 %}
+                <a href="{{ path('app_chat_show', {'id': channel.idChannel}) }}"
+                   class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ otherUser.name }}</h5>
+                        <small>{{ channel.timeCreated|date('Y-m-d H:i') }}</small>
+                    </div>
+                    <p class="mb-1">Click to open chat</p>
+                </a>
+            {% else %}
+                <div class="alert alert-info">You have no active chats yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
