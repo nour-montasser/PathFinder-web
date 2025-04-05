@@ -1,0 +1,217 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create New Skilltest{% endblock %}
+
+{% block body %}
+    <style>
+        .btn-remove {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-remove:hover {
+            background-color: #c0392b;
+            transform: scale(1.03);
+        }
+
+        .btn-remove::before {
+            content: "✖";
+            font-size: 16px;
+        }
+
+        .form-section {
+            max-width: 900px;
+            margin: 40px auto;
+            background-color: #fff;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+            color: #3B261D;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .form-error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 25px;
+            color: #3B261D;
+        }
+
+        .question-item {
+            background-color: #fdf7f2;
+            border: 1px solid #e5d8d0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-submit,
+        .btn-add {
+            background-color: #3B261D;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .btn-submit:hover,
+        .btn-add:hover {
+            background-color: #5a3e2e;
+        }
+
+        .back-link {
+            display: block;
+            text-align: right;
+            margin-top: 30px;
+            color: #3B261D;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <div class="form-section">
+        <h2 class="section-title">Create New Skilltest</h2>
+
+        {{ form_start(skilltestForm, {'attr': {'novalidate': 'novalidate'}}) }}
+
+        <div class="form-group">
+            {{ form_label(skilltestForm.title, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(skilltestForm.title, {'attr': {'class': 'form-control'}}) }}
+            <div class="form-error">{{ form_errors(skilltestForm.title) }}</div>
+        </div>
+
+        <div class="form-group">
+            {{ form_label(skilltestForm.description, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(skilltestForm.description, {'attr': {'class': 'form-control'}}) }}
+            <div class="form-error">{{ form_errors(skilltestForm.description) }}</div>
+        </div>
+
+        <div class="form-group">
+            {{ form_label(skilltestForm.duration, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(skilltestForm.duration, {'attr': {'class': 'form-control'}}) }}
+            <div class="form-error">{{ form_errors(skilltestForm.duration) }}</div>
+        </div>
+
+        <div class="form-group">
+            {{ form_label(skilltestForm.score_required, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(skilltestForm.score_required, {'attr': {'class': 'form-control'}}) }}
+            <div class="form-error">{{ form_errors(skilltestForm.score_required) }}</div>
+        </div>
+
+        <div class="form-group">
+            {{ form_label(skilltestForm.jobOffer, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(skilltestForm.jobOffer, {'attr': {'class': 'form-control'}}) }}
+            <div class="form-error">{{ form_errors(skilltestForm.jobOffer) }}</div>
+        </div>
+
+        <h2 class="section-title mt-4">Questions</h2>
+
+        <div id="questions-collection-wrapper"
+             data-prototype="{{ form_widget(skilltestForm.questions.vars.prototype)|e('html_attr') }}">
+            {% for questionField in skilltestForm.questions %}
+                <div class="question-item">
+                    <div class="form-group">
+                        {{ form_label(questionField.question, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(questionField.question, {'attr': {'class': 'form-control'}}) }}
+                        <div class="form-error">{{ form_errors(questionField.question) }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(questionField.responses, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(questionField.responses, {'attr': {'class': 'form-control'}}) }}
+                        <div class="form-error">{{ form_errors(questionField.responses) }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(questionField.correctResponse, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(questionField.correctResponse, {'attr': {'class': 'form-control'}}) }}
+                        <div class="form-error">{{ form_errors(questionField.correctResponse) }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(questionField.score, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(questionField.score, {'attr': {'class': 'form-control'}}) }}
+                        <div class="form-error">{{ form_errors(questionField.score) }}</div>
+                    </div>
+
+                    <button type="button" class="btn-remove">Remove</button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="button" class="btn-add mt-3" id="add-question-btn">➕ Add Question</button>
+        <br><br>
+
+        <button type="submit" class="btn-submit mt-4">✅ Submit Skilltest & Questions</button>
+        {{ form_end(skilltestForm) }}
+    </div>
+
+    <a href="{{ path('app_skilltest_index') }}" class="back-link">← Back to Skilltests</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const collectionHolder = document.querySelector('#questions-collection-wrapper');
+            const addButton = document.querySelector('#add-question-btn');
+            let index = collectionHolder.querySelectorAll('.question-item').length;
+            const prototype = collectionHolder.dataset.prototype;
+
+            addButton.addEventListener('click', () => {
+                const newForm = prototype.replace(/__name__/g, index);
+                index++;
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString('<div>' + newForm + '</div>', 'text/html');
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('question-item');
+                wrapper.innerHTML = doc.body.firstChild.innerHTML;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn-remove';
+                btn.textContent = 'Remove';
+                btn.addEventListener('click', () => wrapper.remove());
+                wrapper.appendChild(btn);
+
+                collectionHolder.appendChild(wrapper);
+            });
+        });
+    </script>
+{% endblock %}
