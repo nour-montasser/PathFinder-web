@@ -3,311 +3,422 @@
 {% block title %}Job Offers{% endblock %}
 
 {% block body %}
-<section class="section">
-    <div class="container">
-        <div class="row">
-            <!-- Main Content Column -->
-            <div class="col-lg-8">
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="card-title">Job Offers</h4>
-                        <a href="{{ path('app_job_offer_new') }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Create New
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        {% if job_offers is empty %}
-                            <div class="alert alert-info">No job offers found</div>
-                        {% else %}
-                            <div class="row">
-                                {% for job_offer in job_offers %}
-                                <div class="col-md-6 col-lg-6 mb-4">
-                                    <div class="card h-100 job-card">
-                                        <div class="card-header bg-light-primary d-flex justify-content-between align-items-center">
-                                            <div class="d-flex align-items-center">
-                                                <img src="{{ asset(job_offer.user.image ?: 'images/default-profile.png') }}" 
-                                                     class="rounded-circle me-3" 
-                                                     width="40" 
-                                                     height="40"
-                                                     alt="Company logo">
-                                                <div>
-                                                    <h5 class="card-title mb-0">{{ job_offer.title }}</h5>
-                                                    <small class="text-muted">{{ job_offer.user.name }}</small>
-                                                </div>
-                                            </div>
-                                            <span class="badge bg-{{ job_offer.getNumberOfSpots() > 0 ? 'success' : 'danger' }}">
-                                                {{ job_offer.getNumberOfSpots }} spots
-                                            </span>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="mb-3 text-truncate" style="max-height: 100px; overflow: hidden;">
-                                                {{ job_offer.description }}
-                                            </div>
-                                            
-                                            <div class="d-flex flex-wrap gap-2 mb-3">
-                                                <span class="badge bg-primary">{{ job_offer.type }}</span>
-                                                <span class="badge bg-secondary">{{ job_offer.field }}</span>
-                                                {% if job_offer.getDatePosted > date('-2days') %}
-                                                    <span class="badge bg-danger">New</span>
-                                                {% endif %}
-                                            </div>
-                                            
-                                            <div class="job-meta mb-3">
-                                                <div class="d-flex align-items-center mb-1">
-                                                    <i class="bi bi-mortarboard me-2 text-primary"></i>
-                                                    <span>{{ job_offer.getRequiredEducation }}</span>
-                                                </div>
-                                                <div class="d-flex align-items-center mb-1">
-                                                    <i class="bi bi-briefcase me-2 text-primary"></i>
-                                                    <span>{{ job_offer.getRequiredExperience }}</span>
-                                                </div>
-                                            </div>
-                                            <div class="skills mb-3">
-                                            <h6 class="small text-muted mb-1"><i class="bi bi-tools me-1"></i> Required Skills:</h6>
-                                            <div class="d-flex flex-wrap gap-1">
-                                                {% for skill in job_offer.skills|split(',') %}
-                                                    {% if skill|trim %}
-                                                        <span class="badge bg-light text-dark border">
-                                                            <i class="bi bi-check-circle me-1 text-primary"></i>
-                                                            {{ skill|trim }}
-                                                        </span>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <div class="card-footer bg-transparent">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <small class="text-muted">
-                                                    <i class="bi bi-calendar"></i> {{ job_offer.getDatePosted|date('M d, Y') }}
-                                                </small>
-                                                <div class="btn-group" role="group">
-                                                    <a href="{{ path('app_job_offer_show', {'id_offer': job_offer.getIdOffer()}) }}" 
-                                                       class="btn btn-sm btn-outline-primary"
-                                                       title="View">
-                                                        <i class="bi bi-eye"></i>
-                                                    </a>
-                                                    <a href="{{ path('app_job_offer_edit', {'id_offer': job_offer.getIdOffer()}) }}" 
-                                                       class="btn btn-sm btn-outline-secondary"
-                                                       title="Edit">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </a>
-                                                    {{ include('job_offer/_delete_form.html.twig') }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+	<section class="section">
+		<div class="container">
+		    {% if not is_ajax %}
+			<div class="row">
+				<!-- Main Content Column -->
+				<div class="col-lg-8">
+			{% endif %}
+				<h1 class="h4 mb-3">Job Offers</h1>
+					<div class="card mb-4">
+						<div class="card-header d-flex justify-content-between align-items-center">
+							<h4 class="card-title h4 mb-50">Browse job offers</h4>
+							{% if not is_ajax %}
+							<a href="{{ path('app_job_offer_new') }}" class="btn btn-primary">
+								<i class="bi bi-plus-circle"></i>
+								Create New
+							</a>
+							{% endif %}
+						</div>
+						<div class="card-body" id="job-offers-container">
+							{% if job_offers is empty %}
+								<div class="alert alert-info">No job offers found</div>
+							{% else %}
+								<div class="row">
+									{% for job_offer in job_offers %}
+										<div class="col-md-6 col-lg-6 mb-4">
+											<div class="card h-100 job-card">
+												<a href="{{ path('app_job_offer_show', {'id_offer': job_offer.getIdOffer()}) }}" class="stretched-link card-clickable-overlay"></a>
+												<div class="card-header bg-light-primary d-flex justify-content-between align-items-center">
+													<div class="d-flex align-items-center">
+														<img src="{{ asset(job_offer.user.image ?: 'images/default-profile.png') }}" class="rounded-circle me-3" width="60" height="60" alt="Company logo">
+														<div>
+															<h5 class="card-title mb-0">{{ job_offer.title }}</h5>
+															<small class="text-muted">{{ job_offer.user.name }}</small>
+														</div>
+													</div>
+													<div class="d-flex flex-column align-items-end">
+														{% if job_offer.getDatePosted > date('-2days') %}
+															<span class="badge bg-danger mb-1">New</span>
+														{% endif %}
+														<span class="badge bg-{{ job_offer.getNumberOfSpots() > 0 ? 'success' : 'danger' }}">
+															{{ job_offer.getNumberOfSpots }}
+															spots
+														</span>
+													</div>
+												</div>
+												<div class="card-body">
+													<div class="mb-3 mt-3 relative" style="display: -webkit-box;-webkit-line-clamp: 2;-webkit-box-orient: vertical;overflow: hidden;text-overflow: ellipsis;line-height: 1.5em; max-height: 3em; position: relative;">
+														{{ job_offer.description }}
+														<span class="show-more-indicator" style="position: absolute; right: 0; bottom: 0;background: white; padding-left: 4px;color: #007bff;font-weight: 500;display: none;">...show more</span>
+													</div>
+													<div class="d-flex flex-wrap gap-2 mb-3">
+														<span class="badge bg-primary">{{ job_offer.type }}</span>
+														<span class="badge bg-secondary">{{ job_offer.field }}</span>
+													</div>
+													<div class="job-meta mb-3">
+														<div class="d-flex align-items-center mb-1">
+															<i class="bi bi-mortarboard me-2 text-primary"></i>
+															<span>{{ job_offer.getRequiredEducation }}</span>
+														</div>
+														<div class="d-flex align-items-center mb-1">
+															<i class="bi bi-briefcase me-2 text-primary"></i>
+															<span>{{ job_offer.getRequiredExperience }}</span>
+														</div>
+													</div>
+													<div class="skills mb-3">
+														<h6 class="small text-muted mb-1">
+															<i class="bi bi-tools me-1"></i>
+															Required Skills:</h6>
+														<div class="d-flex flex-wrap gap-1">
+															{% for skill in job_offer.skills|split(',') %}
+																{% if skill|trim %}
+																	<span class="badge bg-light text-dark border">
+																		<i class="bi bi-check-circle me-1 text-primary"></i>
+																		{{ skill|trim }}
+																	</span>
+																{% endif %}
+															{% endfor %}
+														</div>
+													</div>
+												</div>
+												<div class="card-footer bg-transparent">
+													<div class="d-flex justify-content-between align-items-center">
+														<small class="text-muted">
+															<i class="bi bi-calendar"></i>
+															{{ job_offer.getDatePosted|date('M d, Y') }}
+														</small>
+														<div class="btn-group" role="group">
+															{% if current_user.role == 1 and job_offer.user.id_user == current_user.id_user %}
+																<a href="{{ path('app_job_offer_edit', {'id_offer': job_offer.getIdOffer()}) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+																	<i class="bi bi-pencil"></i>
+																</a>
+																{{ include('job_offer/_delete_form.html.twig') }}
+															{% elseif current_user.role == 2 %}
+																{% if has_applied[job_offer.getIdOffer()] is defined and has_applied[job_offer.getIdOffer()] %}
+																	<button class="btn btn-sm btn-outline-secondary disabled" disabled style="pointer-events: none; opacity: 0.6;">
+																		<i class="bi bi-check-circle"></i>
+																		Applied
+																	</button>
+																{% else %}
+																	<a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" class="btn btn-sm btn-primary" title="Apply">
+																		<i class="bi bi-send-check"></i>
+																		Apply
+																	</a>
+																{% endif %}
+															{% endif %}
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									{% endfor %}
+								</div>
+							{% endif %}
+						</div>
+					</div>
+			{% if not is_ajax %}
+				</div>
 
-              <!-- Sidebar Column -->
-            <div class="col-lg-4">
-                <!-- Search Card -->
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5><i class="bi bi-search me-2"></i>Search Jobs</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="searchForm" method="get" action="{{ path('app_job_offer_index') }}" autocomplete="off">
-                            <div class="input-group mb-3">
-                                <input type="text" 
-                                    class="form-control" 
-                                    name="search" 
-                                    placeholder="Search by title, description, skills..."
-                                    value="{{ app.request.query.get('search', '') }}"
-                                    oninput="this.form.submit()">
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+				<!-- Sidebar Column -->
+				<div class="col-lg-4">
+					<!-- Search Card -->
+					<div class="card mb-4 shadow-sm">
+						<div class="card-header bg-light">
+							<h5><i class="bi bi-search me-2"></i>Search Jobs</h5>
+						</div>
+						<div class="card-body">
+							<form id="searchForm" autocomplete="off">
+								<div class="input-group mb-3">
+									<input type="text" class="form-control" id="searchInput" placeholder="Search by title, company..." value="{{ app.request.query.get('search', '') }}">
+									<button class="btn btn-primary" type="button" id="searchButton">
+										<i class="bi bi-search"></i>
+									</button>
+								</div>
+							</form>
+						</div>
+					</div>
 
-                <!-- Filters Card -->
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5><i class="bi bi-funnel me-2"></i>Filters</h5>
-                    </div>
-                    <div class="card-body">
-                        <form method="get" action="{{ path('app_job_offer_index') }}">
-                            <input type="hidden" name="search" value="{{ app.request.query.get('search') }}">
-                            <!-- My Jobs Only Filter -->
-<div class="mb-3">
-    <div class="form-check form-switch">
-        <input class="form-check-input" 
-               type="checkbox" 
-               id="my_jobs"
-               name="my_jobs"
-               value="1"
-               {% if only_my_jobs %}checked{% endif %}
-               onchange="this.form.submit()">
-        <label class="form-check-label" for="my_jobs">
-            <i class="bi bi-person-check"></i> Show only my job offers
-        </label>
-    </div>
-</div>
-                           <!-- Job Type Filter -->
-                            <div class="mb-3">
-                                <h6 class="mb-2">Job Type</h6>
-                                {% for type in constant('App\\Entity\\Job_offer::JOB_TYPES') %}
-                                <div class="form-check">
-                                    <input class="form-check-input" 
-                                        type="checkbox" 
-                                        id="type_{{ loop.index }}"
-                                        name="types[]"
-                                        value="{{ type }}"
-                                        {% if type in app.request.query.all('types') %}checked{% endif %}>
-                                    <label class="form-check-label" for="type_{{ loop.index }}">{{ type }}</label>
-                                </div>
-                                {% endfor %}
-                            </div>
+					<!-- Filters Card -->
+					<div class="card mb-4 shadow-sm">
+						<div class="card-header bg-light">
+							<h5><i class="bi bi-funnel me-2"></i>Filters</h5>
+						</div>
+						<div class="card-body">
+							<form method="get" id="filtersForm" action="{{ path('app_job_offer_index') }}">
+								<input type="hidden" name="search" id="searchParam" value="{{ app.request.query.get('search', '') }}">
 
-                            <!-- Field Filter -->
-                            <div class="mb-3">
-                                <h6 class="mb-2">Field</h6>
-                                {% for field in constant('App\\Entity\\Job_offer::FIELDS') %}
-                                <div class="form-check">
-                                    <input class="form-check-input" 
-                                        type="checkbox" 
-                                        id="field_{{ loop.index }}"
-                                        name="fields[]"
-                                        value="{{ field }}"
-                                        {% if field in app.request.query.all('fields') %}checked{% endif %}>
-                                    <label class="form-check-label" for="field_{{ loop.index }}">{{ field }}</label>
-                                </div>
-                                {% endfor %}
-                            </div>
+								<!-- My Jobs Toggle -->
+								<div class="mb-3">
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" id="my_jobs" name="my_jobs" value="1" 
+											{{ app.request.query.get('my_jobs', '0') == '1' ? 'checked' : '' }}>
+										<label class="form-check-label" for="my_jobs">
+											<i class="bi bi-person-check"></i>
+											Show only my job offers
+										</label>
+									</div>
+								</div>
 
-                            <!-- Education Level Filter -->
-                            <div class="mb-3">
-                                <h6 class="mb-2">Education Level</h6>
-                                {% for education in constant('App\\Entity\\Job_offer::EDUCATION_LEVELS') %}
-                                <div class="form-check">
-                                    <input class="form-check-input" 
-                                        type="checkbox" 
-                                        id="edu_{{ loop.index }}"
-                                        name="education[]"
-                                        value="{{ education }}"
-                                        {% if education in app.request.query.all('education') %}checked{% endif %}>
-                                    <label class="form-check-label" for="edu_{{ loop.index }}">{{ education }}</label>
-                                </div>
-                                {% endfor %}
-                            </div>
+								<!-- Job Type Filter -->
+								<div class="mb-3">
+									<h6 class="mb-2">Job Type</h6>
+									{% for type in constant('App\\Entity\\Job_offer::JOB_TYPES') %}
+										<div class="form-check">
+											<input class="form-check-input" type="checkbox" id="type_{{ loop.index }}" name="types[]" value="{{ type }}" {{ type in app.request.query.all('types') ? 'checked' : '' }}>
+											<label class="form-check-label" for="type_{{ loop.index }}">{{ type }}</label>
+										</div>
+									{% endfor %}
+								</div>
 
-                            <!-- My Jobs Only Filter -->
-                            {% if app.user %}
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" 
-                                           type="checkbox" 
-                                           id="my_jobs"
-                                           name="my_jobs"
-                                           value="1"
-                                           {% if app.request.query.get('my_jobs') %}checked{% endif %}>
-                                    <label class="form-check-label" for="my_jobs">Show only my job offers</label>
-                                </div>
-                            </div>
-                            {% endif %}
+								<!-- Field Filter -->
+								<div class="mb-3">
+									<h6 class="mb-2">Field</h6>
+									{% for field in constant('App\\Entity\\Job_offer::FIELDS') %}
+										<div class="form-check">
+											<input class="form-check-input" type="checkbox" id="field_{{ loop.index }}" name="fields[]" value="{{ field }}" {{ field in app.request.query.all('fields') ? 'checked' : '' }}>
+											<label class="form-check-label" for="field_{{ loop.index }}">{{ field }}</label>
+										</div>
+									{% endfor %}
+								</div>
 
-                            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
-                            <a href="{{ path('app_job_offer_index') }}" class="btn btn-outline-secondary w-100 mt-2">Reset Filters</a>
-                        </form>
-                    </div>
-                </div>
+								<!-- Education Level Filter -->
+								<div class="mb-3">
+									<h6 class="mb-2">Education Level</h6>
+									{% for education in constant('App\\Entity\\Job_offer::EDUCATION_LEVELS') %}
+										<div class="form-check">
+											<input class="form-check-input" type="checkbox" id="edu_{{ loop.index }}" name="education[]" value="{{ education }}" {{ education in app.request.query.all('education') ? 'checked' : '' }}>
+											<label class="form-check-label" for="edu_{{ loop.index }}">{{ education }}</label>
+										</div>
+									{% endfor %}
+								</div>
 
-                <!-- Recent Jobs Card -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5><i class="bi bi-clock-history me-2"></i>Recent Jobs</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="list-group list-group-flush">
-                            {% for recent_offer in recent_jobs %}
-                            <a href="{{ path('app_job_offer_show', {'id_offer': recent_offer.getIdOffer()}) }}" 
-                               class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ recent_offer.title }}</h6>
-                                    <small>{{ recent_offer.getDatePosted|date('M d') }}</small>
-                                </div>
-                                <small class="text-muted">{{ recent_offer.user.name ?? 'Unknown' }}</small>
-                            </a>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+								<button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+								<a href="{{ path('app_job_offer_index') }}" class="btn btn-outline-secondary w-100 mt-2">
+									Reset Filters
+								</a>
+							</form>
+						</div>
+					</div>
 
-<style>
-    .job-card {
-        transition: transform 0.2s, box-shadow 0.2s;
-        border: 1px solid rgba(0,0,0,0.1);
-    }
-    .job-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    }
-    .job-meta i {
-        min-width: 20px;
-        text-align: center;
-    }
-    .bg-light-primary {
-        background-color: $secondary !important;
-    }
-    .btn-group .btn {
-        padding: 0.25rem 0.5rem;
-    }
-    .list-group-item {
-        border-left: 0;
-        border-right: 0;
-    }
-    .list-group-item:first-child {
-        border-top: 0;
-    }
-    .list-group-item:last-child {
-        border-bottom: 0;
-    }
-    .loading {
-        position: relative;
-        opacity: 0.7;
-    }
-    .loading::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255,255,255,0.7);
-        z-index: 10;
-    }
+					<!-- Recent Jobs Card -->
+					<div class="card shadow-sm">
+						<div class="card-header bg-light">
+							<h5><i class="bi bi-clock-history me-2"></i>Recent Jobs</h5>
+						</div>
+						<div class="card-body">
+							<div class="list-group list-group-flush">
+								{% for recent_offer in recent_jobs %}
+									<a href="{{ path('app_job_offer_show', {'id_offer': recent_offer.getIdOffer()}) }}" class="list-group-item list-group-item-action">
+										<div class="d-flex w-100 justify-content-between">
+											<h6 class="mb-1">{{ recent_offer.title }}</h6>
+											<small>{{ recent_offer.getDatePosted|date('M d') }}</small>
+										</div>
+										<small class="text-muted">{{ recent_offer.user.name ?? 'Unknown' }}</small>
+									</a>
+								{% endfor %}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			{% endif %}
+		</div>
+	</section>
 
-</style>
+	<style>
+		.job-card {
+			transition: transform 0.2s, box-shadow 0.2s;
+			border: 1px solid rgba(0, 0, 0, 0.1);
+		}
+		.job-card:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+		}
+		.job-meta i {
+			min-width: 20px;
+			text-align: center;
+		}
+		.bg-light-primary {
+			background-color: $secondary !important;
+		}
+		.btn-group .btn {
+			padding: 0.25rem 0.5rem;
+		}
+		.list-group-item {
+			border-left: 0;
+			border-right: 0;
+		}
+		.list-group-item:first-child {
+			border-top: 0;
+		}
+		.list-group-item:last-child {
+			border-bottom: 0;
+		}
+		.loading {
+			position: relative;
+			opacity: 0.7;
+		}
+		.loading::after {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: rgba(255, 255, 255, 0.7);
+			z-index: 10;
+		}
+		.btn-group .btn-sm {
+			padding: 0.25rem 0.5rem;
+			font-size: 0.875rem;
+		}
+		.btn-success {
+			background-color: #28a745;
+			border-color: #28a745;
+		}
+		.card-clickable-overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			opacity: 0;
+			z-index: 0;
+		}
+		.job-card {
+			transition: all 0.2s ease;
+			cursor: pointer;
+		}
+		.job-card:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+		}
+		.btn-group a,
+		.btn-group button {
+			position: relative;
+			z-index: 1;
+		}
+	</style>
 {% endblock %}
 
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle the toggle switch
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const container = document.getElementById('job-offers-container');
+    const filtersForm = document.getElementById('filtersForm');
     const myJobsToggle = document.getElementById('my_jobs');
-    if (myJobsToggle) {
-        myJobsToggle.addEventListener('change', function() {
-            // Show loading indicator
-            const cardBody = this.closest('.card-body');
-            cardBody.classList.add('loading');
+    let searchTimer;
+
+    // Only make AJAX requests when actually needed (not initial page load)
+    let isInitialLoad = true;
+
+    async function loadJobOffers() {
+        // Don't make AJAX call on initial page load
+        if (isInitialLoad) {
+            isInitialLoad = false;
+            return;
+        }
+
+        // Show loading indicator
+        const previousContent = container.innerHTML;
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>`;
+
+        try {
+            const params = new URLSearchParams();
+            params.append('ajax', '1');
             
-            // Submit the form
-            this.form.submit();
+            // Add search term if exists
+            if (searchInput.value.trim()) {
+                params.append('search', searchInput.value.trim());
+            }
+            
+            // Add all active filters
+            document.querySelectorAll('input[name="types[]"]:checked').forEach(checkbox => {
+                params.append('types[]', checkbox.value);
+            });
+            document.querySelectorAll('input[name="fields[]"]:checked').forEach(checkbox => {
+                params.append('fields[]', checkbox.value);
+            });
+            document.querySelectorAll('input[name="education[]"]:checked').forEach(checkbox => {
+                params.append('education[]', checkbox.value);
+            });
+            
+            // Add my_jobs status
+            if (myJobsToggle.checked) {
+                params.append('my_jobs', '1');
+            }
+
+            const response = await fetch(`{{ path('app_job_offer_index') }}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const html = await response.text();
+            
+            // Extract just the job listings
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const jobContainer = tempDiv.querySelector('#job-offers-container');
+            
+            if (!jobContainer || jobContainer.innerHTML.includes('No job offers found')) {
+                container.innerHTML = `
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-4">
+                            <i class="bi bi-file-earmark-text fs-1 text-muted mb-2"></i>
+                            <h3 class="h5">No job offers found</h3>
+                            <p class="text-muted mb-3">${myJobsToggle.checked ? 'You have no job offers' : 'No results found'}</p>
+                        </div>
+                    </div>`;
+            } else {
+                container.innerHTML = jobContainer.innerHTML;
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            container.innerHTML = previousContent; // Revert to previous content
+            alert('Error loading job offers. Please try again.');
+        }
+    }
+
+    // Event listeners
+    searchButton.addEventListener('click', loadJobOffers);
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(loadJobOffers, 500);
+    });
+
+    // Clear search when 'X' is clicked
+    searchInput.addEventListener('search', function() {
+        if (this.value === '') {
+            loadJobOffers();
+        }
+    });
+
+    // My Jobs toggle handler
+    if (myJobsToggle) {
+        myJobsToggle.addEventListener('change', loadJobOffers);
+    }
+
+    // Filter form submission handler
+    if (filtersForm) {
+        filtersForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            loadJobOffers();
         });
     }
+
+    // Remove the initial load call - let server render the initial content
 });
 </script>
 {% endblock %}

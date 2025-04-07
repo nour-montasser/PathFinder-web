@@ -6,11 +6,13 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Job_offer;
 use App\Entity\App_user;
 use App\Entity\Cv;
+use App\Repository\ApplicationJobRepository;
 
-#[ORM\Entity]
-class Application_job
+#[ORM\Entity(repositoryClass: ApplicationJobRepository::class)]
+#[ORM\Table(name: "application_job")] // 👈 garde le nom SQL que tu veux
+class ApplicationJob
 {
-    #[ORM\Id]
+    #[ORM\Id]   
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $application_id;
@@ -39,7 +41,7 @@ class Application_job
         return $this->application_id;
     }
 
-    public function setApplication_id(string $value): self
+    public function setApplication_id(int $value): self
     {
         $this->application_id = $value;
         return $this;
@@ -67,12 +69,12 @@ class Application_job
         return $this;
     }
 
-    public function getDate_application(): \DateTimeInterface
+    public function getDateApplication(): \DateTimeInterface
     {
         return $this->date_application;
     }
 
-    public function setDate_application(\DateTimeInterface $value): self
+    public function setDateApplication(\DateTimeInterface $value): self
     {
         $this->date_application = $value;
         return $this;

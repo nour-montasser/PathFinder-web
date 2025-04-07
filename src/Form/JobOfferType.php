@@ -10,8 +10,9 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use App\Entity\App_user; // Assuming you have an AppUser entity
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\Positive;
 
 class JobOfferType extends AbstractType
 {
@@ -19,37 +20,65 @@ class JobOfferType extends AbstractType
     {
         $builder
             ->add('title', TextType::class, [
-                'attr' => ['class' => 'form-control']
+                'attr' => ['class' => 'form-control'],
+                'constraints' => [
+                    new NotBlank(['message' => 'Please enter a job title']),
+                    new Length([
+                        'max' => 255,
+                        'maxMessage' => 'Job title cannot be longer than {{ limit }} characters'
+                    ])
+                ]
             ])
             ->add('description', TextareaType::class, [
-                'attr' => ['class' => 'form-control', 'rows' => 5]
+                'attr' => ['class' => 'form-control', 'rows' => 5],
+                'constraints' => [
+                    new NotBlank(['message' => 'Please enter a job description']),
+                    new Length([
+                        'min' => 50,
+                        'minMessage' => 'Description should be at least {{ limit }} characters long'
+                    ])
+                ]
             ])
             ->add('type', ChoiceType::class, [
                 'choices' => array_combine(Job_offer::JOB_TYPES, Job_offer::JOB_TYPES),
-                'attr' => ['class' => 'form-select']
+                'attr' => ['class' => 'form-select'],
+                'constraints' => [
+                    new NotBlank(['message' => 'Please select a job type'])
+                ]
             ])
             ->add('number_of_spots', IntegerType::class, [
                 'attr' => ['class' => 'form-control', 'min' => 1],
-                'label' => 'Number of Spots',
+                'constraints' => [
+                    new NotBlank(['message' => 'Please enter number of positions']),
+                    new Positive(['message' => 'Number must be positive'])
+                ]
             ])
             ->add('required_education', ChoiceType::class, [
                 'choices' => array_combine(Job_offer::EDUCATION_LEVELS, Job_offer::EDUCATION_LEVELS),
                 'attr' => ['class' => 'form-select'],
-                'property_path' => 'required_education'
+                'constraints' => [
+                    new NotBlank(['message' => 'Please select required education'])
+                ]
             ])
             ->add('required_experience', TextType::class, [
                 'attr' => ['class' => 'form-control'],
-                'property_path' => 'required_experience'
+                'constraints' => [
+                    new NotBlank(['message' => 'Please enter required experience'])
+                ]
             ])
             ->add('skills', TextType::class, [
                 'attr' => ['class' => 'form-control'],
-                'label' => 'Skills (comma separated)'
+                'constraints' => [
+                    new NotBlank(['message' => 'Please enter required skills'])
+                ]
             ])
             ->add('field', ChoiceType::class, [
                 'choices' => array_combine(Job_offer::FIELDS, Job_offer::FIELDS),
-                'attr' => ['class' => 'form-select']
+                'attr' => ['class' => 'form-select'],
+                'constraints' => [
+                    new NotBlank(['message' => 'Please select a field'])
+                ]
             ])
-            // Champs non mappés pour la ville et le pays
             ->add('city', TextType::class, [
                 'attr' => ['class' => 'form-control'],
                 'required' => false,
@@ -66,15 +95,6 @@ class JobOfferType extends AbstractType
                 'required' => false,
                 'mapped' => false,
                 'placeholder' => 'Select a country'
-            ])
-            ->add('user', EntityType::class, [
-                'class' => App_user::class,
-                'choice_label' => function(App_user $user) {
-                    return $user->getName(); // Assurez-vous que la méthode existe
-                },
-                'placeholder' => 'Select a user',
-                'attr' => ['class' => 'form-select'],
-                'label' => 'Posted By'
             ]);
     }
 

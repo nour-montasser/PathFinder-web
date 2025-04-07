@@ -67,4 +67,28 @@ public function findRecentJobOffers(int $limit = 5): array
         ->getQuery()
         ->getResult();
 }
+
+public function getUserStats(int $userId): array
+{
+    // Count all posts by this user
+    $postCount = $this->createQueryBuilder('j')
+        ->select('COUNT(j.id_offer)')
+        ->where('j.user = :userId')
+        ->setParameter('userId', $userId)
+        ->getQuery()
+        ->getSingleScalarResult();
+
+    // Calculate average applications per post
+    $avgApplications = $this->createQueryBuilder('j')
+        ->select('AVG(SIZE(j.applications))')
+        ->where('j.user = :userId')
+        ->setParameter('userId', $userId)
+        ->getQuery()
+        ->getSingleScalarResult();
+
+    return [
+        'active_posts' => $postCount,
+        'avg_applications' => round($avgApplications, 1) // Round to 1 decimal place
+    ];
+}
 }

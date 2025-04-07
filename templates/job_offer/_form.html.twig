@@ -15,14 +15,9 @@
                                 <i class="bi bi-1-circle me-2"></i>Job Details
                             </li>
                             <li class="nav-item mb-2 p-2 rounded">
-                                <i class="bi bi-2-circle me-2"></i>Requirements
+                                <i class="bi bi-2-circle me-2"></i>Skill test
                             </li>
-                            <li class="nav-item mb-2 p-2 rounded">
-                                <i class="bi bi-3-circle me-2"></i>Location
-                            </li>
-                            <li class="nav-item p-2 rounded">
-                                <i class="bi bi-4-circle me-2"></i>Review
-                            </li>
+                           
                         </ul>
                     </div>
                 </div>
@@ -52,7 +47,7 @@
                 </div>
             </div>
 
-            <!-- Main Form -->
+             <!-- Main Form -->
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
@@ -61,16 +56,21 @@
                         </h4>
                     </div>
                     <div class="card-body">
-                        {{ form_start(form, {'attr': {'class': 'form form-horizontal'}}) }}
+                        {{ form_start(form, {'attr': {'class': 'form form-horizontal', 'novalidate': 'novalidate'}}) }}
 
                         <!-- Job Title -->
-                        <div class="form-group row mb-4">
+                        <div class="form-group row mb-4 mt-4">
                             <label class="col-form-label col-md-3">Job Title</label>
                             <div class="col-md-9">
-                                {{ form_widget(form.title, {'attr': {
-                                    'class': 'form-control',
-                                    'placeholder': 'E.g. Senior PHP Developer'
-                                }}) }}
+                                {{ form_widget(form.title, {
+                                    'attr': {
+                                        'class': form.title.vars.valid ? 'form-control' : 'form-control is-invalid',
+                                        'placeholder': 'E.g. Senior PHP Developer'
+                                    }
+                                }) }}
+                                <div class="invalid-feedback">
+                                    {{ form_errors(form.title) }}
+                                </div>
                             </div>
                         </div>
 
@@ -78,11 +78,16 @@
                         <div class="form-group row mb-4">
                             <label class="col-form-label col-md-3">Description</label>
                             <div class="col-md-9">
-                                {{ form_widget(form.description, {'attr': {
-                                    'class': 'form-control',
-                                    'rows': 5,
-                                    'placeholder': 'Describe responsibilities, expectations...'
-                                }}) }}
+                                {{ form_widget(form.description, {
+                                    'attr': {
+                                        'class': form.description.vars.valid ? 'form-control' : 'form-control is-invalid',
+                                        'rows': 5,
+                                        'placeholder': 'Describe responsibilities, expectations...'
+                                    }
+                                }) }}
+                                <div class="invalid-feedback">
+                                    {{ form_errors(form.description) }}
+                                </div>
                             </div>
                         </div>
 
@@ -90,7 +95,14 @@
                         <div class="form-group row mb-4">
                             <label class="col-form-label col-md-3">Job Type</label>
                             <div class="col-md-9">
-                                {{ form_widget(form.type, {'attr': {'class': 'form-select'}}) }}
+                                {{ form_widget(form.type, {
+                                    'attr': {
+                                        'class': form.type.vars.valid ? 'form-select' : 'form-select is-invalid'
+                                    }
+                                }) }}
+                                <div class="invalid-feedback">
+                                    {{ form_errors(form.type) }}
+                                </div>
                             </div>
                         </div>
 
@@ -99,11 +111,16 @@
                             <label class="col-form-label col-md-3">Open Positions</label>
                             <div class="col-md-9">
                                 <div class="input-group">
-                                    {{ form_widget(form.number_of_spots, {'attr': {
-                                        'class': 'form-control',
-                                        'min': 1
-                                    }}) }}
+                                    {{ form_widget(form.number_of_spots, {
+                                        'attr': {
+                                            'class': form.number_of_spots.vars.valid ? 'form-control' : 'form-control is-invalid',
+                                            'min': 1
+                                        }
+                                    }) }}
                                     <span class="input-group-text">positions</span>
+                                </div>
+                                <div class="invalid-feedback">
+                                    {{ form_errors(form.number_of_spots) }}
                                 </div>
                             </div>
                         </div>
@@ -115,27 +132,44 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label>Education</label>
-                                        {{ form_widget(form.required_education, {'attr': {'class': 'form-select'}}) }}
+                                        {{ form_widget(form.required_education, {
+                                            'attr': {
+                                                'class': form.required_education.vars.valid ? 'form-select' : 'form-select is-invalid'
+                                            }
+                                        }) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.required_education) }}
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label>Experience</label>
-                                        {{ form_widget(form.required_experience, {'attr': {
-                                            'class': 'form-control',
-                                            'placeholder': 'E.g. 3+ years'
-                                        }}) }}
+                                        {{ form_widget(form.required_experience, {
+                                            'attr': {
+                                                'class': form.required_experience.vars.valid ? 'form-control' : 'form-control is-invalid',
+                                                'placeholder': 'E.g. 3+ years'
+                                            }
+                                        }) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.required_experience) }}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div>  
                         </div>
 
                         <!-- Skills -->
                         <div class="form-group row mb-4">
                             <label class="col-form-label col-md-3">Skills</label>
                             <div class="col-md-9">
-                                {{ form_widget(form.skills, {'attr': {
-                                    'class': 'form-control',
-                                    'placeholder': 'PHP, Symfony, MySQL...'
-                                }}) }}
+                                {{ form_widget(form.skills, {
+                                    'attr': {
+                                        'class': form.skills.vars.valid ? 'form-control' : 'form-control is-invalid',
+                                        'placeholder': 'PHP, Symfony, MySQL...'
+                                    }
+                                }) }}
+                                <div class="invalid-feedback">
+                                    {{ form_errors(form.skills) }}
+                                </div>
                             </div>
                         </div>
 
@@ -146,16 +180,26 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label>City</label>
-                                        {{ form_widget(form.city, {'attr': {
-                                            'class': 'form-control',
-                                            'placeholder': 'City'
-                                        }}) }}
+                                        {{ form_widget(form.city, {
+                                            'attr': {
+                                                'class': form.city.vars.valid ? 'form-control' : 'form-control is-invalid',
+                                                'placeholder': 'City'
+                                            }
+                                        }) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.city) }}
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label>Country</label>
-                                        {{ form_widget(form.country, {'attr': {
-                                            'class': 'form-select'
-                                        }}) }}
+                                        {{ form_widget(form.country, {
+                                            'attr': {
+                                                'class': form.country.vars.valid ? 'form-select' : 'form-select is-invalid'
+                                            }
+                                        }) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.country) }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -165,16 +209,16 @@
                         <div class="form-group row mb-4">
                             <label class="col-form-label col-md-3">Field</label>
                             <div class="col-md-9">
-                                {{ form_widget(form.field, {'attr': {'class': 'form-select'}}) }}
+                                {{ form_widget(form.field, {
+                                    'attr': {
+                                        'class': form.field.vars.valid ? 'form-select' : 'form-select is-invalid'
+                                    }
+                                }) }}
+                                <div class="invalid-feedback">
+                                    {{ form_errors(form.field) }}
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group row mb-4">
-                            <label class="col-form-label col-md-3">Posted By</label>
-                            <div class="col-md-9">
-                                {{ form_widget(form.user, {'attr': {'class': 'form-select'}}) }}
-                            </div>
-                        </div>
-                        
 
                         <!-- Form Actions -->
                         <div class="form-group row mb-4">
@@ -194,6 +238,7 @@
                     </div>
                 </div>
             </div>
+
 
             <!-- Right Sidebar -->
             <div class="col-lg-3 d-none d-lg-block">
@@ -227,15 +272,11 @@
                         <div class="stats-container">
                             <div class="stat-item d-flex justify-content-between align-items-center p-2 mb-2 rounded">
                                 <span>Active Posts:</span>
-                                <span class="badge bg-primary rounded-pill">12</span>
+                                <span class="badge bg-primary rounded-pill">{{ stats.active_posts ?? 0 }}</span>
                             </div>
                             <div class="stat-item d-flex justify-content-between align-items-center p-2 mb-2 rounded">
                                 <span>Avg. Applications:</span>
-                                <span class="badge bg-success rounded-pill">24</span>
-                            </div>
-                            <div class="stat-item d-flex justify-content-between align-items-center p-2 rounded">
-                                <span>Conversion Rate:</span>
-                                <span class="badge bg-info rounded-pill">18%</span>
+                                <span class="badge bg-success rounded-pill">{{ stats.avg_applications ?? 0 }}</span>
                             </div>
                         </div>
                     </div>

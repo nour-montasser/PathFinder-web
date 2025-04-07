@@ -51,7 +51,7 @@ class Job_offer
     #[ORM\Column(type: "string", length: 255)]
     private string $address="";
 
-    #[ORM\OneToMany(mappedBy: "jobOffer", targetEntity: Application_job::class)]
+    #[ORM\OneToMany(mappedBy: "jobOffer", targetEntity: ApplicationJob::class)]
     private Collection $applications;
 
     #[ORM\OneToMany(mappedBy: "jobOffer", targetEntity: Skilltest::class)]
@@ -200,7 +200,7 @@ class Job_offer
         return $this->applications;
     }
 
-    public function addApplication(Application_job $application): self
+    public function addApplication(ApplicationJob $application): self
     {
         if (!$this->applications->contains($application)) {
             $this->applications[] = $application;
@@ -209,7 +209,7 @@ class Job_offer
         return $this;
     }
 
-    public function removeApplication(Application_job $application): self
+    public function removeApplication(ApplicationJob $application): self
     {
         if ($this->applications->removeElement($application)) {
             if ($application->getJobOffer() === $this) {

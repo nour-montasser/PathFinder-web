@@ -1,0 +1,372 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Job Applications {% endblock %}
+
+
+
+{% block body %}
+	<div class="container py-4">
+		<div class="d-flex justify-content-between align-items-center mb-3">
+			<h1 class="h4 mb-0">My Applications</h1>
+			<a href="{{ path('app_job_offer_index') }}" class="btn btn-sm btn-primary">
+				<i class="bi bi-briefcase me-1"></i>
+				Browse Jobs
+			</a>
+		</div>
+
+		<div
+			class="row">
+
+			<!-- Applications Column -->
+			<div class="col-md-8 order-1 order-md-0">
+				{% if application_jobs is empty %}
+					<div class="card border-0 shadow-sm">
+						<div class="card-body text-center py-4">
+							<i class="bi bi-file-earmark-text fs-1 text-muted mb-2"></i>
+							<h3 class="h5">No applications yet</h3>
+							<p class="text-muted mb-3">You haven't applied to any positions yet</p>
+							<a href="{{ path('app_job_offer_index') }}" class="btn btn-sm btn-outline-primary">
+								Find Job Opportunities
+							</a>
+						</div>
+					</div>
+				{% else %}
+					<!-- View toggle -->
+					<div class="mb-3 text-end">
+						<div class="btn-group btn-group-sm">
+							<button class="btn btn-outline-secondary view-toggle active" data-view="list">
+								<i class="bi bi-list-ul"></i>
+								List
+							</button>
+							<button class="btn btn-outline-secondary view-toggle" data-view="grid">
+								<i class="bi bi-grid"></i>
+								Grid
+							</button>
+						</div>
+					</div>
+
+					<!-- Applications -->
+					<div id="applications-container" class="app-list-view">
+						{% for application in application_jobs %}
+							{% set canEdit = true %}
+
+                            {# Block editing if status is Accepted or Rejected #}
+                            {% if application.status in ['Accepted', 'Rejected'] %}
+                                {% set canEdit = false %}
+                            {% endif %}
+
+                            {# Block editing if Pending but submitted more than 2 hours ago #}
+                            {% if application.status == 'Pending' %}
+                                {% set twoHoursAgo = date('now')|date_modify('-2 hours') %}
+                                {% if application.dateApplication <= twoHoursAgo %}
+                                    {% set canEdit = false %}
+                                {% endif %}
+                            {% endif %}
+
+							<div class="app-card card shadow-sm">
+								<div class="card-body p-3">
+									<div class="d-flex justify-content-between align-items-start">
+										<div class="flex-grow-1 me-2">
+											<div class="d-flex align-items-center mb-1">
+												<h3 class="h6 mb-0 me-2">{{ application.jobOffer.title }}</h3>
+												<span class="badge rounded-pill fs-6
+															 {% if application.status == 'Pending' %}bg-warning text-dark
+															 {% elseif application.status == 'Accepted' %}bg-success
+															 {% elseif application.status == 'Rejected' %}bg-danger
+															 {% elseif 'Applying-' in application.status %}bg-secondary
+														     {% endif %}">
+													{% if application.status == 'Pending' %}Reviewing
+														{% elseif 'Applying-' in application.status %}Step
+														{{ application.status|split('-')[1] }}/4
+													{% else %}
+														{{ application.status }}
+													{% endif %}
+												</span>
+											</div>
+											<div class="d-flex text-muted small">
+												<span class="me-2">{{ application.jobOffer.user.name }}</span>
+												<span class="me-2">•</span>
+												<span>Applied
+                                                {{ application.dateApplication|date('M d h:i A') }}											
+                                            </div>
+										</div>
+										<div class="d-flex">
+											 <button type="button" 
+                                                class="btn btn-sm btn-outline-primary me-1" 
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#applicationModal-{{ application.application_id }}">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+											{% if canEdit or 'Applying-' in application.status %}
+												<a href="{{ path('app_application_job_edit', {'application_id': application.application_id}) }}" class="btn btn-sm btn-outline-secondary me-1">
+													<i class="bi bi-pencil"></i>
+												</a>
+
+
+                                                <form method="post" action="{{ path('app_application_job_delete', {'application_id': application.application_id}) }}" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.application_id) }}" class>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger me-1" onclick="return confirm('Are you sure?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>    
+
+
+											{% endif %}
+										</div>
+									</div>
+
+									{% if 'Applying-' in application.status and application.status != 'Applying-4' %}
+										{% set current_step = application.status|split('-')[1] %}
+										<div class="mt-2">
+											<div class="d-flex align-items-center">
+												<small class="text-muted me-2">Progress:</small>
+												<div class="progress flex-grow-1" style="height: 6px;">
+													<div class="progress-bar" style="width: {{ (current_step/4)*100 }}%"></div>
+												</div>
+												<small class="text-muted ms-2">{{ current_step }}/4</small>
+											</div>
+										</div>
+									{% endif %}
+								</div>
+							</div>
+                             {% include 'application_job/_applicationModal.html.twig' with {'application': application} %}
+						{% endfor %}
+					</div>
+				{% endif %}
+			</div>
+
+			<!-- Filters Column -->
+			<div
+				class="col-md-4 order-0 order-md-1">
+				<!-- Search Form (AJAX) -->
+				<div class="card mb-4 shadow-sm">
+					<div class="card-header bg-light">
+						<h5>
+							<i class="bi bi-search me-2"></i>Search Applications</h5>
+					</div>
+					<div class="card-body">
+						<form id="searchForm" autocomplete="off">
+							<div class="input-group mb-3">
+								<input type="text" class="form-control" id="searchInput" placeholder="Search by job title or company..." value="{{ app.request.query.get('search', '') }}">
+								<button class="btn btn-primary" type="button" id="searchButton">
+									<i class="bi bi-search"></i>
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+
+				<!-- Filters Form (Traditional) -->
+				<div class="card mb-4 shadow-sm">
+					<div class="card-header bg-light">
+						<h5>
+							<i class="bi bi-funnel me-2"></i>Filters</h5>
+					</div>
+					<div class="card-body">
+						<form method="get" id="filtersForm" action="{{ path('app_application_job_index') }}">
+							<input
+							type="hidden" name="search" id="searchParam" value="{{ app.request.query.get('search', '') }}">
+
+							<!-- Your existing filter checkboxes and selects -->
+							<div class="mb-3">
+								<h6 class="mb-2">Application Status</h6>
+								{% for status in ['Pending', 'Accepted', 'Rejected', 'Applying-1', 'Applying-2', 'Applying-3', 'Applying-4'] %}
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" id="status_{{ loop.index }}" name="status[]" value="{{ status }}" {{ app.request.query.has('status') and status in app.request.query.all('status') ? 'checked' : '' }}>
+										<label class="form-check-label" for="status_{{ loop.index }}">
+											{{ status|replace({'Applying-': 'Step '}) }}
+										</label>
+									</div>
+								{% endfor %}
+							</div>
+
+							<div class="mb-3">
+								<label class="form-label">Order By</label>
+								<select class="form-select" name="sort">
+									<option value="date" {{ app.request.query.get('sort', 'date') == 'date' ? 'selected' : '' }}>
+										Newest First
+									</option>
+									<option value="alpha" {{ app.request.query.get('sort') == 'alpha' ? 'selected' : '' }}>
+										A-Z (Job Title)
+									</option>
+								</select>
+							</div>
+
+							<button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+							<a href="{{ path('app_application_job_index') }}" class="btn btn-outline-secondary w-100 mt-2">
+								Reset All Filters
+							</a>
+						</form>
+					</div>
+				</div>
+                
+			</div>
+		</div>
+    </div>
+   
+
+
+<!-- Show single application modal if coming from show route -->
+{% if show_single_modal is defined and show_single_modal and application_job is defined %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = new bootstrap.Modal(document.getElementById('applicationModal-{{ application_job.application_id }}'));
+        modal.show();
+        
+        document.getElementById('applicationModal-{{ application_job.application_id }}')
+            .addEventListener('hidden.bs.modal', function() {
+                window.location.href = "{{ path('app_application_job_index') }}";
+            });
+    });
+    </script>
+    
+{% endif %}
+		<style>
+			.app-card {
+				transition: all 0.2s ease;
+				border-radius: 0.375rem;
+			}
+			.app-card:hover {
+				transform: translateY(-1px);
+				box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05) !important;
+			}
+			.app-list-view .app-card {
+				width: 100%;
+				margin-bottom: 0.5rem;
+			}
+			.app-grid-view {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+				gap: 0.75rem;
+			}
+			.app-grid-view .app-card {
+				margin-bottom: 0;
+			}
+			.badge {
+				font-size: 0.6875rem;
+				padding: 0.25em 0.4em;
+				font-weight: 500;
+			}
+		</style>
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // View toggle functionality
+    const viewToggles = document.querySelectorAll('.view-toggle');
+    const container = document.getElementById('applications-container');
+    
+    viewToggles.forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            viewToggles.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            container.className = this.dataset.view === 'grid' ? 'app-grid-view' : 'app-list-view';
+        });
+    });
+
+    // AJAX Search Functionality
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    let searchTimer;
+
+    async function performSearch() {
+        const searchTerm = searchInput.value.trim();
+        
+        // Show loading indicator
+        const originalContent = container.innerHTML;
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>`;
+
+        try {
+            // Get current status filters
+            const statusFilters = [];
+            document.querySelectorAll('input[name="status[]"]:checked').forEach(checkbox => {
+                statusFilters.push(checkbox.value);
+            });
+
+            // Get current sort value
+            const sortValue = document.querySelector('select[name="sort"]').value;
+
+            // Build URL with parameters
+            const params = new URLSearchParams();
+            params.append('search', searchTerm);
+            statusFilters.forEach(status => params.append('status[]', status));
+            params.append('sort', sortValue);
+            params.append('ajax', '1');
+
+            const response = await fetch('{{ path("app_application_job_index") }}?' + params.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });//gets response from the server from url + parametres de recherche
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContent = doc.getElementById('applications-container').innerHTML;
+            
+            // Check if the response has applications or shows empty state
+            if (newContent.includes('No applications found') || 
+                newContent.includes('No applications yet')) {
+                container.innerHTML = `
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-4">
+                            <i class="bi bi-file-earmark-text fs-1 text-muted mb-2"></i>
+                            <h3 class="h5">No applications found</h3>
+                            <p class="text-muted mb-3">No results for "${searchTerm}"</p>
+                        </div>
+                    </div>`;
+            } else {
+                container.innerHTML = newContent;
+            }
+            
+            // Reinitialize view toggles for the new content
+            initViewToggles();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            container.innerHTML = `
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-file-earmark-text fs-1 text-muted mb-2"></i>
+                        <h3 class="h5">No applications found</h3>
+                        <p class="text-muted mb-3">Try adjusting your search or filters</p>
+                    </div>
+                </div>`;
+        }
+    }
+
+    function initViewToggles() {
+        document.querySelectorAll('.view-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                document.querySelectorAll('.view-toggle').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                container.className = this.dataset.view === 'grid' ? 'app-grid-view' : 'app-list-view';
+            });
+        });
+    }
+
+    // Event listeners
+    searchButton.addEventListener('click', performSearch);
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(performSearch, 500);//wait for 500ms after the last input
+    });
+
+    // Initial load with search term
+    if (searchInput.value.trim() !== '') {
+        performSearch();
+    }
+});
+</script>
+	{% endblock %}

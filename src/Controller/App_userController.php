@@ -24,6 +24,6 @@ class App_userController extends AbstractController
             $this->requestStack->getSession()->set('user_id', $id);
             $this->addFlash('success', 'Switched to user '.$user->getName());
         }
-        return $this->redirectToRoute('app_job_offer_index');
+        return $this->redirectToRoute('app_home');
     }
 }

@@ -34,7 +34,7 @@ class App_user
     private string $password;
 
     #[ORM\Column(type: "bigint")]
-    private string $role;
+    private int $role;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $image;
@@ -52,7 +52,7 @@ class App_user
     private Collection $serviceApplications;
     
     // Job applications
-    #[ORM\OneToMany(mappedBy: "user", targetEntity: Application_job::class)]
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: ApplicationJob::class)]
     private Collection $jobApplications;
     
     // Job offers
@@ -152,7 +152,7 @@ class App_user
         return $this->role;
     }
     
-    public function setRole(string $role): self
+    public function setRole(int $role): self
     {
         $this->role = $role;
         return $this;

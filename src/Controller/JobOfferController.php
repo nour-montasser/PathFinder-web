@@ -2,11 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\ApplicationJob;
 use App\Entity\Job_offer;
 use App\Form\JobOfferType;
+use App\Repository\ApplicationJobRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\JobOfferRepository;
 
@@ -14,49 +17,88 @@ use App\Repository\JobOfferRepository;
 final class JobOfferController extends BaseController
 {
     #[Route(name: 'app_job_offer_index', methods: ['GET'])]
-    public function index(JobOfferRepository $repository, Request $request): Response
-    {
-        // Ensure user is logged in and session is set
-        $this->ensureUserSession();
-        $user = $this->getCurrentUser();
-        
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
+public function index(
+    JobOfferRepository $repository,
+    Request $request,
+    ApplicationJobRepository $applicationJobRepository
+): Response {
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
+
+    if (!$user) {
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse(['error' => 'Authentication required'], 401);
         }
+        return $this->redirectToRoute('app_login');
+    }
 
-        $searchTerm = trim($request->query->get('search', ''));
-        $filters = [
-            'types' => $request->query->all('types') ?? [],
-            'fields' => $request->query->all('fields') ?? [],
-            'education' => $request->query->all('education') ?? []
-        ];
+    $searchTerm = trim($request->query->get('search', ''));
+    $filters = [
+        'types' => $request->query->all('types') ?? [],
+        'fields' => $request->query->all('fields') ?? [],
+        'education' => $request->query->all('education') ?? []
+    ];
 
-        // Always show only the current user's job offers
-        $jobOffers = $repository->findFilteredJobOffers(
-            $searchTerm,
-            $filters,
-            $user // Pass the current user to filter their jobs
-        );
+    $onlyMyJobs = $request->query->has('my_jobs') 
+        ? $request->query->getBoolean('my_jobs')
+        : false;
 
-        $recentJobs = $repository->findBy(['user' => $user], ['date_posted' => 'DESC'], 5);
+    $jobOffers = $repository->findFilteredJobOffers(
+        $searchTerm,
+        $filters,
+        $onlyMyJobs ? $user : null
+    );
 
+    // Initialize hasApplied array
+    $hasApplied = [];
+    if ($user->getRole() === 2) {
+        foreach ($jobOffers as $jobOffer) {
+            $hasApplied[$jobOffer->getIdOffer()] = $applicationJobRepository->hasUserAppliedToJob(
+                $user->getId_user(),
+                $jobOffer->getIdOffer()
+            );
+        }
+    }
+
+    if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
         return $this->render('job_offer/index.html.twig', [
             'job_offers' => $jobOffers,
-            'search_term' => $searchTerm,
-            'recent_jobs' => $recentJobs,
-            'selected_types' => $filters['types'],
-            'selected_fields' => $filters['fields'],
-            'selected_education' => $filters['education'],
-            'only_my_jobs' => true // Always true now
+            'has_applied' => $hasApplied,
+            'current_user' => $user,
+            'is_ajax' => true
         ]);
     }
 
+    $recentJobs = $repository->findBy(
+        $onlyMyJobs ? ['user' => $user] : [],
+        ['date_posted' => 'DESC'],
+        5
+    );
+
+    return $this->render('job_offer/index.html.twig', [
+        'job_offers' => $jobOffers,
+        'search_term' => $searchTerm,
+        'recent_jobs' => $recentJobs,
+        'selected_types' => $filters['types'],
+        'selected_fields' => $filters['fields'],
+        'selected_education' => $filters['education'],
+        'only_my_jobs' => $onlyMyJobs,
+        'current_user' => $user,
+        'has_applied' => $hasApplied,
+        'is_ajax' => false
+    ]);
+}
+
     #[Route('/new', name: 'app_job_offer_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        JobOfferRepository $jobOfferRepository
+    ): Response {
+
         $this->ensureUserSession();
         $user = $this->getCurrentUser();
-        
+
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
@@ -64,9 +106,11 @@ final class JobOfferController extends BaseController
         $jobOffer = new Job_offer();
         $jobOffer->setDatePosted(new \DateTime("now"));
         $jobOffer->setUser($user); // Set the current user as the owner
-        
         $form = $this->createForm(JobOfferType::class, $jobOffer);
         $form->handleRequest($request);
+
+        // Get all stats from the JobOfferRepository
+        $stats = $jobOfferRepository->getUserStats($user->getId_user());
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($jobOffer);
@@ -78,6 +122,7 @@ final class JobOfferController extends BaseController
         return $this->render('job_offer/new.html.twig', [
             'job_offer' => $jobOffer,
             'form' => $form,
+            'stats' => $stats
         ]);
     }
 
@@ -86,10 +131,8 @@ final class JobOfferController extends BaseController
     {
         $this->ensureUserSession();
         $user = $this->getCurrentUser();
-        
-        if (!$user || $jobOffer->getUser() !== $user) {
-            throw $this->createAccessDeniedException('You can only view your own job offers');
-        }
+
+
 
         return $this->render('job_offer/show.html.twig', [
             'job_offer' => $jobOffer,
@@ -101,7 +144,7 @@ final class JobOfferController extends BaseController
     {
         $this->ensureUserSession();
         $user = $this->getCurrentUser();
-        
+
         if (!$user || $jobOffer->getUser() !== $user) {
             throw $this->createAccessDeniedException('You can only edit your own job offers');
         }
@@ -126,16 +169,16 @@ final class JobOfferController extends BaseController
     {
         $this->ensureUserSession();
         $user = $this->getCurrentUser();
-        
+
         if (!$user || $jobOffer->getUser() !== $user) {
             throw $this->createAccessDeniedException('You can only delete your own job offers');
         }
 
-        if ($this->isCsrfTokenValid('delete'.$jobOffer->getIdOffer(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $jobOffer->getIdOffer(), $request->request->get('_token'))) {
             foreach ($jobOffer->getApplications() as $application) {
                 $entityManager->remove($application);
             }
-            
+
             $entityManager->remove($jobOffer);
             $entityManager->flush();
         }
