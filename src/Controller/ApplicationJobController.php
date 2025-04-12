@@ -47,42 +47,40 @@ final class ApplicationJobController extends BaseController
         ]);
     }
 
-    #[Route('/new', name: 'app_application_job_new', methods: ['GET', 'POST'])]
+#[Route('/new', name: 'app_application_job_new', methods: ['GET', 'POST'])]
 public function new(Request $request, EntityManagerInterface $entityManager): Response
 {
     $this->ensureUserSession();
     $user = $this->getCurrentUser();
-    
     $jobOfferId = $request->query->get('job_offer_id');
     $jobOffer = $entityManager->getRepository(Job_offer::class)->find($jobOfferId);
     
-    $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
-    
-
+    // Find or create application
     $application = $entityManager->getRepository(ApplicationJob::class)->findOneBy([
         'user' => $user,
         'jobOffer' => $jobOffer
     ]);
-    
-    if ($application && $application->getStatus() === 'Pending') {
-        $this->addFlash('warning', 'You have already applied to this job offer.');
-        return $this->redirectToRoute('app_application_job_show', [
-            'application_id' => $application->getApplication_id()
-        ]);
-    }
-    
-     // Only create new if no existing application
-    if (!$application) {
-        $application = new ApplicationJob();
-        $application->setUser($user)
-                   ->setJobOffer($jobOffer)
-                   ->setStatus('Applying-1')
-                   ->setDateApplication(new \DateTime());
-        
+
+    // Handle existing applications
+    if ($application) {
+        if ($application->getStatus() === 'Pending') {
+            $this->addFlash('warning', 'You have already submitted this application');
+            return $this->redirectToRoute('app_application_job_index', [
+                'application_id' => $application->getApplication_id()
+            ]);
+        }
+        // For Applying-* status, we'll continue editing the existing application
+    } else {
+        // Create new application
+        $application = (new ApplicationJob())
+            ->setUser($user)
+            ->setJobOffer($jobOffer)
+            ->setStatus('Applying-1')
+            ->setDateApplication(new \DateTime());
         $entityManager->persist($application);
-        // Don't flush here - wait until we have some data
     }
-    
+
+    $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
     $form = $this->createForm(ApplicationJobType::class, $application, [
         'available_cvs' => $userCvs
     ]);
@@ -92,7 +90,7 @@ public function new(Request $request, EntityManagerInterface $entityManager): Re
         $requestedStep = (int) $request->request->get('current_step', 1);
         
         // Update status based on current step
-        $application->setStatus($requestedStep === 4 ? 'Pending' : 'Applying-' . $requestedStep);
+        $application->setStatus($requestedStep === 5 ? 'Pending' : 'Applying-' . $requestedStep);
         
         // Final submission
         if ($requestedStep === 4) {
@@ -124,23 +122,6 @@ public function new(Request $request, EntityManagerInterface $entityManager): Re
 }
     
 
-    #[Route('/{application_id}/edit', name: 'app_application_job_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, ApplicationJob $applicationJob, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(ApplicationJobType::class, $applicationJob);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_application_job_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('application_job/edit.html.twig', [
-            'application_job' => $applicationJob,
-            'form' => $form,
-        ]);
-    }
 
     #[Route('/delete/{application_id}', name: 'app_application_job_delete', methods: ['POST'])]
 public function delete(Request $request, ApplicationJob $applicationJob, EntityManagerInterface $entityManager): Response
@@ -155,16 +136,81 @@ public function delete(Request $request, ApplicationJob $applicationJob, EntityM
 
 
 
-    #[Route('/show/{application_id}', name: 'app_application_job_show', methods: ['GET'])]
-    public function show(ApplicationJob $application_job): Response
-    {
-        $this->ensureUserSession();
-        return $this->render('application_job/index.html.twig', [
-            'application_jobs' => [$application_job], // Pass as array for consistency
-            'show_single_application' => true,
-            'application_job' => $application_job
+#[Route('/{application_id}/edit', name: 'app_application_job_edit', methods: ['GET', 'POST'])]
+public function edit(Request $request, ApplicationJob $application, EntityManagerInterface $entityManager): Response
+{
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
+
+    // Make sure only the owner can edit
+    if ($application->getUser() !== $user) {
+        throw $this->createAccessDeniedException("You cannot edit this application.");
+    }
+
+    $jobOffer = $application->getJobOffer();
+    $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
+
+    $form = $this->createForm(ApplicationJobType::class, $application, [
+        'available_cvs' => $userCvs
+    ]);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $requestedStep = (int) $request->request->get('current_step', 1);
+
+        $application->setStatus($requestedStep === 5 ? 'Pending' : 'Applying-' . $requestedStep);
+        if ($requestedStep === 4) {
+            $application->setDateApplication(new \DateTime());
+            $this->addFlash('success', 'Application updated successfully!');
+            $entityManager->flush();
+
+            return $this->redirectToRoute('app_job_offer_show', [
+                'id_offer' => $jobOffer->getIdOffer()
+            ]);
+        }
+
+        $entityManager->flush();
+
+        return $this->redirectToRoute('app_application_job_edit', [
+            'application_id' => $application->getApplication_id()
         ]);
     }
 
+    $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
+
+    return $this->render('application_job/new.html.twig', [
+        'form' => $form->createView(),
+        'job_offer' => $jobOffer,
+        'current_step' => $currentStep,
+        'application' => $application
+    ]);
+}
+
+
+#[Route('/{id}/accept', name: 'app_application_job_accept', methods: ['POST'])]
+public function accept(
+    ApplicationJob $applicationJob, 
+    EntityManagerInterface $entityManager
+): Response {
+    $applicationJob->setStatus('Accepted');
+    $entityManager->flush();
+    
+    return $this->redirectToRoute('app_job_offer_show', [
+        'id_offer' => $applicationJob->getJobOffer()->getIdOffer()
+    ]);
+}
+
+#[Route('/{id}/reject', name: 'app_application_job_reject', methods: ['POST'])]
+public function reject(
+    ApplicationJob $applicationJob, 
+    EntityManagerInterface $entityManager
+): Response {
+    $applicationJob->setStatus('Rejected');
+    $entityManager->flush();
+    
+    return $this->redirectToRoute('app_job_offer_show', [
+        'id_offer' => $applicationJob->getJobOffer()->getIdOffer()
+    ]);
+}
 
 }

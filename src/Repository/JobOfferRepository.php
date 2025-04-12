@@ -6,6 +6,7 @@ use App\Entity\Job_offer;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\App_user;
+use App\Entity\ApplicationJob;
 
 class JobOfferRepository extends ServiceEntityRepository
 {
@@ -91,4 +92,5 @@ public function getUserStats(int $userId): array
         'avg_applications' => round($avgApplications, 1) // Round to 1 decimal place
     ];
 }
+
 }

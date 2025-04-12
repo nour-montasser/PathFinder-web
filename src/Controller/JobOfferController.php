@@ -49,16 +49,21 @@ public function index(
         $onlyMyJobs ? $user : null
     );
 
-    // Initialize hasApplied array
     $hasApplied = [];
     if ($user->getRole() === 2) {
         foreach ($jobOffers as $jobOffer) {
-            $hasApplied[$jobOffer->getIdOffer()] = $applicationJobRepository->hasUserAppliedToJob(
+            $application = $applicationJobRepository->findUserApplicationForJob(
                 $user->getId_user(),
                 $jobOffer->getIdOffer()
             );
+    
+            if ($application) {
+                $hasApplied[$jobOffer->getIdOffer()] = $application;
+            }
         }
     }
+
+
 
     if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
         return $this->render('job_offer/index.html.twig', [
@@ -127,17 +132,32 @@ public function index(
     }
 
     #[Route('/{id_offer}', name: 'app_job_offer_show', methods: ['GET'])]
-    public function show(Job_offer $jobOffer): Response
-    {
-        $this->ensureUserSession();
-        $user = $this->getCurrentUser();
+public function show(
+    Job_offer $jobOffer,
+    ApplicationJobRepository $applicationJobRepository
+): Response
+{
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
 
-
-
-        return $this->render('job_offer/show.html.twig', [
-            'job_offer' => $jobOffer,
-        ]);
+    $hasApplied = [];
+    if ($user->getRole() === 2) {
+        $application = $applicationJobRepository->findUserApplicationForJob(
+            $user->getId_user(),
+            $jobOffer->getIdOffer()
+        );
+    
+        if ($application) {
+            $hasApplied[$jobOffer->getIdOffer()] = $application;
+        }
     }
+
+    return $this->render('job_offer/show.html.twig', [
+        'job_offer' => $jobOffer,
+        'has_applied' => $hasApplied,
+        'current_user' => $user  // Make sure to pass the current user to template
+    ]);
+}
 
     #[Route('/{id_offer}/edit', name: 'app_job_offer_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Job_offer $jobOffer, EntityManagerInterface $entityManager): Response

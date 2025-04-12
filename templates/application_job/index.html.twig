@@ -64,71 +64,82 @@
                             {% endif %}
 
 							<div class="app-card card shadow-sm">
-								<div class="card-body p-3">
-									<div class="d-flex justify-content-between align-items-start">
-										<div class="flex-grow-1 me-2">
-											<div class="d-flex align-items-center mb-1">
-												<h3 class="h6 mb-0 me-2">{{ application.jobOffer.title }}</h3>
-												<span class="badge rounded-pill fs-6
-															 {% if application.status == 'Pending' %}bg-warning text-dark
-															 {% elseif application.status == 'Accepted' %}bg-success
-															 {% elseif application.status == 'Rejected' %}bg-danger
-															 {% elseif 'Applying-' in application.status %}bg-secondary
-														     {% endif %}">
-													{% if application.status == 'Pending' %}Reviewing
-														{% elseif 'Applying-' in application.status %}Step
-														{{ application.status|split('-')[1] }}/4
-													{% else %}
-														{{ application.status }}
-													{% endif %}
-												</span>
-											</div>
-											<div class="d-flex text-muted small">
-												<span class="me-2">{{ application.jobOffer.user.name }}</span>
-												<span class="me-2">•</span>
-												<span>Applied
-                                                {{ application.dateApplication|date('M d h:i A') }}											
-                                            </div>
-										</div>
-										<div class="d-flex">
-											 <button type="button" 
-                                                class="btn btn-sm btn-outline-primary me-1" 
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#applicationModal-{{ application.application_id }}">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-											{% if canEdit or 'Applying-' in application.status %}
-												<a href="{{ path('app_application_job_edit', {'application_id': application.application_id}) }}" class="btn btn-sm btn-outline-secondary me-1">
-													<i class="bi bi-pencil"></i>
-												</a>
+    <div class="card-body p-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1 me-2">
+                <div class="d-flex align-items-center mb-1">
+                    <span class="badge rounded-pill fs-6
+                        {% if application.status == 'Pending' %}bg-warning text-white
+                        {% elseif application.status == 'Accepted' %}bg-success
+                        {% elseif application.status == 'Rejected' %}bg-danger
+                        {% elseif 'Applying-' in application.status %}bg-secondary
+                        {% endif %}">
+                        {% if application.status == 'Pending' %}Pending
+                        {% elseif 'Applying-' in application.status %}Step
+                        {{ application.status|split('-')[1] }}/4
+                        {% else %}
+                            {{ application.status }}
+                        {% endif %}
+                    </span>
+                    <h3 class="h6 mb-0 me-2 ms-2">{{ application.jobOffer.title }}</h3>
+                </div>
+                <div class="d-flex text-muted small">
+                    <span class="me-2">{{ application.jobOffer.user.name }}</span>
+                    <span class="me-2">•</span>
+                    <span>Applied {{ application.dateApplication|date('M d h:i A') }}</span>
+                </div>
+            </div>
+            <div class="d-flex">
+                <button type="button" 
+                    class="btn btn-sm btn-outline-primary me-1" 
+                    data-bs-toggle="modal"
+                    data-bs-target="#applicationModal-{{ application.application_id }}">
+                    <i class="bi bi-eye"></i>
+                </button>
+                {% if canEdit or 'Applying-' in application.status %}
+                    <a href="{{ path('app_application_job_edit', {'application_id': application.application_id}) }}" 
+                       class="btn btn-sm btn-outline-secondary me-1">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="post" action="{{ path('app_application_job_delete', {'application_id': application.application_id}) }}" class="d-inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.application_id) }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger me-1" onclick="return confirm('Are you sure?')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
 
+        {% if 'Applying-' in application.status %}
+            {% set current_step = application.status|split('-')[1] %}
+            <div class="mt-2">
+                <div class="d-flex align-items-center">
+                    <small class="text-muted me-2">Progress:</small>
+                    <div class="progress flex-grow-1" style="height: 6px;">
+                        <div class="progress-bar-striped progress-bar-animated bg-primary
+                            {% if current_step == '4' %}bg-success progress-bar-striped progress-bar-animated{% endif %}" 
+                            style="width: {{ (current_step/4)*100 }}%">
+                        </div>
+                    </div>
+                    <small class="text-muted ms-2">{{ current_step }}/4</small>
+                </div>
+                
+                {# Special message for final step #}
+                {% if current_step == '4' %}
+                <div class="alert alert-success mt-2 mb-0 py-2 px-2 d-flex align-items-center">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    <div>
+                        <strong>Ready to submit!</strong> 
+                        <span class="d-block small">Complete your application by clicking "Edit"</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
 
-                                                <form method="post" action="{{ path('app_application_job_delete', {'application_id': application.application_id}) }}" class="d-inline">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.application_id) }}" class>
-                                                <button type="submit" class="btn btn-sm btn-outline-danger me-1" onclick="return confirm('Are you sure?')">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>    
-
-
-											{% endif %}
-										</div>
-									</div>
-
-									{% if 'Applying-' in application.status and application.status != 'Applying-4' %}
-										{% set current_step = application.status|split('-')[1] %}
-										<div class="mt-2">
-											<div class="d-flex align-items-center">
-												<small class="text-muted me-2">Progress:</small>
-												<div class="progress flex-grow-1" style="height: 6px;">
-													<div class="progress-bar" style="width: {{ (current_step/4)*100 }}%"></div>
-												</div>
-												<small class="text-muted ms-2">{{ current_step }}/4</small>
-											</div>
-										</div>
-									{% endif %}
-								</div>
-							</div>
                              {% include 'application_job/_applicationModal.html.twig' with {'application': application} %}
 						{% endfor %}
 					</div>

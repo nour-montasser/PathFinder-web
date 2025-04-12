@@ -299,14 +299,6 @@ class Job_offer
         return $this->title;
     }
 
-    public function getId(): int
-    {
-        return $this->id_offer;
-    }
-
-    public function setId(int $id_offer): self
-    {
-        $this->id_offer = $id_offer;
-        return $this;
-    }
+    
+    
 }

@@ -86,4 +86,20 @@ public function findFilteredApplications(
             ->getQuery()
             ->getSingleScalarResult();
     }*/
+
+
+    // In ApplicationJobRepository.php
+public function findUserApplicationForJob(int $userId, int $jobOfferId): ?ApplicationJob
+{
+    return $this->createQueryBuilder('a')
+        ->andWhere('a.user = :userId')
+        ->andWhere('a.jobOffer = :jobOfferId')
+        ->setParameter('userId', $userId)
+        ->setParameter('jobOfferId', $jobOfferId)
+        ->getQuery()
+        ->getOneOrNullResult();
+}
+
+
+
 }

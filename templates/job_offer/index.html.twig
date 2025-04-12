@@ -91,22 +91,60 @@
 														</small>
 														<div class="btn-group" role="group">
 															{% if current_user.role == 1 and job_offer.user.id_user == current_user.id_user %}
-																<a href="{{ path('app_job_offer_edit', {'id_offer': job_offer.getIdOffer()}) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
-																	<i class="bi bi-pencil"></i>
+																<a href="{{ path('app_job_offer_edit', {'id_offer': job_offer.getIdOffer()}) }}" class="btn btn-sm btn-outline-secondary " title="Edit">
+																	<i class="bi bi-pencil "></i>
 																</a>
 																{{ include('job_offer/_delete_form.html.twig') }}
+															
+																	
 															{% elseif current_user.role == 2 %}
-																{% if has_applied[job_offer.getIdOffer()] is defined and has_applied[job_offer.getIdOffer()] %}
-																	<button class="btn btn-sm btn-outline-secondary disabled" disabled style="pointer-events: none; opacity: 0.6;">
-																		<i class="bi bi-check-circle"></i>
-																		Applied
-																	</button>
-																{% else %}
-																	<a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" class="btn btn-sm btn-primary" title="Apply">
-																		<i class="bi bi-send-check"></i>
-																		Apply
-																	</a>
-																{% endif %}
+														
+															
+	{% if has_applied[job_offer.getIdOffer()] is defined %}
+	
+    <!-- DEBUG: Application exists for job {{ job_offer.getIdOffer() }} -->
+    {% set application = has_applied[job_offer.getIdOffer()] %}
+	
+    <!-- DEBUG: Status: {{ application.status }} -->
+    <!-- DEBUG: isApplying: {{ 'Applying-' in application.status ? 'YES' : 'NO' }} -->
+	
+    
+    {% if 'Applying-' in application.status %}
+        <!-- DEBUG: Showing Continue button -->
+        <a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" 
+           class="btn btn-sm btn-primary" title="Continue Application">
+            <i class="bi bi-pencil-square"></i>
+            Continue (Step {{ application.status|split('-')[1] }}/4)
+        </a>
+    {% elseif application.status == 'Pending' %}
+        <!-- DEBUG: Showing View button -->
+        <button class="btn btn-sm btn-outline-primary" 
+				data-bs-toggle="modal" 
+                data-bs-target="#applicationModal-{{ application.application_id }}" 
+                data-application-id="{{ application.application_id }}">
+            <i class="bi bi-eye"></i>
+            View Application
+        </button>
+        {% include 'application_job/_applicationModal.html.twig' with {'application': application} %}
+     {% elseif application.status == 'Accepted'%}
+                                    <button class="btn btn-outline-secondary  " disabled>
+                                        <i class="bi bi-check-circle"></i> 
+                                        {{ application.status }}
+                                    </button>
+                                      {% else %}
+                                    <button class="btn btn-outline-secondary " disabled>
+                                        <i class="bi bi-x-circle"></i> 
+                                        {{ application.status }}
+                                    </button>
+    {% endif %}
+{% else %}
+    <!-- DEBUG: No application found for job {{ job_offer.getIdOffer() }} -->
+    <a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" 
+       class="btn btn-sm btn-primary" title="Apply">
+        <i class="bi bi-send-check"></i>
+        Apply
+    </a>
+{% endif %}
 															{% endif %}
 														</div>
 													</div>
@@ -300,6 +338,7 @@
 			position: relative;
 			z-index: 1;
 		}
+		
 	</style>
 {% endblock %}
 
@@ -419,6 +458,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Remove the initial load call - let server render the initial content
+});
+// Add to your JavaScript block
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-bs-toggle="modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            // Move the modal to body when clicked
+            const target = this.getAttribute('data-bs-target');
+            const modal = document.querySelector(target);
+            document.body.appendChild(modal);
+        });
+    });
 });
 </script>
 {% endblock %}

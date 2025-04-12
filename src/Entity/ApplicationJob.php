@@ -101,4 +101,29 @@ class ApplicationJob
         $this->cv = $cv;
         return $this;
     }
+
+    public function isDraft(): bool
+{
+    return str_starts_with($this->status, 'Applying-');
+}
+
+// In ApplicationJob.php
+public function getStatusStep(): ?int
+{
+    if (str_starts_with($this->status, 'Applying-')) {
+        return (int) explode('-', $this->status)[1];
+    }
+    return null;
+}
+
+public function isInProgress(): bool
+{
+    return str_starts_with($this->status, 'Applying-');
+}
+
+public function isPending(): bool
+{
+    return $this->status === 'Pending';
+}
+
 }

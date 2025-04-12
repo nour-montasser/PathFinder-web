@@ -147,7 +147,7 @@ class App_user
         return $this;
     }
     
-    public function getRole(): string
+    public function getRole(): int
     {
         return $this->role;
     }
