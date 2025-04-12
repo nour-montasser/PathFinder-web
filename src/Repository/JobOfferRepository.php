@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\JobOffer;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use App\Entity\AppUser;
+use App\Entity\App_user;
 
 class JobOfferRepository extends ServiceEntityRepository
 {
@@ -20,7 +20,7 @@ class JobOfferRepository extends ServiceEntityRepository
 public function findFilteredJobOffers(
     string $searchTerm = '',
     array $filters = [],
-    ?AppUser $user = null
+    ?App_user $user = null
 ): array {
     $qb = $this->createQueryBuilder('j')
         ->leftJoin('j.user', 'u')

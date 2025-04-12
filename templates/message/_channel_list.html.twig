@@ -1,0 +1,39 @@
+<div class="p-3 border-bottom">
+    <h5 class="mb-0">Channels</h5>
+</div>
+
+<div class="p-3 border-bottom">
+    <form method="post" action="{{ path('app_message_index') }}">
+        <div class="input-group mb-3">
+            <select class="form-select" name="selected_user" id="user-select">
+                <option value="" selected>Start new conversation...</option>
+                {% for user in availableUsers %}
+                    <option value="{{ user.idUser }}">{{ user.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Go</button>
+        </div>
+    </form>
+</div>
+
+<div class="flex-grow-1 overflow-auto">
+    <div class="list-group list-group-flush">
+        {% for channel in channels %}
+            <a href="{{ path('app_message_index', {'id_channel': channel.getId_channel()}) }}" 
+               class="list-group-item list-group-item-action {% if channel.getId_channel() == selectedChannelId %}active{% endif %}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong>
+                        {{ channel.initiator.idUser == currentUser.idUser 
+                            ? channel.receiver.name 
+                            : channel.initiator.name }}
+                    </strong>
+                    <small class="text-muted">
+                        {{ channel.time_created ? channel.time_created|date('H:i d/m/Y') : 'No date' }}
+                    </small>
+                </div>
+            </a>
+        {% else %}
+            <div class="text-center text-muted p-3">No conversations yet</div>
+        {% endfor %}
+    </div>
+</div>

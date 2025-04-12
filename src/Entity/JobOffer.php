@@ -5,7 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
-use App\Entity\AppUser;
+use App\Entity\App_user;
 use App\Entity\ApplicationJob;
 use App\Entity\Skilltest;
 
@@ -17,9 +17,9 @@ class JobOffer
     #[ORM\Column(type: "bigint")]
     private int $id_offer;
 
-    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "jobOffers")]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "jobOffers")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private AppUser $user;
+    private App_user $user;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $title;
@@ -74,12 +74,12 @@ class JobOffer
         return $this;
     }
 
-    public function getUser(): AppUser
+    public function getUser(): App_user
     {
         return $this->user;
     }
 
-    public function setUser(AppUser $user): self
+    public function setUser(App_user $user): self
     {
         $this->user = $user;
         return $this;

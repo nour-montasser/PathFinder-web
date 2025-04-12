@@ -20,7 +20,7 @@ final class Version20250326021549 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE AppUser CHANGE name name VARCHAR(255) NOT NULL');
+        $this->addSql('ALTER TABLE App_user CHANGE name name VARCHAR(255) NOT NULL');
         $this->addSql('ALTER TABLE coverletter ADD PRIMARY KEY (id_cover_letter)');
         $this->addSql('ALTER TABLE cv CHANGE id_cv id_cv BIGINT NOT NULL, CHANGE title title VARCHAR(255) NOT NULL, CHANGE user_title user_title VARCHAR(255) NOT NULL, CHANGE introduction introduction VARCHAR(500) NOT NULL, CHANGE date_creation date_creation DATETIME NOT NULL, CHANGE skills skills VARCHAR(255) NOT NULL, CHANGE last_viewed last_viewed DATETIME NOT NULL, CHANGE favorite favorite TINYINT(1) NOT NULL');
         $this->addSql('ALTER TABLE experience CHANGE id_experience id_experience BIGINT NOT NULL, CHANGE TYPE type VARCHAR(255) NOT NULL, CHANGE POSITION position VARCHAR(255) NOT NULL, CHANGE location_name location_name VARCHAR(255) NOT NULL, CHANGE start_date start_date DATETIME NOT NULL, CHANGE end_date end_date DATETIME NOT NULL, CHANGE description description VARCHAR(500) NOT NULL');
@@ -47,7 +47,7 @@ final class Version20250326021549 extends AbstractMigration
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE AppUser CHANGE name name VARCHAR(200) NOT NULL');
+        $this->addSql('ALTER TABLE App_user CHANGE name name VARCHAR(200) NOT NULL');
         $this->addSql('DROP INDEX `primary` ON coverletter');
         $this->addSql('ALTER TABLE cv CHANGE id_cv id_cv BIGINT AUTO_INCREMENT NOT NULL, CHANGE title title VARCHAR(255) DEFAULT NULL, CHANGE user_title user_title VARCHAR(255) DEFAULT NULL, CHANGE introduction introduction VARCHAR(500) DEFAULT NULL, CHANGE date_creation date_creation DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, CHANGE skills skills VARCHAR(255) DEFAULT NULL, CHANGE last_viewed last_viewed DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, CHANGE favorite favorite TINYINT(1) DEFAULT 0 NOT NULL');
         $this->addSql('ALTER TABLE experience CHANGE id_experience id_experience BIGINT AUTO_INCREMENT NOT NULL, CHANGE type TYPE VARCHAR(255) DEFAULT NULL, CHANGE position POSITION VARCHAR(255) DEFAULT NULL, CHANGE location_name location_name VARCHAR(255) DEFAULT NULL, CHANGE start_date start_date DATETIME DEFAULT NULL, CHANGE end_date end_date DATETIME DEFAULT NULL, CHANGE description description VARCHAR(500) DEFAULT NULL');

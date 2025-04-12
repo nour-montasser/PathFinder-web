@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Channel;
-use App\Entity\AppUser;
+use App\Entity\App_user;
 use App\Repository\ChannelRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,8 +26,8 @@ final class ChannelController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isMethod('POST')) {
-            $user1 = $entityManager->getRepository(AppUser::class)->find($request->request->get('user1_id'));
-            $user2 = $entityManager->getRepository(AppUser::class)->find($request->request->get('user2_id'));
+            $user1 = $entityManager->getRepository(App_user::class)->find($request->request->get('user1_id'));
+            $user2 = $entityManager->getRepository(App_user::class)->find($request->request->get('user2_id'));
 
             if (!$user1 || !$user2 || $user1 === $user2) {
                 $this->addFlash('error', 'Invalid users selected.');
@@ -58,7 +58,7 @@ final class ChannelController extends AbstractController
     #[Route('/delete/{id_channel}', name: 'app_channel_delete', methods: ['POST'])]
     public function delete(Request $request, Channel $channel, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $channel->getIdChannel(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $channel->getId_channel(), $request->request->get('_token'))) {
             $entityManager->remove($channel);
             $entityManager->flush();
         }

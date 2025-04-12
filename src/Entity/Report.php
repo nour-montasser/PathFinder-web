@@ -12,13 +12,13 @@ class Report
     #[ORM\Column(type: "bigint")]
     private string $id_report;
 
-    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "sentReports")]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "sentReports")]
     #[ORM\JoinColumn(name: "id_user_sender", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private AppUser $userSender;
+    private App_user $userSender;
 
-    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "targetReports")]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "targetReports")]
     #[ORM\JoinColumn(name: "id_user_target", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private AppUser $userTarget;
+    private App_user $userTarget;
 
     #[ORM\Column(type: "string", length: 500)]
     private string $description;
@@ -36,23 +36,23 @@ class Report
         $this->id_report = $value;
     }
 
-    public function getUserSender(): AppUser
+    public function getUserSender(): App_user
     {
         return $this->userSender;
     }
 
-    public function setUserSender(AppUser $userSender): self
+    public function setUserSender(App_user $userSender): self
     {
         $this->userSender = $userSender;
         return $this;
     }
 
-    public function getUserTarget(): AppUser
+    public function getUserTarget(): App_user
     {
         return $this->userTarget;
     }
 
-    public function setUserTarget(AppUser $userTarget): self
+    public function setUserTarget(App_user $userTarget): self
     {
         $this->userTarget = $userTarget;
         return $this;

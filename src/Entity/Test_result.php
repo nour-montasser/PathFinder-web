@@ -29,9 +29,9 @@ class Test_result
     private bool $status;
 
     // Adding relationships for easier ORM mapping
-    #[ORM\ManyToOne(targetEntity: AppUser::class)]
+    #[ORM\ManyToOne(targetEntity: App_user::class)]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user")]
-    private AppUser $user;
+    private App_user $user;
 
     #[ORM\ManyToOne(targetEntity: Skilltest::class)]
     #[ORM\JoinColumn(name: "id_test", referencedColumnName: "id_test")]
@@ -98,13 +98,13 @@ class Test_result
     }
 
     // Getter for user relationship
-    public function getUser(): AppUser
+    public function getUser(): App_user
     {
         return $this->user;
     }
 
     // Setter for user relationship
-    public function setUser(AppUser $user): void
+    public function setUser(App_user $user): void
     {
         $this->user = $user;
     }

@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\JobOffer;
-use App\Entity\AppUser;
+use App\Entity\App_user;
 use App\Entity\Cv;
 
 #[ORM\Entity]
@@ -18,9 +18,9 @@ class ApplicationJob
     #[ORM\JoinColumn(name: "JobOffer_id", referencedColumnName: "id_offer")]
     private JobOffer $jobOffer;
 
-    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "jobApplications")]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "jobApplications")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user")]
-    private AppUser $user;
+    private App_user $user;
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $date_application;
@@ -54,12 +54,12 @@ class ApplicationJob
         return $this;
     }
 
-    public function getUser(): AppUser
+    public function getUser(): App_user
     {
         return $this->user;
     }
 
-    public function setUser(AppUser $user): self
+    public function setUser(App_user $user): self
     {
         $this->user = $user;
         return $this;

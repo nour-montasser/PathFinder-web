@@ -7,7 +7,7 @@ namespace App\Entity;
     use Doctrine\Common\Collections\ArrayCollection;
 
     #[ORM\Entity]
-    class AppUser
+    class App_user
     {
         #[ORM\Id]
         #[ORM\GeneratedValue]

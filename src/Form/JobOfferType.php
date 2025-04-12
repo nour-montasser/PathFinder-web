@@ -11,7 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use App\Entity\AppUser; // Assuming you have an AppUser entity
+use App\Entity\App_user; // Assuming you have an App_user entity
 
 class JobOfferType extends AbstractType
 {
@@ -85,8 +85,8 @@ class JobOfferType extends AbstractType
             ])
               
             ->add('user', EntityType::class, [
-                'class' => AppUser::class,
-                'choice_label' => function(AppUser $user) {
+                'class' => App_user::class,
+                'choice_label' => function(App_user $user) {
                     return $user->getName(); // Assuming you have a getName() method
                 },
                 'placeholder' => 'Select a user',
