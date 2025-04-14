@@ -16,23 +16,10 @@ class MessageType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
 {
     $builder
-        ->add('content')
-        ->add('media');
+        ->add('content');
+       
     
-    // Only add sender and channel fields if they exist
-    if ($options['data']->getSender()) {
-        $builder->add('sender', EntityType::class, [
-            'class' => App_user::class,
-            'choice_label' => 'id',
-        ]);
-    }
     
-    if ($options['data']->getChannel()) {
-        $builder->add('channel', EntityType::class, [
-            'class' => Channel::class,
-            'choice_label' => 'id',
-        ]);
-    }
 }
 
     public function configureOptions(OptionsResolver $resolver): void

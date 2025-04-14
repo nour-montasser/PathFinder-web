@@ -29,12 +29,16 @@
 							<div class="d-flex {% if message.sender.idUser == currentUser.idUser %}justify-content-end{% else %}justify-content-start{% endif %} mb-3">
 								<div class="chat-message {% if message.sender.idUser == currentUser.idUser %}sent-message{% else %}received-message{% endif %}">
 
-									{% if editingMessage is defined and editingMessage.idMessage == message.idMessage %}
-										{{ form_start(editForm, {'attr': {'class': 'd-flex'}}) }}
-										{{ form_widget(editForm.content, {'attr': {'class': 'form-control me-2'}}) }}
-										<button class="btn btn-success me-1">💾</button>
-										<a href="{{ path('app_message_index', {'id_channel': selectedChannelId}) }}" class="btn btn-secondary">✖️</a>
-										{{ form_end(editForm) }}
+									{% if editingMessageId is defined and editingMessageId == message.idMessage %}
+										<div class="edit-message-form mb-3">
+											{{ form_start(editForm, {'attr': {'class': 'd-flex'}}) }}
+											{{ form_widget(editForm.content, {'attr': {
+                                            'class': 'form-control',
+                                                'placeholder': 'Edit your message...'
+                                                }}) }}
+											<button type="submit" class="btn btn-primary ms-2">Update</button>
+											{{ form_end(editForm) }}
+										</div>
 									{% else %}
 										<div class="message-content">
 											{{ message.content }}
@@ -50,7 +54,7 @@
 											</small>
 											{% if message.sender.idUser == currentUser.idUser %}
 												<div class="message-actions">
-													<a href="{{ path('app_message_index', { 'id_channel': selectedChannelId, 'edit_message': message.idMessage }) }}" class="text-white ms-2">
+													<a href="{{ path('app_message_edit_inline', {'id_message': message.idMessage}) }}" class="text-white ms-2">
 														<i class="bi bi-pencil"></i>
 													</a>
 													<form method="post" action="{{ path('app_message_delete', {'id_message': message.idMessage}) }}" class="d-inline" onsubmit="return confirm('Are you sure?')">
@@ -89,11 +93,7 @@
 							'placeholder': 'Type your message...'
 						}}) }}
 
-						<label class="input-group-text" style="cursor: pointer;" for="{{ form.media.vars.id }}">
-							<i class="bi bi-paperclip"></i>
-						</label>
-
-						{{ form_widget(form.media, {'attr': {'class': 'd-none'}}) }}
+						
 
 						<button type="submit" class="btn btn-primary">Send</button>
 					</div>

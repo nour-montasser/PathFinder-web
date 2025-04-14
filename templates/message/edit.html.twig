@@ -6,7 +6,7 @@
 <div class="container mt-4">
     <h1>Edit Message</h1>
 
-    {{ form_start(form, {'attr': {'class': 'edit-message-form'}) }}
+    {{ form_start(form, 'attr': {'class': 'edit-message-form'}) }}
         <div class="mb-3">
             {{ form_widget(form.content, {'attr': {
                 'class': 'form-control',
@@ -26,8 +26,8 @@
             <button type="submit" class="btn btn-primary">Update</button>
             <a href="{{ path('app_message_index', {'id_channel': message.channel.id}) }}" class="btn btn-secondary">Cancel</a>
         </div>
-        {{ form_widget(form.channel) }}
-        {{ form_widget(form.sender) }}
+       
+       
     {{ form_end(form) }}
 </div>
 {% endblock %}
