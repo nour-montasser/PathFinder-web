@@ -1,0 +1,234 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Skilltest{% endblock %}
+
+{% block body %}
+    <style>
+        .btn-remove {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-remove:hover {
+            background-color: #c0392b;
+            transform: scale(1.03);
+        }
+
+        .btn-remove::before {
+            content: "✖";
+            font-size: 16px;
+        }
+
+        .form-section {
+            max-width: 900px;
+            margin: 40px auto;
+            background-color: #fff;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+            color: #3B261D;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 25px;
+            color: #3B261D;
+        }
+
+        .question-item {
+            background-color: #fdf7f2;
+            border: 1px solid #e5d8d0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-submit,
+        .btn-add {
+            background-color: #3B261D;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .btn-submit:hover,
+        .btn-add:hover {
+            background-color: #5a3e2e;
+        }
+
+        .back-link {
+            display: block;
+            text-align: right;
+            margin-top: 30px;
+            color: #3B261D;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <div class="form-section">
+        <h2 class="section-title">Edit Skilltest</h2>
+
+        {{ form_start(form) }}
+
+        <div class="form-group">
+            {{ form_label(form.title, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.description, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.duration, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.duration, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.score_required, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.score_required, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+       
+
+        <h2 class="section-title mt-4">Questions</h2>
+
+        <div id="questions-collection-wrapper"
+             data-prototype="{{ form_widget(form.questions.vars.prototype)|e('html_attr') }}">
+            {% for questionField in form.questions %}
+                <div class="question-item">
+                    <div class="form-group">
+                        {{ form_label(questionField.question, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(questionField.question, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(questionField.responses, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(questionField.responses, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(questionField.correctResponse, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(questionField.correctResponse, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(questionField.score, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(questionField.score, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+
+        <button type="button" class="btn-add mt-3" id="add-question-btn">➕ Add Question</button>
+        <br><br>
+
+        <button type="submit" class="btn-submit mt-4">✅ Save Changes</button>
+        {{ form_end(form) }}
+    </div>
+
+    <a href="{{ path('app_skilltest_index') }}" class="back-link">← Back to Skilltests</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const collectionHolder = document.querySelector('#questions-collection-wrapper');
+            const addButton = document.querySelector('#add-question-btn');
+            let index = collectionHolder.querySelectorAll('.question-item').length;
+
+            const prototype = collectionHolder.dataset.prototype;
+
+            addButton.addEventListener('click', () => {
+                const newForm = prototype.replace(/__name__/g, index);
+                index++;
+
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('question-item');
+                wrapper.innerHTML = `
+                <div class="form-group">
+                    ${extractField(newForm, 'question')}
+                </div>
+                <div class="form-group">
+                    ${extractField(newForm, 'responses')}
+                </div>
+                <div class="form-group">
+                    ${extractField(newForm, 'correctResponse')}
+                </div>
+                <div class="form-group">
+                    ${extractField(newForm, 'score')}
+                </div>
+                <button type="button" class="btn-remove">❌ Remove</button>
+            `;
+
+                addRemoveListener(wrapper.querySelector('.btn-remove'));
+                collectionHolder.appendChild(wrapper);
+            });
+
+            // Add remove button to existing blocks
+            collectionHolder.querySelectorAll('.question-item').forEach((block) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn-remove';
+                btn.textContent = '❌ Remove';
+                block.appendChild(btn);
+                addRemoveListener(btn);
+            });
+
+            function addRemoveListener(btn) {
+                btn.addEventListener('click', () => {
+                    btn.closest('.question-item').remove();
+                });
+            }
+
+            function extractField(formHtml, fieldName) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(`<div>${formHtml}</div>`, 'text/html');
+                const field = doc.querySelector(`[name$="[${fieldName}]"]`);
+                const label = doc.querySelector(`label[for="${field?.id}"]`);
+
+                const labelHtml = label ? `<label class="form-label" for="${field.id}">${label.textContent}</label>` : '';
+                const inputHtml = field ? field.outerHTML.replace('form-control', '').replace('<input', '<input class="form-control"') : '';
+
+                return labelHtml + inputHtml;
+            }
+        });
+    </script>
+
+{% endblock %}

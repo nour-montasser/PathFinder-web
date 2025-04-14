@@ -7,4 +7,7 @@ import './bootstrap.js'; // Stimulus initialization (if using)
 import './js/main';
 import './js/vendors';
 
+import 'chart.js/auto';     
+
+
 console.log('App initialized'); // Confirms proper loading

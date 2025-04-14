@@ -14,12 +14,12 @@
 					<div class="card mb-4">
 						<div class="card-header d-flex justify-content-between align-items-center">
 							<h4 class="card-title h4 mb-50">Browse job offers</h4>
-							{% if not is_ajax %}
-							<a href="{{ path('app_job_offer_new') }}" class="btn btn-primary">
-								<i class="bi bi-plus-circle"></i>
-								Create New
-							</a>
-							{% endif %}
+							{% if not is_ajax and current_user.role == 1 %}
+    <a href="{{ path('app_job_offer_new') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i>
+        Create New
+    </a>
+{% endif %}
 						</div>
 						<div class="card-body" id="job-offers-container">
 							{% if job_offers is empty %}
@@ -187,17 +187,7 @@
 							<form method="get" id="filtersForm" action="{{ path('app_job_offer_index') }}">
 								<input type="hidden" name="search" id="searchParam" value="{{ app.request.query.get('search', '') }}">
 
-								<!-- My Jobs Toggle -->
-								<div class="mb-3">
-									<div class="form-check form-switch">
-										<input class="form-check-input" type="checkbox" id="my_jobs" name="my_jobs" value="1" 
-											{{ app.request.query.get('my_jobs', '0') == '1' ? 'checked' : '' }}>
-										<label class="form-check-label" for="my_jobs">
-											<i class="bi bi-person-check"></i>
-											Show only my job offers
-										</label>
-									</div>
-								</div>
+								
 
 								<!-- Job Type Filter -->
 								<div class="mb-3">
@@ -349,7 +339,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchButton = document.getElementById('searchButton');
     const container = document.getElementById('job-offers-container');
     const filtersForm = document.getElementById('filtersForm');
-    const myJobsToggle = document.getElementById('my_jobs');
     let searchTimer;
 
     // Only make AJAX requests when actually needed (not initial page load)
@@ -390,11 +379,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('input[name="education[]"]:checked').forEach(checkbox => {
                 params.append('education[]', checkbox.value);
             });
-            
-            // Add my_jobs status
-            if (myJobsToggle.checked) {
-                params.append('my_jobs', '1');
-            }
 
             const response = await fetch(`{{ path('app_job_offer_index') }}?${params.toString()}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -415,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="card-body text-center py-4">
                             <i class="bi bi-file-earmark-text fs-1 text-muted mb-2"></i>
                             <h3 class="h5">No job offers found</h3>
-                            <p class="text-muted mb-3">${myJobsToggle.checked ? 'You have no job offers' : 'No results found'}</p>
+                            <p class="text-muted mb-3">No results found</p>
                         </div>
                     </div>`;
             } else {
@@ -444,11 +428,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // My Jobs toggle handler
-    if (myJobsToggle) {
-        myJobsToggle.addEventListener('change', loadJobOffers);
-    }
-
     // Filter form submission handler
     if (filtersForm) {
         filtersForm.addEventListener('submit', function(e) {
@@ -458,17 +437,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Remove the initial load call - let server render the initial content
-});
-// Add to your JavaScript block
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('[data-bs-toggle="modal"]').forEach(button => {
-        button.addEventListener('click', function() {
-            // Move the modal to body when clicked
-            const target = this.getAttribute('data-bs-target');
-            const modal = document.querySelector(target);
-            document.body.appendChild(modal);
-        });
-    });
 });
 </script>
 {% endblock %}

@@ -35,6 +35,30 @@ class ApplicationJob
     #[ORM\JoinColumn(name: "cv_id", referencedColumnName: "id_cv")]
     private Cv $cv;
     
+    #[ORM\OneToOne(mappedBy: "application", targetEntity: Coverletter::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private ?Coverletter $coverletter = null;
+    
+public function getCoverletter(): ?Coverletter
+{
+    return $this->coverletter;
+}
+public function setCoverletter(?Coverletter $coverletter): self
+{
+    // 1. Handle null case (removing existing relationship)
+   /* if ($coverletter === null && $this->coverletter !== null) {
+        $this->coverletter->setApplication(null); // Tell the cover letter it's no longer associated
+    }*/
+
+    // 2. Handle new cover letter assignment
+    if ($coverletter !== null && $coverletter->getApplication() !== $this) {
+        $coverletter->setApplication($this); // Tell the cover letter about this application
+    }
+
+    // 3. Update this side of the relationship
+    $this->coverletter = $coverletter;
+    return $this;
+}
+
 
     public function getApplication_id(): string
     {

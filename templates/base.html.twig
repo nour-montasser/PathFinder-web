@@ -1,33 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <link rel="icon" href="{{ asset('build/images/logo/pathfinder_logo_compass.png.png') }}" type="image/png">
-    <title>{% block title %}Pathfinder{% endblock %}</title>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="icon" href="{{ asset('build/images/logo/pathfinder_logo_compass.png.png') }}" type="image/png">
+		<title>
+			{% block title %}Pathfinder
+			{% endblock %}
+		</title>
 
-  {{ encore_entry_link_tags('app') }}
-    {% block styles %}{% endblock %}
-</head>
+		{{ encore_entry_link_tags('app') }}
+		{% block styles %}{% endblock %}
+	</head>
 
-<body>
-    <div id="app">
-        
-            {% include "includes/navbar.html.twig" %}
-      
+	<body>
+		<div id="app">
 
-        
-        
-            <div id="main-content">
-                {% block body %}{% endblock %}
-                {% include "includes/footer.html.twig" %}
-            </div>
-        
-    </div>
+			{% include "includes/navbar.html.twig" %}
 
-    {{ encore_entry_script_tags('app') }}
-    {% block javascripts %}{% endblock %}
-</body>
+
+			<div id="main-content" style="{% if current_user.role == 3 %}margin-left: 250px;{% endif %} padding: 20px;"> {% block body %}{% endblock %}
+				{% include "includes/footer.html.twig" %}
+			</div>
+
+
+		</div>
+
+		{{ encore_entry_script_tags('app') }}
+		{% block javascripts %}{% endblock %}
+	</body>
 
 </html>

@@ -49,4 +49,11 @@ abstract class BaseController extends AbstractController
         return parent::render($view, $parameters, $response);
     }
 
+    protected function renderView(string $view, array $parameters = []): string
+{
+    // Automatically add current user to all templates
+    $parameters['current_user'] = $this->getCurrentUser();
+    return parent::renderView($view, $parameters);
+}
+
 }

@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Application_job;
+use App\Entity\ApplicationJob;
 
 #[ORM\Entity]
 class Coverletter
@@ -13,9 +13,10 @@ class Coverletter
     #[ORM\Column(type: "bigint")]
     private int $id_cover_letter;
 
-    #[ORM\OneToOne(targetEntity: ApplicationJob::class)]
-    #[ORM\JoinColumn(name: "id_app", referencedColumnName: "application_id")]
-    private ApplicationJob $application;
+    #[ORM\OneToOne(inversedBy: "coverletter", targetEntity: ApplicationJob::class)]
+    #[ORM\JoinColumn(name: "id_app", referencedColumnName: "application_id", onDelete: "CASCADE")]
+    private ?ApplicationJob $application;
+    
 
     #[ORM\Column(type: "text", length: 5000)]
     private string $content;
@@ -39,12 +40,14 @@ class Coverletter
         return $this->application;
     }
 
-    public function setApplication(ApplicationJob $application): self
-    {
-        $this->application = $application;
-        return $this;
+    public function setApplication(?ApplicationJob $application): self
+{
+    $this->application = $application;
+    if ($application !== null && $application->getCoverletter() !== $this) {
+        $application->setCoverletter($this);
     }
-
+    return $this;
+}
     public function getContent(): string
     {
         return $this->content;
@@ -65,5 +68,14 @@ class Coverletter
     {
         $this->subject = $subject;
         return $this;
+    }
+
+
+     public function __construct(ApplicationJob $application = null)
+    {
+        if ($application !== null) {
+            $this->application = $application;
+            $application->setCoverletter($this);
+        }
     }
 }
