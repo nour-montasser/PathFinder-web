@@ -15,10 +15,9 @@ use App\Entity\App_user;
 use App\Repository\ChannelRepository;
 use App\Repository\App_userRepository;
 
-
-
 #[Route('/message')]
-final class MessageController extends BaseController{
+final class MessageController extends BaseController
+{
     #[Route('/{id_channel}', name: 'app_message_index', methods: ['GET', 'POST'])]
     public function index(
         Request $request,
@@ -30,55 +29,59 @@ final class MessageController extends BaseController{
     ): Response {
         $this->ensureUserSession();
         $user = $this->getCurrentUser();
-    
-        // Fetch all channels for the current user
-        $channels = [];
-        $availableUsers = [];
-        if ($user) {
-            $channels = $channelRepository->findUserChannels($user->getIdUser());
-            $availableUsers = $channelRepository->findAvailableUsers($user->getIdUser());
-        }
-    
+
+        // Get channels with last message data
+        $channels = $channelRepository->findChannelsWithLastMessage($user->getIdUser());
+
+        // Get available users (excluding current user)
+        $availableUsers = $channelRepository->findAvailableUsers($user->getIdUser());
+
         // Handle new channel creation
-        if ($request->isMethod('POST') && $request->request->has('selected_user')) {
-            $selectedUserId = $request->request->get('selected_user');
-            $receiver = $userRepository->find($selectedUserId);
-    
-            // Check if channel already exists
-            $existingChannel = $channelRepository->findOneBy([
-                'initiator' => $user,
-                'receiver' => $receiver
-            ]) ?? $channelRepository->findOneBy([
-                'initiator' => $receiver,
-                'receiver' => $user
-            ]);
-    
-            if ($existingChannel) {
-                // Redirect to existing channel
+        if ($request->isMethod('POST')) {
+            if ($request->request->has('selected_user')) {
+                $selectedUserId = $request->request->get('selected_user');
+                $receiver = $userRepository->find($selectedUserId);
+
+                if (!$receiver) {
+                    $this->addFlash('error', 'Selected user not found');
+                    return $this->redirectToRoute('app_message_index');
+                }
+
+                // Check if channel already exists
+                $existingChannel = $channelRepository->findOneBy([
+                    'initiator' => $user,
+                    'receiver' => $receiver
+                ]) ?? $channelRepository->findOneBy([
+                    'initiator' => $receiver,
+                    'receiver' => $user
+                ]);
+
+                if ($existingChannel) {
+                    return $this->redirectToRoute('app_message_index', [
+                        'id_channel' => $existingChannel->getId_channel()
+                    ]);
+                }
+
+                // Create new channel
+                $channel = new Channel();
+                $channel->setInitiator($user);
+                $channel->setReceiver($receiver);
+                $channel->setRating(0);
+                $channel->setTime_Created(new \DateTime());
+
+                $entityManager->persist($channel);
+                $entityManager->flush();
+
                 return $this->redirectToRoute('app_message_index', [
-                    'id_channel' => $existingChannel->getId_channel()
+                    'id_channel' => $channel->getId_channel()
                 ]);
             }
-    
-            // Create new channel
-            $channel = new Channel();
-            $channel->setInitiator($user);
-            $channel->setReceiver($receiver);
-            $channel->setRating(0);
-            $channel->setTime_Created(new \DateTime());
-    
-            $entityManager->persist($channel);
-            $entityManager->flush();
-    
-            return $this->redirectToRoute('app_message_index', [
-                'id_channel' => $channel->getId_channel()
-            ]);
         }
-    
+
         // Initialize messages array
         $messages = [];
         $channel = null;
-    
+
         // If a channel is selected, load its messages
         if ($id_channel) {
             $channel = $channelRepository->find($id_channel);
@@ -89,125 +92,135 @@ final class MessageController extends BaseController{
                 );
             }
         } else if (!empty($channels)) {
-            // If no channel selected but channels exist, redirect to first channel
+            // Redirect to first channel if none selected
+            $firstChannel = $channels[0]['channel'] ?? $channels[0]; // Handle both formats
             return $this->redirectToRoute('app_message_index', [
-                'id_channel' => $channels[0]->getId_channel()
+                'id_channel' => $firstChannel->getId_channel()
             ]);
         }
-    
+
         // Create new message form
         $message = new Message();
-    if ($id_channel) {
-        $channel = $channelRepository->find($id_channel);
-        if ($channel) {
+        if ($id_channel && $channel) {
             $message->setChannel($channel);
+            $message->setSender($user);
+            $message->setTimeSent(new \DateTime());
         }
-    }
-    
-    $form = $this->createForm(MessageType::class, $message);
-    $form->handleRequest($request); // This processes the form submission
 
-    if ($form->isSubmitted() && $form->isValid()) {
-        // Set the sender and timestamp
-        $message->setSender($user);
-        $message->setTimeSent(new \DateTime());
-        
-        // Persist and flush the message
-        $entityManager->persist($message);
-        $entityManager->flush();
+        $form = $this->createForm(MessageType::class, $message);
+        $form->handleRequest($request);
 
-        // Redirect to prevent form resubmission
-        return $this->redirectToRoute('app_message_index', [
-            'id_channel' => $id_channel
-        ]);
-    }
-        // Render the view
+        if ($form->isSubmitted() && $form->isValid()) {
+            if (!$message->getChannel() || !$message->getSender()) {
+                $this->addFlash('error', 'Missing required message data');
+                return $this->redirectToRoute('app_message_index', ['id_channel' => $id_channel]);
+            }
+
+            $entityManager->persist($message);
+            $entityManager->flush();
+
+            return $this->redirectToRoute('app_message_index', [
+                'id_channel' => $id_channel
+            ]);
+        }
+
         return $this->render('message/index.html.twig', [
             'messages' => $messages,
             'form' => $form->createView(),
             'channels' => $channels,
-            'availableUsers' => $availableUsers, // Make sure to pass this
+            'availableUsers' => $availableUsers,
             'currentUser' => $user,
             'selectedChannelId' => $id_channel,
         ]);
     }
-    
 
-#[Route('/delete/{id_message}', name: 'app_message_delete', methods: ['POST'])]
-public function delete(Request $request, Message $message, EntityManagerInterface $entityManager): Response
-{
-    // Store the channel BEFORE deleting the message
-    $channel = $message->getChannel();
+    #[Route('/delete/{id_message}', name: 'app_message_delete', methods: ['POST'])]
+    public function delete(Request $request, Message $message, EntityManagerInterface $entityManager): Response
+    {
+        $channel = $message->getChannel();
 
-    if (!$channel) {
-        throw $this->createNotFoundException('Channel not found for this message.');
-    }
+        if (!$channel) {
+            throw $this->createNotFoundException('Channel not found for this message.');
+        }
 
-    // Validate the CSRF token
-    if ($this->isCsrfTokenValid('delete' . $message->getIdMessage(), $request->request->get('_token'))) {
-        $entityManager->remove($message);
-        $entityManager->flush();
+        if ($this->isCsrfTokenValid('delete' . $message->getIdMessage(), $request->request->get('_token'))) {
+            $entityManager->remove($message);
+            $entityManager->flush();
+        }
 
-        // Redirect back to the message index with the channel ID
         return $this->redirectToRoute('app_message_index', [
             'id_channel' => $channel->getId_channel(),
-        ], Response::HTTP_SEE_OTHER);
+        ]);
     }
 
-    // Invalid CSRF, redirect without deleting
-    return $this->redirectToRoute('app_message_index', [
-        'id_channel' => $channel->getId_channel(),
-    ]);
+    #[Route('/edit-inline/{id_message}', name: 'app_message_edit_inline', methods: ['GET', 'POST'])]
+    public function editInline(
+        Request $request,
+        Message $message,
+        EntityManagerInterface $entityManager,
+        ChannelRepository $channelRepository,
+        App_userRepository $userRepository,
+        MessageRepository $messageRepository 
+
+    ): Response {
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
+
+        $channel = $message->getChannel();
+        $id_channel = $channel->getId_channel();
+
+        $channels = $channelRepository->findChannelsWithLastMessage($user->getIdUser());
+        $availableUsers = $channelRepository->findAvailableUsers($user->getIdUser());
+        $messages = $messageRepository->findBy(['channel' => $channel], ['time_sent' => 'ASC']);
+
+        $editForm = $this->createForm(MessageType::class, $message);
+        $editForm->handleRequest($request);
+
+        if ($editForm->isSubmitted() && $editForm->isValid()) {
+            $entityManager->flush();
+            return $this->redirectToRoute('app_message_index', ['id_channel' => $id_channel]);
+        }
+
+        $newMessage = new Message();
+        $newMessage->setChannel($channel);
+        $newMessage->setSender($user);
+        $form = $this->createForm(MessageType::class, $newMessage);
+
+        return $this->render('message/index.html.twig', [
+            'messages' => $messages,
+            'form' => $form->createView(),
+            'editForm' => $editForm->createView(),
+            'editingMessageId' => $message->getIdMessage(),
+            'channels' => $channels,
+            'availableUsers' => $availableUsers,
+            'currentUser' => $user,
+            'selectedChannelId' => $id_channel,
+        ]);
+    }
+
+    #[Route('/channel/delete/{id_channel}', name: 'app_channel_delete', methods: ['POST'])]
+    public function deleteChannel(
+        Request $request,
+        Channel $channel,
+        ChannelRepository $channelRepository
+    ): Response {
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
+
+        if ($channel->getInitiator()->getIdUser() !== $user->getIdUser() &&
+            $channel->getReceiver()->getIdUser() !== $user->getIdUser()) {
+            throw $this->createAccessDeniedException('You cannot delete this channel');
+        }
+
+        if ($this->isCsrfTokenValid('delete-channel' . $channel->getId_channel(), $request->request->get('_token'))) {
+            $channelRepository->deleteChannelWithMessages($channel);
+            $this->addFlash('success', 'Channel deleted successfully');
+            return $this->redirectToRoute('app_message_index');
+        }
+
+        $this->addFlash('error', 'Invalid CSRF token');
+        return $this->redirectToRoute('app_message_index', [
+            'id_channel' => $channel->getId_channel()
+        ]);
+    }
 }
-
-#[Route('/message/edit-inline/{id_message}', name: 'app_message_edit_inline', methods: ['GET', 'POST'])]
-public function editInline(
-    Request $request,
-    Message $message,
-    EntityManagerInterface $entityManager,
-    MessageRepository $messageRepository,
-    ChannelRepository $channelRepository,
-    App_userRepository $userRepository
-): Response {
-    $this->ensureUserSession();
-    $user = $this->getCurrentUser();
-    
-    // Get the channel from the message being edited
-    $channel = $message->getChannel();
-    $id_channel = $channel->getId_channel();
-    
-    // Get all channels and available users for the sidebar
-    $channels = $channelRepository->findUserChannels($user->getIdUser());
-    $availableUsers = $channelRepository->findAvailableUsers($user->getIdUser());
-    
-    // Get all messages for this channel
-    $messages = $messageRepository->findBy(['channel' => $id_channel], ['time_sent' => 'ASC']);
-    
-    // Create the edit form
-    $editForm = $this->createForm(MessageType::class, $message);
-    $editForm->handleRequest($request);
-
-    if ($editForm->isSubmitted() && $editForm->isValid()) {
-        // Update the timestamp when editing
-        $message->setTimeSent(new \DateTime());
-        $entityManager->flush();
-        
-        return $this->redirectToRoute('app_message_index', ['id_channel' => $id_channel]);
-    }
-
-    // Create a new message form (for sending new messages)
-    $newMessage = new Message();
-    $newMessage->setChannel($channel);
-    $form = $this->createForm(MessageType::class, $newMessage);
-
-    return $this->render('message/index.html.twig', [
-        'messages' => $messages,
-        'form' => $form->createView(),
-        'editForm' => $editForm->createView(),
-        'editingMessageId' => $message->getIdMessage(),
-        'channels' => $channels,
-        'availableUsers' => $availableUsers, // Now properly passed
-        'currentUser' => $user,
-        'selectedChannelId' => $id_channel,
-    ]);
-}}

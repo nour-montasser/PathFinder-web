@@ -34,4 +34,63 @@ class ChannelRepository extends ServiceEntityRepository
         ->setParameter('currentUserId', $currentUserId)
         ->getResult();
 }
+public function deleteChannelWithMessages(Channel $channel): void
+{
+    $em = $this->getEntityManager();
+    
+    // Delete all messages in this channel first
+    $em->createQuery('
+        DELETE FROM App\Entity\Message m 
+        WHERE m.channel = :channel
+    ')->setParameter('channel', $channel)
+      ->execute();
+
+    // Then delete the channel
+    $em->remove($channel);
+    $em->flush();
 }
+public function findChannelsWithLastMessage(int $userId): array
+{
+    // First get channels where user is either initiator or receiver
+    $channels = $this->createQueryBuilder('c')
+        ->where('c.initiator = :userId OR c.receiver = :userId')
+        ->setParameter('userId', $userId)
+        ->getQuery()
+        ->getResult();
+
+    $results = [];
+    $entityManager = $this->getEntityManager();
+
+    foreach ($channels as $channel) {
+        // Get last message using a separate query
+        $lastMessage = $entityManager->createQuery('
+            SELECT m 
+            FROM App\Entity\Message m
+            WHERE m.channel = :channel
+            ORDER BY m.time_sent DESC
+        ')
+        ->setParameter('channel', $channel)
+        ->setMaxResults(1)
+        ->getOneOrNullResult();
+
+        $results[] = [
+            'channel' => $channel,
+            'last_message' => $lastMessage
+        ];
+    }
+
+    return $results;
+}
+public function findExistingChannel(App_user $user1, App_user $user2): ?Channel
+{
+    return $this->createQueryBuilder('c')
+        ->where('(c.initiator = :user1 AND c.receiver = :user2)')
+        ->orWhere('(c.initiator = :user2 AND c.receiver = :user1)')
+        ->setParameters([
+            'user1' => $user1,
+            'user2' => $user2
+        ])
+        ->setMaxResults(1)
+        ->getQuery()
+        ->getOneOrNullResult();
+}   }

@@ -27,6 +27,39 @@
 
     {{ encore_entry_script_tags('app') }}
     {% block javascripts %}{% endblock %}
+    {% block stylesheets %}
+    <style>
+        /* Channel list styles */
+        .list-group-item {
+            border-left: 0;
+            border-right: 0;
+            padding: 0.75rem 1.25rem;
+            transition: background-color 0.2s;
+        }
+        .list-group-item.active {
+            background-color: rgba(90, 141, 238, 0.1);
+            border-left: 3px solid #5a8dee;
+        }
+        .list-group-item .btn-link {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .list-group-item:hover .btn-link {
+            opacity: 1;
+        }
+        .text-truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        @media (max-width: 768px) {
+            .list-group-item {
+                padding: 0.5rem 0.75rem;
+            }
+        }
+    </style>
+{% endblock %}
 </body>
+
 
 </html>
