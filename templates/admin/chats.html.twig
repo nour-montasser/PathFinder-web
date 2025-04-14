@@ -1,1 +1,56 @@
 {% extends 'base.html.twig' %}
+
+{% block title %}Admin - Channels{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Channels Management</h5>
+                    <span class="badge bg-primary">{{ channels|length }} total channels</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Initiator</th>
+                                    <th>Receiver</th>
+                                    <th>Created</th>
+                                    <th>Messages</th>
+                                    <th>Last Activity</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for channel in channels %}
+<tr>
+    <td>{{ channel.id }}</td>
+    <td>{{ channel.initiator.name }} (ID: {{ channel.initiator.id_user }})</td>
+    <td>{{ channel.receiver.name }} (ID: {{ channel.receiver.id_user }})</td>
+    <td>{{ channel.time_created|date('Y-m-d H:i') }}</td>
+    <td>{{ channel.messageCount }}</td>
+    <td>
+        {% if channel.lastMessage %}
+            {{ channel.lastMessage.getTimeSent|date('Y-m-d H:i') }}
+        {% else %}
+            <span class="text-muted">No messages</span>
+        {% endif %}
+    </td>
+    <td>
+        {# Action buttons remain the same #}
+    </td>
+</tr>
+{% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

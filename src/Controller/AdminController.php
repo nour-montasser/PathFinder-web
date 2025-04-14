@@ -9,6 +9,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\ApplicationJob;
 use App\Entity\Job_offer;
 use App\Repository\JobOfferRepository;
+use App\Entity\Channel;
+use App\Repository\ChannelRepository;
+use App\Entity\Message;
 
 
 #[Route('/admin')]
@@ -62,11 +65,53 @@ public function jobOffers(JobOfferRepository $jobOfferRepository): Response
     ]);
 }
 
-    #[Route('/chats', name: 'admin_chats')]
-    public function chats(): Response
-    {
-        return $this->render('admin/chats.html.twig');
+#[Route('/chats', name: 'admin_chats')]
+public function chats(): Response
+{
+    return $this->redirectToRoute('admin_channels');
+}
+
+
+#[Route('/channels', name: 'admin_channels')]
+public function channels(ChannelRepository $channelRepository, EntityManagerInterface $entityManager): Response
+{
+    // Get all channels with user info
+    $channels = $channelRepository->createQueryBuilder('c')
+        ->leftJoin('c.initiator', 'i')
+        ->leftJoin('c.receiver', 'r')
+        ->addSelect('i', 'r')
+        ->orderBy('c.time_created', 'DESC')
+        ->getQuery()
+        ->getResult();
+
+    // Get message counts and last message for each channel
+    $messageRepo = $entityManager->getRepository(Message::class);
+    
+    foreach ($channels as $channel) {
+        // Get message count
+        $channel->messageCount = $messageRepo->count(['channel' => $channel]);
+        
+        // Get last message
+        $channel->lastMessage = $messageRepo->findOneBy(
+            ['channel' => $channel],
+            ['time_sent' => 'DESC']
+        );
     }
+
+    return $this->render('admin/chats.html.twig', [
+        'channels' => $channels
+    ]);
+}
+
+#[Route('/channels/{id}/delete', name: 'admin_channel_delete', methods: ['POST'])]
+public function deleteChannel(Channel $channel, ChannelRepository $channelRepository): Response
+{
+    $channelRepository->deleteChannelWithMessages($channel);
+    
+    $this->addFlash('success', 'Channel and all messages deleted successfully');
+    return $this->redirectToRoute('admin_channels');
+}
+
 
     #[Route('/job-offers/{id}/delete', name: 'admin_job_offer_delete', methods: ['POST'])]
 public function deleteJobOffer(Job_offer $jobOffer, EntityManagerInterface $entityManager): Response

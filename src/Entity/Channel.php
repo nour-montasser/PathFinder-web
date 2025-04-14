@@ -3,10 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\App_user;
-use App\Entity\Message;
 
 #[ORM\Entity]
 class Channel
@@ -29,9 +26,7 @@ class Channel
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $time_created;
-    // NEW: Add the messages property
-    #[ORM\OneToMany(mappedBy: "channel", targetEntity: Message::class)]
-    private Collection $messages;
+
     public function getId_channel(): int
     {
         return $this->id_channel;
@@ -86,34 +81,10 @@ class Channel
         $this->time_created = $time_created;
         return $this;
     }
-        // Optionally, add methods to add and remove messages
-        public function addMessage(Message $message): self
-        {
-            if (!$this->messages->contains($message)) {
-                $this->messages[] = $message;
-                $message->setChannel($this);
-            }
-            return $this;
-        }
-    
-        public function removeMessage(Message $message): self
-        {
-            if ($this->messages->removeElement($message)) {
-                // set the owning side to null if needed
-                if ($message->getChannel() === $this) {
-                    $message->setChannel(null);
-                }
-            }
-            return $this;
-        }
-        
-    // Getter for messages
-    public function getMessages(): Collection
-    {
-        return $this->messages;
-    }
-    public function __construct()
-    {
-        $this->messages = new ArrayCollection();
-    }
+
+    public function getId(): int
+{
+    return $this->id_channel;
+}
+
 }

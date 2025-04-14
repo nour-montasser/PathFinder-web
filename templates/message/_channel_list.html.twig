@@ -1,0 +1,101 @@
+<!-- Add this user selection form at the top -->
+<div class="p-3 border-bottom">
+    <form method="post" action="{{ path('app_message_index') }}">
+        <div class="input-group mb-3">
+            <select name="selected_user" class="form-select" id="user-select">
+                <option value="" selected disabled>Select a user to message</option>
+                {% for user in availableUsers %}
+                    <option value="{{ user.getId_user }}">{{ user.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Start Chat</button>
+        </div>
+    </form>
+</div>
+
+<!-- Your existing channel list (unchanged) -->
+<div class="flex-grow-1 overflow-auto">
+    <div class="list-group list-group-flush">
+        {% for channelData in channels|default([]) %}
+            {% set channel = channelData.channel %}
+            {% set lastMessage = channelData.last_message %}
+            
+            {% if channel is defined and channel %}
+                <div class="list-group-item list-group-item-action {% if selectedChannelId is defined and selectedChannelId == channel.id_channel %}active{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ path('app_message_index', {'id_channel': channel.id_channel}) }}" class="flex-grow-1 text-decoration-none text-reset">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>
+                                    {{ channel.initiator.getId_user == currentUser.getId_user ? channel.receiver.name : channel.initiator.name }}
+                                </strong>
+                                <small class="text-muted ms-2">
+                                    {{ channel.time_created|date('H:i') }}
+                                </small>
+                            </div>
+                            <small class="text-muted text-truncate d-block">
+                                {% if lastMessage %}
+                                    {{ lastMessage.content|slice(0, 30) }}
+                                    {% if lastMessage.content|length > 30 %}...{% endif %}
+                                {% else %}
+                                    No messages yet
+                                {% endif %}
+                            </small>
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center text-muted p-3">No conversations found</div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Your existing footer (unchanged) -->
+<div class="p-3 border-top">
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">{{ currentUser.name }}</small>
+        <small class="text-muted">{{ "now"|date("H:i") }}</small>
+    </div>
+</div>
+
+<!-- Your existing styles (unchanged) -->
+<style>
+    /* Channel list styles */
+    .list-group-item {
+        border-left: 0;
+        border-right: 0;
+        padding: 0.75rem 1.25rem;
+        transition: background-color 0.2s;
+    }
+
+    .list-group-item.active {
+        background-color: rgba(90, 141, 238, 0.1);
+        border-left: 3px solid #5a8dee;
+    }
+
+    .list-group-item .btn-link {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .list-group-item:hover .btn-link {
+        opacity: 1;
+    }
+
+    .text-truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @media(max-width: 768px) {
+        .list-group-item {
+            padding: 0.5rem 0.75rem;
+        }
+    }
+
+    /* Add this for the user select dropdown */
+    #user-select {
+        cursor: pointer;
+    }
+</style>
