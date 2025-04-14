@@ -25,11 +25,6 @@
             transform: scale(1.03);
         }
 
-        .btn-remove::before {
-            content: "✖";
-            font-size: 16px;
-        }
-
         .form-section {
             max-width: 900px;
             margin: 40px auto;
@@ -149,25 +144,25 @@
             {% for questionField in skilltestForm.questions %}
                 <div class="question-item">
                     <div class="form-group">
-                        {{ form_label(questionField.question, null, {'label_attr': {'class': 'form-label'}}) }}
+                        <label class="form-label">Question</label>
                         {{ form_widget(questionField.question, {'attr': {'class': 'form-control'}}) }}
                         <div class="form-error">{{ form_errors(questionField.question) }}</div>
                     </div>
 
                     <div class="form-group">
-                        {{ form_label(questionField.responses, null, {'label_attr': {'class': 'form-label'}}) }}
+                        <label class="form-label">Responses</label>
                         {{ form_widget(questionField.responses, {'attr': {'class': 'form-control'}}) }}
                         <div class="form-error">{{ form_errors(questionField.responses) }}</div>
                     </div>
 
                     <div class="form-group">
-                        {{ form_label(questionField.correctResponse, null, {'label_attr': {'class': 'form-label'}}) }}
+                        <label class="form-label">Correct response</label>
                         {{ form_widget(questionField.correctResponse, {'attr': {'class': 'form-control'}}) }}
                         <div class="form-error">{{ form_errors(questionField.correctResponse) }}</div>
                     </div>
 
                     <div class="form-group">
-                        {{ form_label(questionField.score, null, {'label_attr': {'class': 'form-label'}}) }}
+                        <label class="form-label">Score</label>
                         {{ form_widget(questionField.score, {'attr': {'class': 'form-control'}}) }}
                         <div class="form-error">{{ form_errors(questionField.score) }}</div>
                     </div>

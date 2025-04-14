@@ -43,7 +43,7 @@ class Skilltest
     #[Assert\NotNull(message: "Score required is mandatory.")]
     #[Assert\GreaterThanOrEqual(value: 1, message: "Required score must be at least 1.")]
     private int $score_required;
-    #[ORM\OneToMany(mappedBy: "skillTest", targetEntity: Questions::class)]
+    #[ORM\OneToMany(mappedBy: "skillTest", targetEntity: Questions::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $questions;
 
     public function __construct()

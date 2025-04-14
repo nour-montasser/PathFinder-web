@@ -21,10 +21,9 @@ class SkilltestRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('s')
             ->leftJoin('s.questions', 'q')
             ->addSelect('q')
-            ->where('s.id_test = :id')
+            ->where('s.id_test = :id') // only valid if `id_test` is a property
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
     }
-
 }
