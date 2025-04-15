@@ -28,27 +28,27 @@ class JobOfferRepository extends ServiceEntityRepository
                           LOWER(j.description) LIKE LOWER(:search) OR
                           LOWER(j.skills) LIKE LOWER(:search) OR
                           LOWER(j.required_experience) LIKE LOWER(:search)')
-               ->setParameter('search', '%'.strtolower($searchTerm).'%');
+                ->setParameter('search', '%' . strtolower($searchTerm) . '%');
         }
 
         if (!empty($filters['types'])) {
             $qb->andWhere('j.type IN (:types)')
-               ->setParameter('types', $filters['types']);
+                ->setParameter('types', $filters['types']);
         }
 
         if (!empty($filters['fields'])) {
             $qb->andWhere('j.field IN (:fields)')
-               ->setParameter('fields', $filters['fields']);
+                ->setParameter('fields', $filters['fields']);
         }
 
         if (!empty($filters['education'])) {
             $qb->andWhere('j.required_education IN (:education)')
-               ->setParameter('education', $filters['education']);
+                ->setParameter('education', $filters['education']);
         }
 
         if ($user) {
             $qb->andWhere('u.id_user = :userId')
-               ->setParameter('userId', $user->getId_user());
+                ->setParameter('userId', $user->getId_user());
         }
 
         return $qb->getQuery()->getResult();
@@ -103,7 +103,7 @@ class JobOfferRepository extends ServiceEntityRepository
     {
         $previousPeriodStart = new \DateTime('-14 days');
         $previousPeriodEnd = new \DateTime('-7 days');
-        
+
         return $this->createQueryBuilder('j')
             ->select('COUNT(j.id_offer)')
             ->where('j.date_posted BETWEEN :start AND :end')
@@ -116,7 +116,7 @@ class JobOfferRepository extends ServiceEntityRepository
     public function countJobsFromCurrentPeriod(): int
     {
         $currentPeriodStart = new \DateTime('-7 days');
-        
+
         return $this->createQueryBuilder('j')
             ->select('COUNT(j.id_offer)')
             ->where('j.date_posted >= :start')
@@ -124,4 +124,18 @@ class JobOfferRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function findAllWithApplications(): array
+    {
+        return $this->createQueryBuilder('j')
+            ->leftJoin('j.applications', 'a')
+            ->leftJoin('a.user', 'u')
+            ->leftJoin('a.coverletter', 'c')
+            ->addSelect('a', 'u', 'c')
+            ->orderBy('j.date_posted', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+
 }

@@ -80,12 +80,6 @@ public function findChannelsWithLastMessage(int $userId): array
     }
 
 
-    
-
     return $results;
 }
-
-
-
-
 }

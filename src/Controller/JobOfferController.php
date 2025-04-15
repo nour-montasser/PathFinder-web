@@ -27,13 +27,6 @@ final class JobOfferController extends BaseController
         $this->ensureUserSession();
         $user = $this->getCurrentUser();
     
-        if (!$user) {
-            if ($request->isXmlHttpRequest()) {
-                return new JsonResponse(['error' => 'Authentication required'], 401);
-            }
-            return $this->redirectToRoute('app_login');
-        }
-    
         $searchTerm = trim($request->query->get('search', ''));
         $filters = [
             'types' => $request->query->all('types') ?? [],

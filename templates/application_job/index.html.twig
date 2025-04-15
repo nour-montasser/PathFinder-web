@@ -140,7 +140,7 @@
 
         {# Timer for pending applications #}
         {% if application.status == 'Pending' and canEdit %}
-            {% set deadline = application.dateApplication|date_modify('+2 hours') %}
+            {% set deadline = application.dateApplication|date_modify('+30 minutes') %}
             {% set timeLeft = deadline.diff(date('now')) %}
             <div class="mt-2">
                 <div class="alert alert-warning p-2 mb-0 d-flex align-items-center">

@@ -28,9 +28,9 @@
                             <!-- Profile picture -->
                             <div class="me-3">
                                 {% if otherUser.image %}
-                                    <img src="{{ otherUser.image }}" alt="{{ otherUser.name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <img src="{{ otherUser.image }}" alt="{{ otherUser.name }}" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
                                 {% else %}
-                                    <img src="{{ asset('build/images/faces/default-profile.png') }}" alt="Default profile" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <img src="{{ asset('build/images/faces/default-profile.png') }}" alt="Default profile" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
                                 {% endif %}
                             </div>
                             
@@ -39,7 +39,6 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <strong>{{ otherUser.name }}</strong>
                                     <small class="text-muted ms-2">
-                                        {{ channel.time_created|date('H:i') }}
                                     </small>
                                 </div>
                                 <small class="text-muted text-truncate d-block">
@@ -50,10 +49,20 @@
                                         No messages yet
                                     {% endif %}
                                 </small>
+                                 <form method="post" action="{{ path('app_channel_delete', {'id_channel': channelData.channel.id_channel}) }}" 
+              class="d-inline" onsubmit="return confirm('Are you sure you want to delete this channel?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete-channel' ~ channelData.channel.id_channel) }}">
+            <button type="submit" class="btn btn-sm btn-link text-danger p-0">
+                <i class="bi bi-trash"></i>
+            </button>
+        </form>
                             </div>
                         </a>
+                        
                     </div>
+                    
                 </div>
+                
             {% endif %}
         {% else %}
             <div class="text-center text-muted p-3">No conversations found</div>
@@ -75,7 +84,16 @@
         <small class="text-muted">{{ "now"|date("H:i") }}</small>
     </div>
 </div>
-
+<script>
+document.querySelectorAll('.channel-item').forEach(item => {
+    item.addEventListener('mouseenter', () => {
+        item.querySelector('.delete-channel-btn').classList.add('show');
+    });
+    item.addEventListener('mouseleave', () => {
+        item.querySelector('.delete-channel-btn').classList.remove('show');
+    });
+});
+</script>
 <!-- Updated styles -->
 <style>
     /* Channel list styles */
@@ -87,8 +105,8 @@
     }
 
     .list-group-item.active {
-        background-color: rgba(90, 141, 238, 0.1);
-        border-left: 3px solid #5a8dee;
+        background-color: rgba(87, 84, 84, 0.09);
+        border-color: #613f1d;
     }
 
     .list-group-item:hover {
@@ -121,4 +139,22 @@
     #user-select {
         cursor: pointer;
     }
+    .channel-item {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s;
+}
+
+.channel-item:hover {
+    background-color: #f8f9fa; /* Your template's hover color */
+}
+
+.delete-channel-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.channel-item:hover .delete-channel-btn {
+    opacity: 1;
+}
 </style>

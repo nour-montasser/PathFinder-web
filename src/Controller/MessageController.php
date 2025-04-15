@@ -202,8 +202,11 @@ final class MessageController extends BaseController
 
         // Create edit form
         $editForm = $this->createForm(MessageType::class, $message, [
-            'action' => $this->generateUrl('app_message_edit_inline', ['id_message' => $message->getIdMessage()])
+            'action' => $this->generateUrl('app_message_edit_inline', ['id_message' => $message->getIdMessage()]),
+            'allow_attachment' => false // Add this option
         ]);
+        
+
         
         $editForm->handleRequest($request);
 

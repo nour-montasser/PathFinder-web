@@ -328,6 +328,18 @@
 			position: relative;
 			z-index: 1;
 		}
+
+		/* Add this to your existing <style> block */
+.modal {
+    pointer-events: auto !important; /* Fixes mouse interaction glitches */
+    transform: none !important; /* Prevents any transform interference */
+}
+
+/* Temporary disable hover effects when modal is open */
+body.modal-open .job-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
 		
 	</style>
 {% endblock %}
