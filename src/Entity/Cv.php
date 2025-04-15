@@ -15,13 +15,14 @@ use App\Entity\Application_job;
 class Cv
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[ORM\Column(type: "bigint")]
     private int $id_cv;
-
     #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "cvs")]
-    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private App_user $user;
+    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE", nullable: true)]
+    private ?App_user $user = null;
+    
+    
 
     #[ORM\Column(type: "string", length: 255)]
     private string $title;
@@ -46,6 +47,7 @@ class Cv
 
     #[ORM\OneToMany(mappedBy: "cv", targetEntity: Certificates::class, cascade: ["persist", "remove"])]
     private Collection $certificates;
+    
 
     #[ORM\OneToMany(mappedBy: "cv", targetEntity: Experience::class, cascade: ["persist", "remove"])]
     private Collection $experiences;
@@ -55,6 +57,7 @@ class Cv
 
     #[ORM\OneToMany(mappedBy: "cv", targetEntity: Application_job::class)]
     private Collection $applications;
+    
 
     public function __construct()
     {
@@ -69,20 +72,13 @@ class Cv
         return $this->id_cv;
     }
 
-    public function setId_cv(int $id_cv): self
-    {
-        $this->id_cv = $id_cv;
-        return $this;
-    }
     public function getId(): int
     {
         return $this->id_cv;
     }
-
-    public function setId(int $id_cv): self
+    public function setId(int $id): void
     {
-        $this->id_cv = $id_cv;
-        return $this;
+        $this->id_cv= $id ;
     }
 
     public function getUser(): App_user
@@ -110,6 +106,7 @@ class Cv
     public function getUserTitle(): string
     {
         return $this->user_title;
+        
     }
     
     public function setUserTitle(string $user_title): self

@@ -102,12 +102,12 @@ class App_user
     
     // Getters and setters
     
-    public function getId_user(): int
+    public function getIdUser(): int
     {
         return $this->id_user;
     }
     
-    public function setId_user(int $id_user): self
+    public function setIdUser(int $id_user): self
     {
         $this->id_user = $id_user;
         return $this;

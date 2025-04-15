@@ -9,6 +9,7 @@ class Languages
 {
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
+    #[ORM\GeneratedValue(strategy: "AUTO")]
     private int $id_language;
 
     #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "languages")]

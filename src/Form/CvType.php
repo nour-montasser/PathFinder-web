@@ -2,45 +2,52 @@
 
 namespace App\Form;
 
-use App\Entity\App_user;
 use App\Entity\Cv;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Entity\Languages;
+use App\Entity\Experience;
+use App\Entity\Certificates;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-
-
 
 class CvType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options): void
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-         
-            
-            ->add('user_title')
-            ->add('introduction')
-             ->add('skills')
-             ->add('certificates', CollectionType::class, [
-                'entry_type' => CertificateType::class,
+            ->add('user_title', TextType::class, ['label' => 'CV Title'])
+            ->add('introduction', TextareaType::class, ['label' => 'Introduction'])
+            ->add('skills', TextType::class, [
+                'required' => true,  // Make skills required
+                'label' => 'Skills (comma-separated)',
+                'attr' => [
+                    'placeholder' => 'e.g., HTML, CSS, JavaScript',
+                    'maxlength' => 255
+                ]
+            ])
+            ->add('languages', CollectionType::class, [
+                'entry_type' => LanguagesType::class,  // A form type for Languages
                 'allow_add' => true,
                 'allow_delete' => true,
-                'by_reference' => false,
             ])
             ->add('experiences', CollectionType::class, [
-                'entry_type' => ExperienceType::class,
+                'entry_type' => ExperienceType::class,  // A form type for Experiences
                 'allow_add' => true,
                 'allow_delete' => true,
-                'by_reference' => false,
             ])
-            
-         
-          
+            ->add('certificates', CollectionType::class, [
+                'entry_type' => CertificatesType::class,  // A form type for Certificates
+                'allow_add' => true,
+                'allow_delete' => true,
+            ])
         ;
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
+    public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
             'data_class' => Cv::class,

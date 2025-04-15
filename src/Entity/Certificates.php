@@ -10,6 +10,7 @@ class Certificates
 {
     #[ORM\Id]
     #[ORM\Column(type: "bigint")]
+    #[ORM\GeneratedValue(strategy: "AUTO")]
     private int $id_certificate;
 
     #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "certificates")]
@@ -54,7 +55,7 @@ class Certificates
     }
 
     public function getTitle(): string
-    {
+    {   
         return $this->title;
     }
 

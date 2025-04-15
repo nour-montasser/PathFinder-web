@@ -16,12 +16,6 @@ for(var i = 0; i < sidebarItems.length; i++) {
 }
 
 
-
-
-
-
-
-
 // Perfect Scrollbar Init
 if(typeof PerfectScrollbar == 'function') {
     const container = document.querySelector(".sidebar-wrapper");

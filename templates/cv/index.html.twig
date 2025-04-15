@@ -1,446 +1,461 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Create CV{% endblock %}
+{% block title %}Create CV
+{% endblock %}
+{% block styles %}
+	<style>
+		/* General styles for the page */
+		.container {
+			max-width: 1200px;
+			margin: auto;
+		}
 
-{% block body %}
-  {% include 'includes/navbar.html.twig' %}
+		/* Ensure modal content is a flex column and has a max height */
+		.modal-dialog {
+			max-width: 600px; /* adjust width as needed */
+			margin: 1.75rem auto;
+		}
 
-  <div class="container mt-5">
-    <div class="row">
-      <!-- Left Side: Form Input -->
-      <div class="col-md-6">
-        <div class="card mb-4">
-          <div class="card-header">
-            <h3>Create CV</h3>
-          </div>
-          <div class="card-body">
-            {{ form_start(cvForm, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
-              
-              <!-- CV Title (user_title field) -->
-              <div class="mb-3">
-                {{ form_label(cvForm.user_title, 'CV Title', {'label_attr': {'class': 'form-label'}}) }}
-                {{ form_widget(cvForm.user_title, {'attr': {'class': 'form-control', 'placeholder': 'Enter CV Title'}}) }}
-                {{ form_errors(cvForm.user_title) }}
-                <small id="titleCounter" class="form-text text-muted">0 / 100</small>
-              </div>
-              
-              <!-- CV Introduction -->
-              <div class="mb-3">
-                {{ form_label(cvForm.introduction, 'CV Introduction', {'label_attr': {'class': 'form-label'}}) }}
-                {{ form_widget(cvForm.introduction, {'attr': {'class': 'form-control', 'placeholder': 'Enter CV Introduction', 'rows': 3}}) }}
-                {{ form_errors(cvForm.introduction) }}
-                <small id="introductionCounter" class="form-text text-muted">0 / 300</small>
-              </div>
-              
-              <!-- Skills Section -->
-              <div class="mb-3">
-                <label class="form-label">Select a Skill:</label>
-                <select id="skillComboBox" class="form-select" placeholder="Search skills...">
-                  {# Options can be loaded dynamically via JS #}
-                </select>
-                <div id="selectedSkillsFlow" class="mt-2">
-                  {# Skill tags will be appended here dynamically #}
-                </div>
-                <small id="skillsErrorLabel" class="text-danger d-none">Please select a skill!</small>
-              </div>
-              
-              <!-- Language Section -->
-              <div class="mb-3">
-                <h5>Languages</h5>
-                <div id="languageContainer">
-                  {# Added languages will appear here #}
-                </div>
-                <div class="mb-2">
-                  <label class="form-label">Select a Language</label>
-                  <select id="languagesDropdown" class="form-select" onchange="showLanguageLevelSelection(this)">
-                    <option value="">Select a language</option>
-                    {# Language options populated via JS #}
-                  </select>
-                  <small id="languageErrorLabel" class="text-danger d-none">Please select a language!</small>
-                </div>
-                <div id="languageLevelContainer" class="d-none">
-                  <label class="form-label">Proficiency Level</label>
-                  <div id="levelDots">
-                    <span class="fs-4 text-secondary" onclick="setLanguageLevel(1)">●</span>
-                    <span class="fs-4 text-secondary" onclick="setLanguageLevel(2)">●</span>
-                    <span class="fs-4 text-secondary" onclick="setLanguageLevel(3)">●</span>
-                    <span class="fs-4 text-secondary" onclick="setLanguageLevel(4)">●</span>
-                    <span class="fs-4 text-secondary" onclick="setLanguageLevel(5)">●</span>
-                  </div>
-                  <small id="levelErrorLabel" class="text-danger d-none">Select a proficiency level!</small>
-                </div>
-                <button type="button" class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#languageModal">
-                  Add Language
-                </button>
-              </div>
-              
-              <!-- Experience Section -->
-              <div class="mb-3">
-                <h5>Experiences</h5>
-                <div id="experienceContainer">
-                  {# Experience entries will be added dynamically #}
-                </div>
-                <small id="experienceErrorLabel" class="text-danger d-none">At least one experience is required!</small>
-                <button type="button" class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#experienceModal">
-                  Add Experience
-                </button>
-              </div>
-              
-              <!-- Certificate Section -->
-              <div class="mb-3">
-                <h5>Certificates</h5>
-                <div id="certificateContainer">
-                  {# Certificate entries will be added dynamically #}
-                </div>
-                <button type="button" class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#certificateModal">
-                  Add Certificate
-                </button>
-              </div>
-              
-              <button type="submit" class="btn btn-primary">Submit CV</button>
-            {{ form_end(cvForm) }}
-          </div>
-        </div>
-      </div>
-      
-      <!-- Right Side: CV Preview & Download -->
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h3>CV Preview</h3>
-            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#downloadModal">Download</button>
-          </div>
-          <div class="card-body">
-            <div id="cvPreviewContainer" class="border p-3">
-              <div id="headerContainer">
-                {# Header preview will be dynamically updated #}
-              </div>
-              <div id="summaryContainer">
-                {# Summary preview #}
-              </div>
-              <div id="experiencePreviewContainer">
-                {# Experience preview #}
-              </div>
-              <div id="educationPreviewContainer">
-                {# Education preview (if needed) #}
-              </div>
-              <div id="skillsPreviewContainer">
-                {# Skills preview #}
-              </div>
-              <div id="languagesPreviewContainer">
-                {# Languages preview #}
-              </div>
-              <div id="certificatesPreviewContainer">
-                {# Certificates preview #}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-    </div>
-  </div>
+		.modal-content {
+			display: flex;
+			flex-direction: column;
+			max-height: 80vh; /* total modal height limited to 80% of viewport */
+		}
 
-  {# --- EXPERIENCE MODAL --- #}
-  <div class="modal fade" id="experienceModal" tabindex="-1" aria-labelledby="experienceModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="experienceModalLabel">Add Experience</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="experienceForm">
-            <div class="mb-3">
-              <label for="experienceType" class="form-label">Experience Type</label>
-              <select id="experienceType" class="form-select">
-                <option value="">Select type</option>
-                <option value="Academic">Academic</option>
-                <option value="Internship">Internship</option>
-              </select>
-              <small id="typeErrorLabel" class="text-danger d-none">Select an experience type!</small>
-            </div>
-            <div class="mb-3">
-              <label for="positionField" class="form-label">Position</label>
-              <input type="text" id="positionField" class="form-control" placeholder="Enter Position">
-              <small id="positionErrorLabel" class="text-danger d-none">Position cannot be empty!</small>
-            </div>
-            <div class="mb-3">
-              <label for="locationField" class="form-label">Location Name</label>
-              <input type="text" id="locationField" class="form-control" placeholder="Enter Location">
-              <small id="locationErrorLabel" class="text-danger d-none">Location cannot be empty!</small>
-            </div>
-            <div class="mb-3">
-              <label for="descriptionField" class="form-label">Experience Description</label>
-              <textarea id="descriptionField" class="form-control" rows="3" placeholder="Enter Description"></textarea>
-              <small id="descriptionCounter" class="form-text text-muted">0 / 500</small>
-              <small id="descritpionErrorLabel" class="text-danger d-none">Description cannot be empty!</small>
-            </div>
-            <div class="mb-3">
-              <label for="startDatePicker" class="form-label">Start Date</label>
-              <input type="date" id="startDatePicker" class="form-control">
-              <small id="startDateErrorLabel" class="text-danger d-none">Start date is required!</small>
-            </div>
-            <div class="mb-3">
-              <label for="endDatePicker" class="form-label">End Date</label>
-              <input type="date" id="endDatePicker" class="form-control">
-              <small id="endDateErrorLabel" class="text-danger d-none">End date is required!</small>
-            </div>
-            <small id="durationErrorLabel" class="text-danger d-none">Duration must be at least 7 days!</small>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="addExperience()">Add</button>
-        </div>
-      </div>
-    </div>
-  </div>
+		/* Make the body scrollable */
+		.modal-body {
+			overflow-y: auto;
+			max-height: calc(80vh - 120px);
+		}
 
-  {# --- CERTIFICATE MODAL --- #}
-  <div class="modal fade" id="certificateModal" tabindex="-1" aria-labelledby="certificateModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="certificateModalLabel">Add Certificate</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="certificateForm">
-            <div class="mb-3">
-              <label for="certificateNameField" class="form-label">Certificate Name</label>
-              <input type="text" id="certificateNameField" class="form-control" placeholder="Enter Certificate Name">
-              <small id="certificateNameErrorLabel" class="text-danger d-none">Certificate name cannot be empty!</small>
-            </div>
-            <div class="mb-3">
-              <label for="certificateAssociationField" class="form-label">Issuing Organization</label>
-              <input type="text" id="certificateAssociationField" class="form-control" placeholder="Enter Organization">
-              <small id="certificateAssociationErrorLabel" class="text-danger d-none">Issuing organization cannot be empty!</small>
-            </div>
-            <div class="mb-3">
-              <label for="certificateDescriptionField" class="form-label">Certificate Description</label>
-              <textarea id="certificateDescriptionField" class="form-control" rows="3" placeholder="Enter Description"></textarea>
-              <small id="certificateDescriptionCounter" class="form-text text-muted">0 / 300</small>
-              <small id="certificateDescriptionErrorLabel" class="text-danger d-none">Description cannot be empty!</small>
-            </div>
-            <div class="mb-3">
-              <label for="certificateDatePicker" class="form-label">Issue Date</label>
-              <input type="date" id="certificateDatePicker" class="form-control">
-              <small id="certificateDateErrorLabel" class="text-danger d-none">Issue date is required!</small>
-            </div>
-            <div class="mb-3" id="uploadBox" ondragover="handleDragOver(event)" ondrop="handleDragDropped(event)">
-              <label class="form-label">Upload File</label>
-              <div class="border p-3 text-center" style="border-style: dashed; border-radius: 10px;">
-                <p class="mb-1 fs-1 text-muted">☁</p>
-                <p class="mb-1 fw-bold" style="font-size: 14px; color: #3B261D;">Choose a file or drag & drop it here</p>
-                <p class="mb-1" style="font-size: 12px; color: gray;">JPEG, PNG, PDF, DOC, DOCX formats only</p>
-                <button type="button" class="btn btn-secondary">Browse File</button>
-                <p id="certificateMediaLabel" class="mt-2 text-muted">No file selected</p>
-              </div>
-            </div>
-            <input type="hidden" id="certificateHiddenPath">
-            <small id="certificateUploadError" class="text-danger d-none"></small>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="addCertificate()">Add</button>
-        </div>
-      </div>
-    </div>
-  </div>
+		/* Search Bar Container */
+		.input-group {
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			background-color: #fff;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			transition: all 0.3s ease;
+		}
 
-  {# --- DOWNLOAD MODAL --- #}
-  <div class="modal fade" id="downloadModal" tabindex="-1" aria-labelledby="downloadModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="downloadModalLabel">Download CV</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="downloadForm">
-            <div class="mb-3">
-              <label for="fileTypeDropdown" class="form-label">File Type</label>
-              <select id="fileTypeDropdown" class="form-select">
-                <option value="">Select file type</option>
-                <option value="pdf">PDF</option>
-                <option value="doc">DOC</option>
-              </select>
-            </div>
-            <div class="mb-3 form-check">
-              <input type="checkbox" class="form-check-input" id="addCertficatesCheckbox">
-              <label class="form-check-label" for="addCertficatesCheckbox">Add certificates</label>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="downloadCV()">Download</button>
-        </div>
-      </div>
-    </div>
-  </div>
+		.input-group:hover {
+			border-color: #6c757d;
+		}
 
-  {% include 'includes/footer.html.twig' %}
+		.form-control {
+			border-radius: 8px 0 0 8px;
+			box-shadow: none;
+		}
+
+		/* Clear button style */
+		#clearSkillSearchBtn {
+			border-radius: 0 8px 8px 0;
+			background-color: #f8f9fa;
+			border-left: 1px solid #ddd;
+		}
+
+		#clearSkillSearchBtn:hover {
+			background-color: #e2e6ea;
+		}
+
+		/* Style for skill search results */
+		#skillSearchResults {
+			border: 1px solid #ddd;
+			border-top: 0;
+			border-radius: 0 0 8px 8px;
+			background-color: #fff;
+			max-height: 200px;
+			overflow-y: auto;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+		}
+
+		.search-result-item {
+			padding: 10px;
+			cursor: pointer;
+			border-bottom: 1px solid #f1f1f1;
+		}
+
+		.search-result-item:hover {
+			background-color: #f1f1f1;
+		}
+
+		/* Style for the selected skills tags */
+		.badge {
+			cursor: pointer;
+			margin-right: 5px;
+			margin-bottom: 5px;
+			background-color: #007bff;
+			color: #fff;
+		}
+
+		.badge:hover {
+			background-color: #0056b3;
+		}
+
+		/* Style for the skill tag container */
+		#selectedSkillsFlow {
+			max-height: 80px;
+			overflow-y: auto;
+			margin-top: 10px;
+		}
+
+		/* Style for skill tags */
+		.badge.bg-secondary {
+			background-color: #6c757d;
+		}
+
+		/* Styling for the skills error label */
+		#skillsErrorLabel {
+			font-size: 14px;
+			color: #dc3545;
+		}
+
+		/* Language selection styling */
+		#languagesDropdown {
+			border-radius: 8px;
+		}
+
+		/* Button styles */
+		.btn-secondary {
+			border-radius: 8px;
+		}
+
+		.btn-info {
+			border-radius: 8px;
+		}
+
+		/* Custom Tooltip for Proficiency Level */
+		.bi-info-circle {
+			cursor: pointer;
+		}
+
+		.bi-info-circle:hover {
+			color: #007bff;
+		}
+
+		/* Adjust container for the skill search area */
+		.input-group {
+			margin-bottom: 1rem;
+		}
+	</style>
 {% endblock %}
 
+{% block body %}
+	{% include 'includes/navbar.html.twig' %}
+
+	<div class="container mt-5">
+		<div
+			class="row">
+			<!-- Left Side: Form Input -->
+			<div class="col-md-6">
+				<div class="card mb-4">
+					<div class="card-header">
+						<h3>Create CV</h3>
+					</div>
+					<div class="card-body">
+						{{ form_start(cvForm, {'action': path('cv_create'), 'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}}}
+
+						<!-- CV Title (user_title field) -->
+						<div class="mb-3">
+							{{ form_label(cvForm.user_title, 'CV Title', {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(cvForm.user_title, {'attr': {'class': 'form-control', 'placeholder': 'Enter CV Title', 'maxlength': '100', 'id': 'titleField'}}) }}
+							{{ form_errors(cvForm.user_title) }}
+							<small id="cvTitleFieldCounter" class="form-text text-muted">0 / 100</small>
+						</div>
+						<!-- CV Introduction -->
+						<div class="mb-3">
+							{{ form_label(cvForm.introduction, 'CV Introduction', {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(cvForm.introduction, {'attr': {'class': 'form-control', 'placeholder': 'Enter CV Introduction', 'rows': 3, 'maxlength': '300', 'id': 'introductionField'}}) }}
+							{{ form_errors(cvForm.introduction) }}
+							<small id="cvIntroductionFieldCounter" class="form-text text-muted">0 / 300</small>
+						</div>
+						<!-- Skills Section -->
+						<div class="mb-3">
+
+							{{ form_label(cvForm.skills, 'Skills (comma-separated)', {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(cvForm.skills, {'attr': {'class': 'form-control', 'placeholder': 'e.g., HTML, CSS, JavaScript'}}) }}
+							{{ form_errors(cvForm.skills) }}
+
+
+							<label class="form-label">Search for a Skill:</label>
+
+							<!-- Search Bar -->
+							<div class="input-group">
+								<input type="text" id="skillSearchInput" class="form-control" placeholder="Search skills..." aria-label="Search skills...">
+								<button class="btn btn-outline-secondary" type="button" id="clearSkillSearchBtn">
+									Clear
+								</button>
+							</div>
+
+							<!-- Search Results -->
+							<div
+								id="skillSearchResults" class="mt-2"><!-- Search results will appear here dynamically -->
+							</div>
+
+							<!-- Selected Skills -->
+							<div
+								id="selectedSkillsFlow" class="mt-2"><!-- Skill tags will be appended here dynamically -->
+							</div>
+
+							<!-- Hidden Inputs for Skills -->
+							<div
+								id="hiddenSkills" style="display:none;"><!-- Hidden inputs for selected skills will be stored here -->
+							</div>
+
+							<small id="skillsErrorLabel" class="text-danger d-none">Please select a skill!</small>
+						</div>
+						<div class="mb-3">
+							<h5>Languages</h5>
+							<!-- Container where added languages appear -->
+							<div id="languageContainer"></div>
+
+							<!-- Language selection dropdown -->
+							<div class="mb-2">
+								<label class="form-label">Select a Language</label>
+								<select id="languagesDropdown" class="form-select">
+									<option value="">Select a language</option>
+									{% for lang in languages %}
+										<option value="{{ lang }}">{{ lang }}</option>
+									{% endfor %}
+								</select>
+								<small id="languageErrorLabel" class="text-danger d-none">Please select a language!</small>
+							</div>
+
+							<!-- Proficiency selection -->
+							<div class="mb-2 d-none" id="languageLevelContainer">
+								<label class="form-label">
+									Proficiency Level
+									<i class="bi bi-info-circle ms-1" title="1 ● Beginner, 2 ● Novice, 3 ● Intermediate, 4 ● Advanced, 5 ● Expert"></i>
+								</label>
+								<div id="levelDots">
+									{% for i in 1..5 %}
+										<span data-level="{{ i }}" class="fs-4 text-secondary me-1">○</span>
+									{% endfor %}
+								</div>
+								<small id="levelErrorLabel" class="text-danger d-none">Select a proficiency level!</small>
+							</div>
+
+							<!-- Add Language button -->
+							<button id="addLanguageBtn" type="button" class="btn btn-secondary mt-2">
+								Add Language
+							</button>
+
+						</div>
+						<!-- Experience Section -->
+						<div class="mb-3">
+							<h5>Experiences</h5>
+							<div
+								id="experienceContainer">{# Experience entries will be added dynamically #}
+							</div>
+							<small id="experienceErrorLabel" class="text-danger d-none">At least one experience is required!</small>
+							<button id="addExperienceBtn" type="button" class="btn btn-secondary mt-2">
+								Add Experience
+							</button>
+						</div>
+
+						<!-- Certificate Section -->
+						<div class="mb-3">
+							<h5>Certificates</h5>
+							<div
+								id="certificateContainer">{# Certificate entries will be added dynamically #}
+							</div>
+							<button id="addCertificateBtn" type="button" class="btn btn-secondary mt-2">
+								Add Certificate
+							</button>
+						</div>
+						<div id="hiddenExperiences"></div>
+						<div id="hiddenCertificates"></div>
+						<div id="hiddenLanguages"></div>
+						<button type="submit" class="btn btn-primary">Submit CV</button>
+						{{ form_end(cvForm) }}
+					</div>
+				</div>
+			</div>
+
+			<!-- Right Side: CV Preview & Download -->
+			<div class="col-md-6">
+				<div class="card">
+					<div class="card-header d-flex justify-content-between align-items-center">
+						<h3>CV Preview</h3>
+						<button id="downloadBtn" type="button" class="btn btn-info">
+							Download
+						</button>
+					</div>
+					<div class="card-body">
+						<div id="cvPreviewContainer" class="border p-3">
+							<div
+								id="headerContainer">{# Header preview will be dynamically updated #}
+							</div>
+							<div
+								id="summaryContainer">{# Summary preview #}
+							</div>
+							<div
+								id="experiencePreviewContainer">{# Experience preview #}
+							</div>
+							<div
+								id="educationPreviewContainer">{# Education preview (if needed) #}
+							</div>
+							<div
+								id="skillsPreviewContainer">{# Skills preview #}
+							</div>
+							<div
+								id="languagesPreviewContainer">{# Languages preview #}
+							</div>
+							<div
+								id="certificatesPreviewContainer">{# Certificates preview #}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	{# --- EXPERIENCE MODAL --- #}
+	<div id="experienceModal" class="modal" style="display:none;">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="experienceModalLabel">Add Experience</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form id="experienceForm">
+						<div class="mb-3">
+							<label for="experienceType" class="form-label">Experience Type</label>
+							<select id="experienceType" class="form-select">
+								<option value="">Select type</option>
+								<option value="Academic">Academic</option>
+								<option value="Internship">Internship</option>
+							</select>
+							<small id="typeErrorLabel" class="text-danger d-none">Select an experience type!</small>
+						</div>
+						<div class="mb-3">
+							<label for="positionField" class="form-label">Position</label>
+							<input type="text" id="positionField" class="form-control" placeholder="Enter Position">
+							<small id="positionErrorLabel" class="text-danger d-none">Position cannot be empty!</small>
+						</div>
+						<div class="mb-3">
+							<label for="locationField" class="form-label">Location Name</label>
+							<input type="text" id="locationField" class="form-control" placeholder="Enter Location">
+							<small id="locationErrorLabel" class="text-danger d-none">Location cannot be empty!</small>
+						</div>
+						<div class="mb-3">
+							<label for="descriptionField" class="form-label">Experience Description</label>
+							<textarea id="descriptionField" class="form-control" rows="3" placeholder="Enter Description"></textarea>
+							<small id="descriptionCounter" class="form-text text-muted">0 / 500</small>
+							<small id="descritpionErrorLabel" class="text-danger d-none">Description cannot be empty!</small>
+						</div>
+						<div class="mb-3">
+							<label for="startDatePicker" class="form-label">Start Date</label>
+							<input type="date" id="startDatePicker" class="form-control">
+							<small id="startDateErrorLabel" class="text-danger d-none">Start date is required!</small>
+						</div>
+						<div class="mb-3">
+							<label for="endDatePicker" class="form-label">End Date</label>
+							<input type="date" id="endDatePicker" class="form-control">
+							<small id="endDateErrorLabel" class="text-danger d-none">End date is required!</small>
+						</div>
+						<small id="durationErrorLabel" class="text-danger d-none">Duration must be at least 7 days!</small>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="closeExperienceBtn" class="btn btn-secondary">Cancel</button>
+					<button type="button" id="confirmExperienceBtn" class="btn btn-primary">Add</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{# --- CERTIFICATE MODAL --- #}
+	<div id="certificateModal" class="modal" style="display:none;">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="certificateModalLabel">Add Certificate</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form id="certificateForm">
+						<div class="mb-3">
+							<label for="certificateNameField" class="form-label">Certificate Name</label>
+							<input type="text" id="certificateNameField" class="form-control" placeholder="Enter Certificate Name">
+							<small id="certificateNameErrorLabel" class="text-danger d-none">Certificate name cannot be empty!</small>
+						</div>
+						<div class="mb-3">
+							<label for="certificateAssociationField" class="form-label">Issuing Organization</label>
+							<input type="text" id="certificateAssociationField" class="form-control" placeholder="Enter Organization">
+							<small id="certificateAssociationErrorLabel" class="text-danger d-none">Issuing organization cannot be empty!</small>
+						</div>
+						<div class="mb-3">
+							<label for="certificateDescriptionField" class="form-label">Certificate Description</label>
+							<textarea id="certificateDescriptionField" class="form-control" rows="3" placeholder="Enter Description"></textarea>
+							<small id="certificateDescriptionCounter" class="form-text text-muted">0 / 300</small>
+							<small id="certificateDescriptionErrorLabel" class="text-danger d-none">Description cannot be empty!</small>
+						</div>
+						<div class="mb-3">
+							<label for="certificateDatePicker" class="form-label">Issue Date</label>
+							<input type="date" id="certificateDatePicker" class="form-control">
+							<small id="certificateDateErrorLabel" class="text-danger d-none">Issue date is required!</small>
+						</div>
+						<div class="mb-3" id="uploadBox" ondragover="handleDragOver(event)" ondrop="handleDragDropped(event)">
+							<label class="form-label">Upload File</label>
+							<div class="border p-3 text-center" style="border-style: dashed; border-radius: 10px;">
+								<p class="mb-1 fs-1 text-muted">☁</p>
+								<p class="mb-1 fw-bold" style="font-size: 14px; color: #3B261D;">Choose a file or drag & drop it here</p>
+								<p class="mb-1" style="font-size: 12px; color: gray;">JPEG, PNG, PDF, DOC, DOCX formats only</p>
+								<button type="button" class="btn btn-secondary">Browse File</button>
+								<p id="certificateMediaLabel" class="mt-2 text-muted">No file selected</p>
+							</div>
+						</div>
+						<input type="hidden" id="certificateHiddenPath">
+						<small id="certificateUploadError" class="text-danger d-none"></small>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="closeCertificateBtn" class="btn btn-secondary">Cancel</button>
+					<button type="button" id="confirmCertificateBtn" class="btn btn-primary">Add</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{# --- DOWNLOAD MODAL --- #}
+	<div id="downloadModal" class="modal" style="display:none;">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="downloadModalLabel">Download CV</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form id="downloadForm">
+						<div class="mb-3">
+							<label for="fileTypeDropdown" class="form-label">File Type</label>
+							<select id="fileTypeDropdown" class="form-select">
+								<option value="">Select file type</option>
+								<option value="pdf">PDF</option>
+								<option value="doc">DOC</option>
+							</select>
+						</div>
+						<div class="mb-3 form-check">
+							<input type="checkbox" class="form-check-input" id="addCertficatesCheckbox">
+							<label class="form-check-label" for="addCertficatesCheckbox">Add certificates</label>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="closeDownloadBtn" class="btn btn-secondary">Cancel</button>
+					<button type="button" id="confirmDownloadBtn" class="btn btn-primary">Download</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{% include 'includes/footer.html.twig' %}
+{% endblock %}
 {% block javascripts %}
-<script>
-  // -------------------------------
-  // Experience Modal Functions
-  // -------------------------------
-  function addExperience() {
-    // Gather input values from the experience modal
-    // (Add validations as needed)
-    var type = document.getElementById("experienceType").value;
-    var position = document.getElementById("positionField").value;
-    var location = document.getElementById("locationField").value;
-    var description = document.getElementById("descriptionField").value;
-    var startDate = document.getElementById("startDatePicker").value;
-    var endDate = document.getElementById("endDatePicker").value;
-    
-    // Create a new experience entry (this is a simplified example)
-    var experienceEntry = document.createElement("div");
-    experienceEntry.className = "mb-2 p-2 border";
-    experienceEntry.innerHTML = "<strong>" + type + ":</strong> " + position + " at " + location + 
-                                " (" + startDate + " to " + endDate + ")<br>" +
-                                description;
-    
-    // Append to experience container (update preview or hidden field as needed)
-    document.getElementById("experienceContainer").appendChild(experienceEntry);
-    
-    // Hide the modal
-    var modalEl = document.getElementById("experienceModal");
-    var modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
-    
-    // Optionally, clear modal inputs here.
-  }
-  
-  // -------------------------------
-  // Certificate Modal Functions
-  // -------------------------------
-  function addCertificate() {
-    // Gather input values from the certificate modal
-    var name = document.getElementById("certificateNameField").value;
-    var association = document.getElementById("certificateAssociationField").value;
-    var description = document.getElementById("certificateDescriptionField").value;
-    var date = document.getElementById("certificateDatePicker").value;
-    var media = document.getElementById("certificateMediaLabel").textContent;
-    
-    // Create a new certificate entry (this is a simplified example)
-    var certEntry = document.createElement("div");
-    certEntry.className = "mb-2 p-2 border";
-    certEntry.innerHTML = "<strong>" + name + "</strong><br>Issued by: " + association +
-                          "<br>Date: " + date + "<br>" + description;
-    
-    // Append to certificate container (update preview or hidden field as needed)
-    document.getElementById("certificateContainer").appendChild(certEntry);
-    
-    // Hide the modal
-    var modalEl = document.getElementById("certificateModal");
-    var modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
-    
-    // Optionally, clear modal inputs here.
-  }
-  
-  // -------------------------------
-  // Download Modal Functions
-  // -------------------------------
-  function downloadCV() {
-    // Example: Use html2canvas and jsPDF to capture preview and generate PDF
-    html2canvas(document.getElementById("cvPreviewContainer")).then(function(canvas) {
-      var imgData = canvas.toDataURL("image/png");
-      var pdf = new jsPDF("p", "pt", "a4");
-      var pdfWidth = pdf.internal.pageSize.getWidth();
-      var pdfHeight = canvas.height * pdfWidth / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save("cv.pdf");
-    });
-    
-    // Hide the download modal
-    var modalEl = document.getElementById("downloadModal");
-    var modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
-  }
-  
-  // -------------------------------
-  // Language Functions
-  // -------------------------------
-  function showLanguageLevelSelection(selectElem) {
-    var container = document.getElementById("languageLevelContainer");
-    if(selectElem.value === "") {
-      container.classList.add("d-none");
-    } else {
-      container.classList.remove("d-none");
-    }
-  }
-  
-  function setLanguageLevel(level) {
-    console.log("Language level set to", level);
-    // You can update hidden inputs or directly modify preview sections here
-  }
-  
-  // -------------------------------
-  // Additional Utility Functions
-  // -------------------------------
-  // Add functions for character counting, grammar check, skill search, etc.
-  // These would replicate your JavaFX logic using JavaScript's setTimeout, fetch(), etc.
-  
-  // Example: Initialize skill search with a debounce
-  function initializeSkillSearch() {
-    var skillInput = document.getElementById("skillComboBox");
-    var debounceTimeout;
-    skillInput.addEventListener("input", function() {
-      clearTimeout(debounceTimeout);
-      debounceTimeout = setTimeout(function() {
-        // Call external API to fetch skills (using fetch API)
-        fetchSkills(skillInput.value);
-      }, 1500);
-    });
-    
-    // When a skill is selected, add a tag
-    skillInput.addEventListener("change", function() {
-      var selectedSkill = skillInput.value;
-      if(selectedSkill.trim() !== "") {
-        addSkillTag(selectedSkill);
-        skillInput.value = "";
-      }
-    });
-  }
-  
-  function fetchSkills(query) {
-    // Use the Hugging Face endpoint for skill recognition
-    fetch("https://api-inference.huggingface.co/models/algiraldohe/lm-ner-linkedin-skills-recognition", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer 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",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ inputs: query })
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log("Skills API response:", data);
-      // Process and update available skills (this is a simplified example)
-      // You might update a datalist or dropdown options here
-    })
-    .catch(console.error);
-  }
-  
-  function addSkillTag(skill) {
-    var tag = document.createElement("span");
-    tag.className = "badge bg-secondary me-1";
-    tag.textContent = skill;
-    document.getElementById("selectedSkillsFlow").appendChild(tag);
-  }
-  
-  // Initialize functions on page load
-  document.addEventListener("DOMContentLoaded", function() {
-    initializeSkillSearch();
-    // Other initializations (e.g., event listeners for character counting)
-  });
-</script>
+	{{ parent() }}
+	<script src="{{ asset('js/cvjs.js') }}"></script>
+	<script></script>
 {% endblock %}

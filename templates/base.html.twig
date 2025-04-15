@@ -7,7 +7,30 @@
     <title>{% block title %}Pathfinder{% endblock %}</title>
 
   {{ encore_entry_link_tags('app') }}
-    {% block styles %}{% endblock %}
+   {% block styles %}
+  <style>
+    /* Modal overlay */
+    .modal {
+      display: none;              /* hidden by default */
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5); /* semi‑transparent black */
+      z-index: 1050;              /* above most other content */
+      display: flex;              /* enable flex centering */
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Modal content container */
+    .modal .modal-content {
+      background-color: #fff;
+      border-radius: 0.5rem;
+      max-width: 500px;
+      width: 90%;
+      padding: 1.5rem;
+    }
+  </style>
+{% endblock %}
 </head>
 
 <body>
