@@ -53,8 +53,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if app.request.get('_route') == 'app_serviceoffre_index' %}active{% endif %}"
-             href="{{ path('app_serviceoffre_index') }}">
+          <a class="nav-link {% if app.request.get('_route') == 'app_freelance_guide' %}active{% endif %}"
+             href="{{ path('app_freelance_guide') }}">
             <i class="bi bi-people me-1"></i> Freelance
           </a>
         </li>
@@ -78,11 +78,16 @@
       </form>
 
       <!-- Profile Avatar & Logout -->
-      <div class="d-flex align-items-center" style="gap: 0.5rem;">
-        <a href="{{ path('app_profile') }}" class="text-decoration-none">
-          <img src="{{ asset('build/images/faces/5.jpg') }}" alt="User Avatar"
-               class="rounded-circle profile-hover"
-               style="height: 35px; width: 35px; object-fit: cover;">
+      {% set profilePic = sessionUser is defined and sessionUser and sessionUser.image ? 'uploads/users/' ~ sessionUser.image : 'uploads/users/user2.jpg' %}
+
+<a href="{{ path('app_profile') }}" class="text-decoration-none">
+  <img src="{{ asset(profilePic) }}"
+       alt="Profile Picture"
+       class="rounded-circle profile-hover me-3"
+       style="width: 60px; height: 60px; object-fit: cover;">
+</a>
+
+
         </a>
         <a href="#" class="btn btn-sm btn-outline-light py-1 px-2">
           <i class="bi bi-box-arrow-left me-1"></i> Logout

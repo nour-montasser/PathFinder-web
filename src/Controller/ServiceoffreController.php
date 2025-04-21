@@ -3,12 +3,19 @@
 namespace App\Controller;
 
 use App\Entity\Serviceoffre;
+use App\Entity\Applicationservice;
+use App\Entity\App_user;
 use App\Form\ServiceoffreType;
+use App\Form\ApplicationserviceType;
+use App\Repository\ServiceoffreRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Form\FormError;
 
 #[Route('/serviceoffre')]
 final class ServiceoffreController extends AbstractController
@@ -16,96 +23,178 @@ final class ServiceoffreController extends AbstractController
     #[Route('/', name: 'app_serviceoffre_index', methods: ['GET', 'POST'])]
     public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
-        // The listing of service offers
-        $serviceoffres = $entityManager->getRepository(Serviceoffre::class)->findAll();
+        $sessionUser = $this->getSessionUser($request, $entityManager);
+        $showOnlyMyJobs = $request->query->getBoolean('my_jobs');
+        $user = $showOnlyMyJobs ? $sessionUser : null;
     
-        // The new form
+        $serviceoffres = $user
+            ? $entityManager->getRepository(Serviceoffre::class)->findBy(['user' => $user])
+            : $entityManager->getRepository(Serviceoffre::class)->findAll();
+    
         $serviceoffre = new Serviceoffre();
         $serviceoffre->setDatePosted(new \DateTime());
+    
         $form = $this->createForm(ServiceoffreType::class, $serviceoffre);
         $form->handleRequest($request);
+        
+        $isFormOpen = false; // default: form is closed
+        
+        if ($form->isSubmitted()) {
+            $startDate = $form->get('startDate')->getData();
+            $endDate = $form->get('endDate')->getData();
+        
+            if ($startDate && $endDate && $startDate >= $endDate) {
+                $form->get('endDate')->addError(new FormError("La date de fin doit être postérieure à la date de début."));
+            }
+        
+            if ($form->isValid()) {
+                // Duration calculation
+                $interval = $startDate->diff($endDate);
+                $months = ($interval->y * 12) + $interval->m;
+        
+                if ($months < 1) {
+                    $serviceoffre->setDuration('less than 1 month');
+                } elseif ($months <= 3) {
+                    $serviceoffre->setDuration('1 to 3 months');
+                } elseif ($months <= 6) {
+                    $serviceoffre->setDuration('3 to 6 months');
+                } else {
+                    $serviceoffre->setDuration('more than 6 months');
+                }
+        
+                $serviceoffre->setUser($sessionUser);
+                $entityManager->persist($serviceoffre);
+                $entityManager->flush();
+        
+                return $this->redirectToRoute('app_serviceoffre_index');
+            } else {
+                // 👇 If the form is invalid, reopen the drawer
+                $isFormOpen = true;
+            }
+        }
+        
     
-        if ($form->isSubmitted() && $form->isValid()) {
-            $startDate = $form->get('startDate')->getData(); // Access startDate from the form data
-            $endDate = $form->get('endDate')->getData(); // Access endDate from the form data
-           
-                   if ($startDate && $endDate) {
-                       
-           
-                       // Calculate the duration in months
-                       $interval = $startDate->diff($endDate);
-                       $months = ($interval->y * 12) + $interval->m;
-           
-                       // Assign the appropriate duration category
-                       if ($months < 1) {
-                           $serviceoffre->setDuration('less than 1 month');
-                       } elseif ($months >= 1 && $months <= 3) {
-                           $serviceoffre->setDuration('1 to 3 months');
-                       } elseif ($months > 3 && $months <= 6) {
-                           $serviceoffre->setDuration('3 to 6 months');
-                       } elseif($months > 6) {
-                           $serviceoffre->setDuration('more than 6 months');
-                       } 
-                       else {
-                           
-                           $serviceoffre->setDuration('unknown');
-                       }
-                   }
-            $entityManager->persist($serviceoffre);
-            $entityManager->flush();
-            return $this->redirectToRoute('app_serviceoffre_index');
+        $fields = $entityManager->getRepository(Serviceoffre::class)
+            ->createQueryBuilder('s')
+            ->select('DISTINCT s.field')
+            ->getQuery()
+            ->getSingleColumnResult();
+    
+        $skills = $entityManager->getRepository(Serviceoffre::class)
+            ->createQueryBuilder('s')
+            ->select('DISTINCT s.skills')
+            ->getQuery()
+            ->getSingleColumnResult();
+    
+        $newAppCount = 0;
+        $firstServiceWithNewApps = null;
+    
+        if ($user) {
+            $userServices = $entityManager->getRepository(Serviceoffre::class)->findBy(['user' => $user]);
+    
+            foreach ($userServices as $service) {
+                foreach ($service->getApplicationservices() as $app) {
+                    if ($app->getStatus() === 'pending') {
+                        $newAppCount++;
+                        if (!$firstServiceWithNewApps) {
+                            $firstServiceWithNewApps = $service;
+                        }
+                        break;
+                    }
+                }
+            }
         }
     
         return $this->render('serviceoffre/index.html.twig', [
             'serviceoffres' => $serviceoffres,
-            'form' => $form->createView(), // pass the form to the view
+            'form' => $form->createView(),
+            'fields' => $fields,
+            'skills' => $skills,
+            'sessionUser' => $sessionUser,
+            'newAppCount' => $newAppCount,
+            'firstServiceWithNewApps' => $firstServiceWithNewApps,
+            'isFormOpen' => $isFormOpen ?? false,
         ]);
     }
     
+
+    #[Route('/{idService}/edit', name: 'app_serviceoffre_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Serviceoffre $serviceoffre, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createForm(ServiceoffreType::class, $serviceoffre);
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            $startDate = $form->get('startDate')->getData();
+            $endDate = $form->get('endDate')->getData();
+    
+            if ($startDate && $endDate) {
+                $interval = $startDate->diff($endDate);
+                $months = ($interval->y * 12) + $interval->m;
+    
+                if ($months < 1) {
+                    $serviceoffre->setDuration('less than 1 month');
+                } elseif ($months <= 3) {
+                    $serviceoffre->setDuration('1 to 3 months');
+                } elseif ($months <= 6) {
+                    $serviceoffre->setDuration('3 to 6 months');
+                } else {
+                    $serviceoffre->setDuration('more than 6 months');
+                }
+            }
+            if ($startDate >= $endDate) {
+                $form->get('endDate')->addError(new FormError("La date de fin doit être postérieure à la date de début."));
+            }
+        
+    
+            $entityManager->flush();
+            return $this->redirectToRoute('app_serviceoffre_index');
+        }
+
+    return $this->render('serviceoffre/edit.html.twig', [
+        'form' => $form->createView(),
+        'serviceoffre' => $serviceoffre,
+    ]);
+}
+
 
     #[Route('/new', name: 'app_serviceoffre_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $serviceoffre = new Serviceoffre();
-         // Set the current date and time for date_posted
-         $serviceoffre->setDatePosted(new \DateTime());
-
+        $serviceoffre->setDatePosted(new \DateTime());
         $form = $this->createForm(ServiceoffreType::class, $serviceoffre);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Get the form data for startDate and endDate (not from the entity)
- $startDate = $form->get('startDate')->getData(); // Access startDate from the form data
- $endDate = $form->get('endDate')->getData(); // Access endDate from the form data
+            $startDate = $form->get('startDate')->getData(); 
+            $endDate = $form->get('endDate')->getData();
 
-        if ($startDate && $endDate) {
-            
+            if ($startDate && $endDate) {
+                $interval = $startDate->diff($endDate);
+                $months = ($interval->y * 12) + $interval->m;
 
-            // Calculate the duration in months
-            $interval = $startDate->diff($endDate);
-            $months = ($interval->y * 12) + $interval->m;
-
-            // Assign the appropriate duration category
-            if ($months < 1) {
-                $serviceoffre->setDuration('less than 1 month');
-            } elseif ($months >= 1 && $months <= 3) {
-                $serviceoffre->setDuration('1 to 3 months');
-            } elseif ($months > 3 && $months <= 6) {
-                $serviceoffre->setDuration('3 to 6 months');
-            } elseif($months > 6) {
-                $serviceoffre->setDuration('more than 6 months');
-            } 
-            else {
-                
-                $serviceoffre->setDuration('unknown');
+                if ($months < 1) {
+                    $serviceoffre->setDuration('less than 1 month');
+                } elseif ($months <= 3) {
+                    $serviceoffre->setDuration('1 to 3 months');
+                } elseif ($months <= 6) {
+                    $serviceoffre->setDuration('3 to 6 months');
+                } else {
+                    $serviceoffre->setDuration('more than 6 months');
+                }
             }
-        }
-              
+            if ($startDate >= $endDate) {
+                $form->get('endDate')->addError(new FormError("La date de fin doit être postérieure à la date de début."));
+            }
+
+            $sessionUser = $this->getSessionUser($request, $entityManager);
+            $serviceoffre->setUser($sessionUser);
 
             $entityManager->persist($serviceoffre);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_serviceoffre_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_serviceoffre_index');
         }
 
         return $this->render('serviceoffre/new.html.twig', [
@@ -114,67 +203,221 @@ final class ServiceoffreController extends AbstractController
         ]);
     }
 
+    #[Route('/{idService}/apply', name: 'app_serviceoffre_apply', methods: ['GET', 'POST'])]
+    public function apply(Serviceoffre $serviceoffre, Request $request, EntityManagerInterface $em): Response
+    {
+        $application = new Applicationservice();
+        $application->setService($serviceoffre);
+        $application->setStatus('pending');
+    
+        $form = $this->createForm(ApplicationserviceType::class, $application);
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            $user = $this->getSessionUser($request, $em);
+            if ($user) {
+                $application->setUser($user);
+            }
+    
+            $application->setRating(0); // Default rating
+    
+            $em->persist($application);
+            $em->flush();
+    
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['success' => true]);
+            }
+    
+            return $this->redirectToRoute('app_serviceoffre_index');
+        }
+    
+        // Re-render the form with errors if invalid
+        return $this->render('serviceoffre/_apply_modal.html.twig', [
+            'serviceoffre' => $serviceoffre,
+            'form' => $form->createView(),
+        ]);
+    }
+    
+    #[Route('/{idService}/application/{appId}/accept', name: 'client_accept_application', methods: ['POST'])]
+    public function acceptApplication(
+        Serviceoffre $serviceoffre,
+        int $appId,
+        EntityManagerInterface $em
+    ): Response {
+        $application = $em->getRepository(Applicationservice::class)->find($appId);
+    
+        if (!$application) {
+            throw $this->createNotFoundException('Application not found.');
+        }
+    
+        $application->setStatus('accepted');
+        $em->flush();
+    
+        return $this->redirectToRoute('app_serviceoffre_manage', [
+            'idService' => $serviceoffre->getIdService()
+        ]);
+    }
+    
+
+    #[Route('/{idService}/application/{appId}/reject', name: 'client_reject_application', methods: ['POST'])]
+    public function rejectApplication(Serviceoffre $serviceoffre, Applicationservice $application, EntityManagerInterface $em): Response
+    {
+        $application->setStatus('rejected');
+        $em->flush();
+
+        return $this->redirectToRoute('app_serviceoffre_manage', ['idService' => $serviceoffre->getIdService()]);
+    }
+
     #[Route('/{idService}', name: 'app_serviceoffre_show', methods: ['GET'])]
     public function show(Serviceoffre $serviceoffre): Response
     {
         return $this->render('serviceoffre/show.html.twig', [
             'serviceoffre' => $serviceoffre,
-        ]);
-    }
-
-    #[Route('/{idService}/edit', name: 'app_serviceoffre_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Serviceoffre $serviceoffre, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(ServiceoffreType::class, $serviceoffre);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
- 
- // Get the form data for startDate and endDate (not from the entity)
- $startDate = $form->get('startDate')->getData(); // Access startDate from the form data
- $endDate = $form->get('endDate')->getData(); // Access endDate from the form data
-
-        if ($startDate && $endDate) {
-            
-
-            // Calculate the duration in months
-            $interval = $startDate->diff($endDate);
-            $months = ($interval->y * 12) + $interval->m;
-
-            // Assign the appropriate duration category
-            if ($months < 1) {
-                $serviceoffre->setDuration('less than 1 month');
-            } elseif ($months >= 1 && $months <= 3) {
-                $serviceoffre->setDuration('1 to 3 months');
-            } elseif ($months > 3 && $months <= 6) {
-                $serviceoffre->setDuration('3 to 6 months');
-            } elseif($months > 6) {
-                $serviceoffre->setDuration('more than 6 months');
-            } 
-            else {
-                
-                $serviceoffre->setDuration('unknown');
-            }
-        }
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_serviceoffre_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('serviceoffre/edit.html.twig', [
-            'serviceoffre' => $serviceoffre,
-            'form' => $form->createView(),
+            'applications' => $serviceoffre->getApplicationservices(),
         ]);
     }
 
     #[Route('/{idService}', name: 'app_serviceoffre_delete', methods: ['POST'])]
     public function delete(Request $request, Serviceoffre $serviceoffre, EntityManagerInterface $entityManager): Response
     {
+        var_dump("test");
         if ($this->isCsrfTokenValid('delete'.$serviceoffre->getIdService(), $request->request->get('_token'))) {
+            
             $entityManager->remove($serviceoffre);
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('app_serviceoffre_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_serviceoffre_index');
     }
+
+    #[Route('/{idService}/drawer', name: 'app_serviceoffre_drawer', methods: ['GET'])]
+    public function drawer(Serviceoffre $serviceoffre): Response
+    {
+        return $this->render('serviceoffre/_details.html.twig', [
+            'serviceoffre' => $serviceoffre,
+        ]);
+    }
+
+    #[Route('/serviceoffre/filter', name: 'app_serviceoffre_filter', methods: ['GET'])]
+public function filter(
+    Request $request,
+    ServiceoffreRepository $repository,
+    EntityManagerInterface $em,
+    LoggerInterface $logger
+): Response {
+    try {
+        $searchTerm = $request->query->get('search') ?? '';
+        $field = $request->query->get('field') ?? '';
+        $skills = $request->query->get('skills') ?? '';
+        $durations = $request->query->all('durations') ?? [];
+        $prices = $request->query->all('prices') ?? [];
+        $sort = $request->query->get('sort') ?? 'newest';
+
+        $serviceoffres = $repository->filterServices($field, $skills, $searchTerm, $durations, $prices, $sort);
+        $sessionUser = $this->getSessionUser($request, $em); // ✅ add this line
+
+        return $this->render('serviceoffre/_list.html.twig', [
+            'serviceoffres' => $serviceoffres,
+            'sessionUser' => $sessionUser // ✅ pass this in
+        ]);
+    } catch (\Exception $e) {
+        $logger->error('Filter error: ' . $e->getMessage());
+        return new JsonResponse(['error' => $e->getMessage()], 500);
+    }
+}
+
+
+    private function getSessionUser(Request $request, EntityManagerInterface $em): ?App_user
+    {
+        $userId = $request->getSession()->get('mock_user_id');
+        if (!$userId) return null;
+    
+        return $em->getRepository(App_user::class)->find($userId);
+    }
+    
+
+    #[Route('/{idService}/manage', name: 'app_serviceoffre_manage', methods: ['GET'])]
+public function manage(Serviceoffre $serviceoffre, Request $request, EntityManagerInterface $em): Response
+{
+    $sessionUser = $this->getSessionUser($request, $em);
+
+    if (!$sessionUser || $sessionUser->getIdUser() !== $serviceoffre->getUser()->getIdUser()) {
+        // Redirect or throw access denied if not the owner
+        return $this->redirectToRoute('app_serviceoffre_index');
+    }
+
+    $applications = $serviceoffre->getApplicationservices();
+    $hired = array_filter($applications->toArray(), fn($app) => $app->getStatus() === 'accepted');
+
+    return $this->render('serviceoffre/manage.html.twig', [
+        'serviceoffre' => $serviceoffre,
+        'applications' => $applications,
+        'hired' => $hired,
+    ]);
+}
+
+#[Route('/freelance/guide', name: 'app_freelance_guide', methods: ['GET'])]
+public function guide(EntityManagerInterface $em): Response
+{
+    $fields = $em->getRepository(Serviceoffre::class)
+        ->createQueryBuilder('s')
+        ->select('DISTINCT s.field')
+        ->getQuery()
+        ->getSingleColumnResult();
+
+    return $this->render('serviceoffre/guide.html.twig', [
+        'fields' => $fields,
+    ]);
+}
+
+
+#[Route('/dashboard/myservices', name: 'app_serviceoffre_dashboard')]
+public function myServicesDashboard(Request $request, EntityManagerInterface $em): Response
+{
+    $user = $this->getSessionUser($request, $em);
+    if (!$user) {
+        return $this->redirectToRoute('mock_login');
+    }
+
+    $period = $request->query->get('period', 'month');
+    $startDate = match ($period) {
+        'today' => (new \DateTime())->setTime(0, 0),
+        'week' => (new \DateTime('-7 days')),
+        default => (new \DateTime('-1 month')),
+    };
+
+    $services = $em->getRepository(Serviceoffre::class)
+        ->createQueryBuilder('s')
+        ->where('s.user = :user')
+        ->andWhere('s.date_posted >= :start')
+        ->setParameter('user', $user) // or $user->getIdUser() if you still get an error
+        ->setParameter('start', $startDate)
+        
+    
+        ->orderBy('s.date_posted', 'DESC')
+
+        ->getQuery()
+        ->getResult();
+
+    $stats = [];
+
+    foreach ($services as $service) {
+        $apps = $service->getApplicationservices();
+
+        $stats[] = [
+            'service' => $service,
+            'total' => count($apps),
+            'pending' => count(array_filter($apps->toArray(), fn($a) => $a->getStatus() === 'pending')),
+            'hired' => count(array_filter($apps->toArray(), fn($a) => $a->getStatus() === 'accepted')),
+            'rejected' => count(array_filter($apps->toArray(), fn($a) => $a->getStatus() === 'rejected')),
+        ];
+    }
+
+    return $this->render('serviceoffre/dashboard.html.twig', [
+        'stats' => $stats,
+        'selectedPeriod' => $period,
+        'services' => $services,
+    ]);
+}
+
 }

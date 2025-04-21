@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+{% block title %}Admin - All Services{% endblock %}
+
+{% block body %}
+<div class="container py-5" style="background-color: #F8F9FA; min-height: 100vh;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-brown fw-bold">All Service Listings (Admin View)</h2>
+    <a href="{{ path('admin_services_new') }}" class="btn btn-brown">+ Add New Service</a>
+  </div>
+
+  <div class="table-responsive bg-white shadow rounded p-4">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>User</th>
+          <th>Posted On</th>
+          <th>Field</th>
+          <th>Experience</th>
+          <th>Duration</th>
+          <th>Price</th>
+          <th>Skills</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for service in services %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td class="fw-semibold text-brown">{{ service.title }}</td>
+            <td>{{ service.user.fullName ?? 'N/A' }}</td>
+            <td>{{ service.datePosted ? service.datePosted|date('Y-m-d') : '—' }}</td>
+            <td>{{ service.field }}</td>
+            <td>{{ service.experienceLevel }}</td>
+            <td>{{ service.duration }}</td>
+            <td>${{ service.price }}</td>
+            <td>
+              {% for skill in service.skills|split(',') %}
+                <span class="badge bg-secondary">{{ skill }}</span>
+              {% endfor %}
+            </td>
+            <td>{{ service.status ?? 'Active' }}</td>
+            <td>
+              <a href="{{ path('admin_services_edit', { id: service.idService }) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+
+              <form method="POST" action="{{ path('admin_services_delete', { id: service.idService }) }}"
+                    style="display:inline-block;"
+                    onsubmit="return confirm('Are you sure you want to delete this service?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ service.idService) }}">
+                <button class="btn btn-sm btn-outline-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="11" class="text-center text-muted">No services found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<style>
+
+.btn-brown {
+  background-color: #6f4f1f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+.text-brown {
+  color: #3B261D;
+}
+
+</style>
+{% endblock %}

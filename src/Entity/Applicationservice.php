@@ -10,34 +10,42 @@ use App\Entity\App_user;
 class Applicationservice
 {
     #[ORM\Id]
-    #[ORM\Column(type: "bigint")]
-    private int $id_app;
+    #[ORM\GeneratedValue(strategy: "IDENTITY")]
+    #[ORM\Column(name: "id_app", type: "bigint")]
+    private ?int $idApp = null;
 
     #[ORM\ManyToOne(targetEntity: Serviceoffre::class, inversedBy: "applicationservices")]
-    #[ORM\JoinColumn(name: 'id_service', referencedColumnName: 'id_service', onDelete: 'CASCADE')]
-    private Serviceoffre $service;
+    #[ORM\JoinColumn(name: "id_service", referencedColumnName: "id_service", nullable: true)]
+    private ?Serviceoffre $service = null;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class,inversedBy: "serviceApplications")]
-    #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user')]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "serviceApplications")]
+    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", nullable: true)]
     private App_user $user;
 
-    #[ORM\Column(type: "float")]
-    private float $price_offre;
+    #[ORM\Column(name: "price_offre", type: "float")]
+    private float $priceOffre;
 
     #[ORM\Column(type: "string", length: 25)]
-    private string $status;
+private string $status = 'pending';
 
-    #[ORM\Column(type: "boolean")]
-    private bool $rating;
 
-    public function getId_app(): int
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?int $rating = 0;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(name: "portfolio", type: 'string', length: 255, nullable: true)]
+    private ?string $portfolio = null;
+
+    public function getIdApp(): ?int
     {
-        return $this->id_app;
+        return $this->idApp;
     }
 
-    public function setId_app(int $value): self
+    public function setIdApp(int $idApp): self
     {
-        $this->id_app = $value;
+        $this->idApp = $idApp;
         return $this;
     }
 
@@ -57,20 +65,20 @@ class Applicationservice
         return $this->user;
     }
 
-    public function setUser(?App_user $user): self
+    public function setUser(App_user $user): self
     {
         $this->user = $user;
         return $this;
     }
 
-    public function getPrice_offre(): float
+    public function getPriceOffre(): float
     {
-        return $this->price_offre;
+        return $this->priceOffre;
     }
 
-    public function setPrice_offre(float $value): self
+    public function setPriceOffre(float $priceOffre): self
     {
-        $this->price_offre = $value;
+        $this->priceOffre = $priceOffre;
         return $this;
     }
 
@@ -79,20 +87,47 @@ class Applicationservice
         return $this->status;
     }
 
-    public function setStatus(string $value): self
+    public function setStatus(string $status): self
     {
-        $this->status = $value;
+        $this->status = $status;
         return $this;
     }
 
-    public function getRating(): bool
+    public function getRating(): ?int
+{
+    return $this->rating;
+}
+
+public function setRating(?int $rating): self
+{
+    $this->rating = $rating;
+    return $this;
+}
+
+
+    public function getDescription(): ?string
     {
-        return $this->rating;
+        return $this->description;
     }
 
-    public function setRating(bool $value): self
+    public function setDescription(?string $description): self
     {
-        $this->rating = $value;
+        $this->description = $description;
         return $this;
     }
+
+    public function getPortfolio(): ?string
+    {
+        return $this->portfolio;
+    }
+
+    public function setPortfolio(?string $portfolio): self
+    {
+        $this->portfolio = $portfolio;
+        return $this;
+    }
+
+
+
+
 }

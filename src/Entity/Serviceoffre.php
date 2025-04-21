@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\Applicationservice;
 use App\Entity\App_user;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 #[ORM\Entity]
 class Serviceoffre
@@ -18,13 +20,25 @@ class Serviceoffre
 
     #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "serviceOffers")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private App_user $user;
+    private ?App_user $user = null;
     
 
     #[ORM\Column(type: "text")]
+    #[Assert\NotBlank(message: "a description is required.")]
+#[Assert\Length(
+    min: 20,
+    minMessage: " description must have {{ limit }} caractères."
+)]
     private string $description;
 
     #[ORM\Column(type: "string", length: 25)]
+    #[Assert\NotBlank(message: "a titre is required.")]
+    #[Assert\Length(
+    min: 5,
+    max: 25,
+    minMessage: "Le titre doit contenir au moins {{ limit }} caractères.",
+    maxMessage: "Le titre ne peut pas dépasser {{ limit }} caractères."
+)]
     private string $title;
 
     #[ORM\Column(type: "datetime")]
@@ -34,6 +48,12 @@ class Serviceoffre
     private string $field;
 
     #[ORM\Column(type: "float")]
+    #[Assert\NotNull(message: "Le prix est requis.")]
+#[Assert\Positive(message: "Le price must be positive.")]
+#[Assert\NotBlank(message: "Price is Obligatory.")]
+#[Assert\GreaterThan(value: 0, message: "Price must be Greater than 0.")]
+#[Assert\Type(type: "numeric", message: "Price must be a number.")]
+#[Assert\LessThan(value: 100000, message: "Price too high!")]
     private float $price;
 
     #[ORM\Column(type: "string", length: 100)]
@@ -62,24 +82,15 @@ class Serviceoffre
         $this->applicationservices = new ArrayCollection();
     }
 
-    // Getter and setter for idService
+    
     public function getIdService(): ?int
     {
         return $this->idService;
     }
 
+    public function getUser(): ?App_user { return $this->user; }
 
-    // Getter and setter for the App_user association
-    public function getUser(): App_user
-    {
-        return $this->user;
-    }
-
-    public function setUser(App_user $user): self
-    {
-        $this->user = $user;
-        return $this;
-    }
+public function setUser(?App_user $user): self { $this->user = $user; return $this; }
 
     public function getDescription(): string
     {

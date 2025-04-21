@@ -234,4 +234,11 @@ class App_user
         $this->profile = $profile;
         return $this;
     }
+
+    public function __toString(): string
+{
+    return $this->email; // assuming you have a public property or getter
+ // ✅ or getUsername(), getEmail(), etc.
+}
+
 }

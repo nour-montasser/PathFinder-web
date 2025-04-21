@@ -1,20 +1,47 @@
-{% extends 'base.html.twig' %}
-
-{% block title %}Hello ApplicationServiceController!{% endblock %}
-
-{% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
-
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/xampp/htdocs/PathFinder/src/Controller/ApplicationServiceController.php</code></li>
-        <li>Your template at <code>C:/xampp/htdocs/PathFinder/templates/application_service/index.html.twig</code></li>
-    </ul>
+{# templates/serviceoffre/_apply_modal.html.twig #}
+<div class="modal-header bg-white border-bottom">
+  <h5 class="modal-title text-xl font-bold text-primary">Apply to: {{ serviceoffre.title }}</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
-{% endblock %}
+<div class="modal-body bg-light">
+  <div class="row">
+    <!-- Service Details -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-secondary mb-2">Service Details</h6>
+          <p><strong>Price:</strong> {{ serviceoffre.price|format_currency('USD') }}</p>
+          <p><strong>Duration:</strong> {{ serviceoffre.duration }}</p>
+          <hr>
+          <p class="text-muted">{{ serviceoffre.description|u.truncate(200, '…') }}</p>
+        </div>
+      </div>
+    </div>
+    <!-- Application Form -->
+    <div class="col-md-6">
+      {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+      <div class="form-group mb-3">
+        {{ form_label(form.priceOffre, 'Your Price Offer', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.priceOffre, {'attr': {'class': 'form-control form-control-lg'}}) }}
+        {{ form_errors(form.priceOffre) }}
+      </div>
+      <div class="form-group mb-3">
+        {{ form_label(form.description, 'Message', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+      </div>
+      <div class="form-group mb-3">
+        {{ form_label(form.portfolio, 'Portfolio Link (optional)', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.portfolio, {'attr': {'class': 'form-control'}}) }}
+      </div>
+      <div class="d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary me-2">
+          <i class="bi bi-send-fill me-1"></i> Send Application
+        </button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+      </div>
+      {{ form_end(form) }}
+    </div>
+  </div>
+</div>

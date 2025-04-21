@@ -2,3 +2,9 @@
     {{ form_widget(form) }}
     <button class="btn">{{ button_label|default('Save') }}</button>
 {{ form_end(form) }}
+{% if not form.vars.valid %}
+  <div class="alert alert-danger">
+    Des erreurs ont été trouvées. Veuillez corriger le formulaire.
+  </div>
+{% endif %}
+

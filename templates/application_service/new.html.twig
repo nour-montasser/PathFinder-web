@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Apply to {{ serviceoffre.title }}{% endblock %}
+
+{% block body %}
+<div class="container py-5" style="background-color: #F5EDE1; min-height: 100vh;">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h3 class="mb-0" style="color: #3B261D;">Apply to: {{ serviceoffre.title }}</h3>
+          <small class="text-muted">Posted on {{ serviceoffre.datePosted|date('Y-m-d') }}</small>
+        </div>
+        <div class="card-body">
+
+          {{ form_start(form, {attr: {class: 'needs-validation'}}) }}
+
+            <div class="mb-4">
+              {{ form_label(form.priceOffre) }}
+              {{ form_widget(form.priceOffre) }}
+              {{ form_errors(form.priceOffre) }}
+            </div>
+
+            <div class="mb-4">
+              {{ form_label(form.description) }}
+              {{ form_widget(form.description) }}
+              {{ form_errors(form.description) }}
+            </div>
+
+            <div class="mb-4">
+              {{ form_label(form.portfolio) }}
+              {{ form_widget(form.portfolio) }}
+              {{ form_errors(form.portfolio) }}
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-brown btn-lg">
+                <i class="bi bi-send-fill me-2"></i> Send Application
+              </button>
+              <a href="{{ path('app_serviceoffre_index') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-arrow-left me-2"></i> Back to Services
+              </a>
+            </div>
+
+          {{ form_end(form) }}
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .btn-brown {
+    background-color: #3B261D;
+    color: #fff;
+    border: none;
+    padding: 12px 30px;
+    transition: background-color 0.3s, transform 0.3s;
+  }
+  .btn-brown:hover {
+    background-color: #5a3e2e;
+    transform: translateY(-2px);
+  }
+  .form-label {
+    font-weight: 600;
+    color: #3B261D;
+  }
+  .needs-validation .form-control:invalid {
+    border-color: #dc3545;
+  }
+</style>
+{% endblock %}

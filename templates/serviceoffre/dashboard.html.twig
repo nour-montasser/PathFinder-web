@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+{% block title %}My Dashboard{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+  <h2 class="mb-4 fw-bold text-brown">My Dashboard</h2>
+
+  <!-- Filter Tabs -->
+  <div class="mb-4">
+    <div class="btn-group" role="group">
+      <a href="?filter=today" class="btn btn-outline-brown {{ app.request.query.get('filter') == 'today' ? 'active' : '' }}">Today</a>
+      <a href="?filter=week" class="btn btn-outline-brown {{ app.request.query.get('filter') == 'week' ? 'active' : '' }}">This Week</a>
+      <a href="?filter=month" class="btn btn-outline-brown {{ app.request.query.get('filter') == 'month' ? 'active' : '' }}">This Month</a>
+    </div>
+  </div>
+
+  <!-- Dashboard Table -->
+  <div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover bg-white rounded overflow-hidden">
+      <thead class="table-light text-secondary">
+        <tr>
+          <th>Service Title</th>
+          <th>Created</th>
+          <th>Proposals</th>
+          <th>Messaged</th>
+          <th>Hired</th>
+          <th>Views</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stat in stats %}
+        <tr>
+  <td class="fw-semibold text-brown">{{ stat.service.title }}</td>
+  <td>{{ stat.service.datePosted|date('M d, Y') }}</td>
+  <td>{{ stat.total }}</td>
+  <td>{{ stat.pending }}</td>
+  <td>{{ stat.hired }}</td>
+  <td>{{ stat.rejected }}</td>
+  <td>
+    <a href="{{ path('app_serviceoffre_manage', { idService: stat.service.idService }) }}"
+       class="btn btn-sm btn-outline-secondary">Manage</a>
+  </td>
+</tr>
+
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">No services found for this filter.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+  <style>
+    .text-brown {
+      color: #3B261D;
+    }
+    .btn-outline-brown {
+      border-color: #3B261D;
+      color: #3B261D;
+    }
+    .btn-outline-brown:hover,
+    .btn-outline-brown.active {
+      background-color: #3B261D;
+      color: white;
+    }
+    table {
+      font-size: 15px;
+    }
+    thead th {
+      font-weight: 600;
+    }
+    tbody tr:hover {
+      background-color: #f5f5f5;
+    }
+  </style>
+{% endblock %}
