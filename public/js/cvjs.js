@@ -16,7 +16,124 @@ function showLanguageLevelSelection(selectElem) {
       input.setCustomValidity('');
     }
   }
-  
+// Function to send a request to check grammar
+function checkGrammar(text, field) {
+  console.log('checkGrammar called with text:', text);  // Log to verify it's called
+  fetch('/cv/grammar-check', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text: text }),
+  })
+  .then(response => response.json())
+  .then(data => {
+      console.log('Grammar Check Response:', data);
+
+      // If the response is empty, no issues were found
+      if (!data || data.length === 0) {
+          console.log('No corrections needed');
+          return;
+      }
+
+      highlightField(field);  // Highlight the entire field
+      displayContextMenu(data, field);  // Show context menu with suggestions
+  })
+  .catch(error => {
+      console.error('Error checking grammar:', error);
+  });
+}
+
+// Function to highlight the entire input field
+function highlightField(field) {
+  // Add a red border to highlight the input field
+  field.style.border = '2px solid red';  // Example of highlighting the input field with a red border
+  field.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';  // Optional: Change background color to indicate error
+}
+
+// Function to remove the highlight from the input field
+function removeHighlight(field) {
+  // Remove the red border and background color to return to normal
+  field.style.border = '';
+  field.style.backgroundColor = '';
+}
+
+// Function to display the context menu with grammar suggestions
+function displayContextMenu(corrections, field) {
+  const appliedCorrections = new Set(); // Keep track of applied corrections
+
+  // Add event listener for right-click (contextmenu) on the field
+  field.addEventListener('contextmenu', function (event) {
+      event.preventDefault(); // Prevent the default context menu
+
+      // Create the custom context menu
+      const contextMenu = document.createElement('div');
+      contextMenu.style.position = 'absolute';
+      contextMenu.style.left = `${event.pageX}px`;
+      contextMenu.style.top = `${event.pageY}px`;
+      contextMenu.style.padding = '8px';
+      contextMenu.style.backgroundColor = '#fff';
+      contextMenu.style.border = '1px solid #ccc';
+      contextMenu.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
+      contextMenu.style.zIndex = '9999';
+
+      corrections.forEach((correction, index) => {
+          // Skip suggestions that have already been applied
+          if (appliedCorrections.has(index)) return;
+
+          const suggestionText = document.createElement('p');
+          suggestionText.textContent = `Replace "${correction.incorrect}" with "${correction.suggestion}"`;
+          suggestionText.style.cursor = 'pointer';
+
+          suggestionText.addEventListener('click', function() {
+              // Apply the correction (replace the word in the field)
+              applyCorrection(correction, field);
+
+              // Mark this correction as applied
+              appliedCorrections.add(index);
+
+              // Remove the suggestion from the menu once applied
+              contextMenu.removeChild(suggestionText);
+
+              // If all corrections are applied, remove the highlight
+              if (appliedCorrections.size === corrections.length) {
+                  removeHighlight(field);  // Remove highlight after all corrections are applied
+              }
+          });
+
+          contextMenu.appendChild(suggestionText);
+      });
+
+      // Append the context menu to the document body
+      document.body.appendChild(contextMenu);
+
+      // Close the context menu when clicking anywhere else
+      document.addEventListener('click', function () {
+          contextMenu.remove();
+      }, { once: true });
+  });
+}
+
+// Function to apply the correction (replace the incorrect word with the suggestion)
+function applyCorrection(correction, field) {
+  const start = correction.offset;
+  const end = start + correction.length;
+  const suggestion = correction.suggestion;
+
+  // Get the current value in the field (textarea or input)
+  const currentValue = field.value;
+  const correctedText = currentValue.substring(0, start) + suggestion + currentValue.substring(end);
+
+  // Update the field with the corrected text
+  field.value = correctedText;
+
+  // Optionally, you can re-highlight the field again after applying the correction
+  highlightField(field);
+}
+
+
+
+
   // Validate file extension and update UI if valid.
   function validateCertificateForm() {
     // Get certificate form fields.
@@ -316,7 +433,23 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCounter();
     
     // Update counter on input events.
-    field.addEventListener('input', updateCounter);
+    field.addEventListener('input', () => {
+    
+      updateCounter();
+      const text = field.value.trim();
+
+      // Skip if the field is empty
+      if (text.length === 0) return;
+
+      // Clear the previous timeout
+      clearTimeout(debounceTimeout);
+
+      // Set a new timeout for 1 second
+      debounceTimeout = setTimeout(() => {
+          // Send the text to the backend to check grammar
+          checkGrammar(text, field);
+      }, 1000); // 1000 ms = 1 second
+  });
   });
   // Create or get a hidden file input for certificate file upload.
   let hiddenFileInput = document.getElementById('certificateFileInput');

@@ -3,23 +3,24 @@
 namespace App\Controller;
 
 use App\Entity\Cv;
-use App\Entity\Languages as EntityLanguages; // Alias for your custom Languages entity
-use App\Entity\Experience;
-use App\Entity\Certificates;
 use App\Entity\App_user;
 use App\Form\CvType;    
+use App\Entity\Experience;
+use App\Entity\Certificates;
+use App\Service\LightcastTokenService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Intl\Languages as IntlLanguages; 
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
  // Alias for Symfony's Languages
 
-use App\Service\LightcastTokenService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Entity\Languages as EntityLanguages; // Alias for your custom Languages entity
 
 final class CvController extends AbstractController
 {
@@ -361,6 +362,67 @@ public function update(Request $request, Cv $cv, EntityManagerInterface $em, Htt
         'experiences'       => $cv->getExperiences(),
         'certificates'      => $cv->getCertificates(),
     ]);
+}
+#[Route('/cv/grammar-check', name: 'cv_grammar_check', methods: ['POST'])]
+public function checkGrammar(Request $request): JsonResponse
+{
+    // Get the text from the frontend (assumed to be sent as a JSON body)
+    $data = json_decode($request->getContent(), true);
+
+    if (!$data || !isset($data['text']) || empty($data['text'])) {
+        return $this->json(['error' => 'No text provided or text is empty.'], 400); // Return an error if no text is provided
+    }
+
+    $text = $data['text'];
+
+    try {
+        // Send the request to LanguageTool API for grammar checking
+        $response = $this->httpClient->request('POST', 'https://api.languagetool.org/v2/check', [
+            'headers' => [
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ],
+            'body' => [
+                'text' => $text,
+                'language' => 'en-US',
+            ]
+        ]);
+
+        // Parse the response from the API
+        $jsonResponse = $response->toArray();
+
+        // If there are no matches (no errors), return an empty array
+        if (empty($jsonResponse['matches'])) {
+            return $this->json([]);
+        }
+
+        $matches = $jsonResponse['matches'];
+        $corrections = [];
+
+        foreach ($matches as $match) {
+            $offset = $match['offset'];
+            $length = $match['length'];
+            $incorrectWord = substr($text, $offset, $length);
+            $replacements = $match['replacements'];
+
+            // If there are suggested replacements, add the best suggestion
+            if (!empty($replacements)) {
+                $bestSuggestion = $replacements[0]['value'];
+                $corrections[] = [
+                    'incorrect' => $incorrectWord,
+                    'suggestion' => $bestSuggestion,
+                    'offset' => $offset,
+                    'length' => $length,
+                ];
+            }
+        }
+
+        // Return the corrections to the frontend
+        return $this->json($corrections);
+
+    } catch (\Exception $e) {
+        // Handle any exceptions (e.g., connection issues)
+        return $this->json(['error' => 'Failed to check grammar. Please try again later.'], 500);
+    }
 }
 
 
