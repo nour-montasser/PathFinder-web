@@ -109,6 +109,7 @@ final class CvController extends AbstractController
     #[Route('/cv/create', name: 'cv_create')]
     public function create(Request $request, EntityManagerInterface $em): Response
     {
+        var_dump($request->request->all());
         // Create a new CV object
         $cv = new Cv();
     
@@ -120,7 +121,23 @@ final class CvController extends AbstractController
     
         if ($form->isSubmitted() && $form->isValid()) {
             // Copy the user_title to the title before persisting
-            $cv->setTitle($cv->getUserTitle());
+            // Get the repository and count titles for CVs with user null
+            $originalTitle = $cv->getUserTitle();
+        $repository = $em->getRepository(Cv::class);
+        $qb = $repository->createQueryBuilder('c');
+        $qb->select('COUNT(c)')
+           ->where('c.user IS NULL')
+           ->andWhere('c.title LIKE :pattern')
+           ->setParameter('pattern', $originalTitle . '%');
+        $existingCount = (int)$qb->getQuery()->getSingleScalarResult();
+
+        // If there are existing CVs (with user null) that match, append a numerical suffix.
+        if ($existingCount > 0) {
+            // For instance, if one exists then the new title will become "Original Title (2)"
+            $cv->setTitle($originalTitle . ' (' . ($existingCount + 1) . ')');
+        } else {
+            $cv->setTitle($originalTitle);
+        }
             $cv->setLastViewed(new \DateTime());
             $cv->setFavorite(false);
             $cv->setDateCreation(new \DateTime());
@@ -131,42 +148,53 @@ final class CvController extends AbstractController
         $cv->setSkills($skills ?: ''); // Use empty string if no skills provided
 
 
-            // Loop through selected languages and add them to the CV
-            $languagesData = $form->get('languages')->getData();
+          
+        // Loop through selected languages and add them to the CV
+        $languagesData = $request->get('languages');
+   
+        if ($languagesData) {
             foreach ($languagesData as $languageData) {
                 $language = new EntityLanguages();
                 $language->setCv($cv);
-                $language->setLanguage_name($languageData['name']);
+                $language->setLanguagename($languageData['name']);
                 $language->setLevel($languageData['level']);
                 $em->persist($language);
             }
+        }
     
             // Loop through selected experiences and add them to the CV
-            $experiencesData = $form->get('experiences')->getData();
-            foreach ($experiencesData as $experienceData) {
-                $experience = new Experience();
-                $experience->setCv($cv);
-                $experience->setType($experienceData['type']);
-                $experience->setPosition($experienceData['position']);
-                $experience->setLocation_name($experienceData['location']);
-                $experience->setStart_date(new \DateTime($experienceData['start_date']));
-                $experience->setEnd_date(new \DateTime($experienceData['end_date']));
-                $experience->setDescription($experienceData['description']);
-                $em->persist($experience);
-            }
+            $experiencesData = $request->get('experiences');
+         
+        foreach ($experiencesData as $experienceData) {
+            $experience = new Experience();
+            $experience->setCv($cv);
+            $experience->setType($experienceData['type']);
+            $experience->setPosition($experienceData['position']);
+            $experience->setLocationname($experienceData['location']);
+            // Use the keys 'startDate' and 'endDate' (matching your front-end)
+            $experience->setStartdate(new \DateTime($experienceData['startDate']));
+            $experience->setEnddate(new \DateTime($experienceData['endDate']));
+            $experience->setDescription($experienceData['description']);
+            $em->persist($experience);
+        }
     
             // Loop through selected certificates and add them to the CV
-            $certificatesData = $form->get('certificates')->getData();
+            $certificatesData = $request->get('certificates');
+            if($certificatesData){
             foreach ($certificatesData as $certificateData) {
                 $certificate = new Certificates();
                 $certificate->setCv($cv);
-                $certificate->setTitle($certificateData['title']);
+                // Use 'name' as the certificate title.
+                $certificate->setTitle($certificateData['name']);
                 $certificate->setDescription($certificateData['description']);
                 $certificate->setMedia($certificateData['media']);
-                $certificate->setIssue_date(new \DateTime($certificateData['issue_date']));
-                $certificate->setIssued_by($certificateData['issued_by']);
+                // The key 'date' maps to the issue date.
+                $certificate->setIssueDate(new \DateTime($certificateData['date']));
+                // Use 'association' for the issuing organization.
+                $certificate->setIssuedBy($certificateData['association']);
                 $em->persist($certificate);
             }
+        }
     
             // Persist the CV object
             $em->persist($cv);
@@ -174,74 +202,170 @@ final class CvController extends AbstractController
     
             // Redirect to the home page with a success message
             $this->addFlash('success', 'CV created successfully!');
-            return $this->redirectToRoute('app_cv');
+            return $this->redirectToRoute('cv_show');
+          
         }
     
         return $this->render('cv/create.html.twig', [
             'form' => $form->createView(),
         ]);
     }
+    #[Route('/cv/show', name: 'cv_show')]
+public function show(EntityManagerInterface $em): Response
+{
     
+    // Retrieve all CV entities (you may want to add ordering)
+    $cvs = $em->getRepository(Cv::class)->findAll();
+
+    return $this->render('cv/cvshow.html.twig', [
+        'cvs' => $cvs,
+    ]);
+}
+#[Route('/cv/{id}/edit', name: 'cv_edit')]
+public function edit(Request $request, Cv $cv, EntityManagerInterface $em, HttpClientInterface $httpClient): Response
+{
+    // Reset specific fields so the form appears blank (like in create mode)
+   // $cv->setUserTitle('');
+    //$cv->setIntroduction('');
+    //$cv->setSkills('');
+
+    // Create the form using the updated entity.
+    $form = $this->createForm(CvType::class, $cv);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $cv->setLastViewed(new \DateTime());
+        $em->flush();
+
+        $this->addFlash('success', 'CV updated successfully!');
+        return $this->redirectToRoute('cv_show');
+    }
+
+    // Retrieve available languages from the external API.
+    try {
+        $response = $httpClient->request('GET', 'https://restcountries.com/v2/all?fields=languages', [
+            'http_version' => '1.1',
+            'timeout'      => 10,
+        ]);
+        $countries = $response->toArray(false);
+        $set = [];
+        foreach ($countries as $c) {
+            if (!empty($c['languages']) && is_array($c['languages'])) {
+                foreach ($c['languages'] as $langObj) {
+                    $set[$langObj['name']] = true;
+                }
+            }
+        }
+        $availableLanguages = array_keys($set);
+        sort($availableLanguages, SORT_FLAG_CASE | SORT_STRING);
+    } catch (\Exception $e) {
+        $availableLanguages = [];
+    }
+
+    if (empty($availableLanguages)) {
+        // Fallback to Symfony Intl Languages.
+        $availableLanguages = array_values(IntlLanguages::getNames());
+    }
+
+    return $this->render('cv/edit.html.twig', [
+        'cvForm'            => $form->createView(),
+        'cv'                => $cv,   // Pass the CV so you can access cv.id in Twig.
+        'languages'=> $availableLanguages,
+        'cvLanguages'       => $cv->getLanguages(),
+        'experiences'       => $cv->getExperiences(),
+        'certificates'      => $cv->getCertificates(),
+    ]);
+}
+
+#[Route('/cv/{id}/delete', name: 'cv_delete', methods: ['POST'])]
+public function delete(Request $request, Cv $cv, EntityManagerInterface $em): Response
+{
+    // Check that the CSRF token is valid.
+    if ($this->isCsrfTokenValid('delete' . $cv->getId(), $request->request->get('_token'))) {
+        $em->remove($cv);
+        $em->flush();
+
+        $this->addFlash('success', 'CV deleted successfully!');
+    } else {
+        $this->addFlash('error', 'Invalid delete token.');
+    }
+
+    return $this->redirectToRoute('cv_show');
+}
+#[Route('/cv/{id}/update', name: 'cv_update', methods: ['POST'])]
+public function update(Request $request, Cv $cv, EntityManagerInterface $em, HttpClientInterface $httpClient): Response
+{
+    // Create the form using the existing CV entity.
+    $form = $this->createForm(CvType::class, $cv);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        // Get the user-submitted title
+        $originalTitle = $cv->getUserTitle();
+        
+        // Check for duplicate titles among CVs where user IS NULL (excluding current)
+        $repository = $em->getRepository(Cv::class);
+        $qb = $repository->createQueryBuilder('c');
+        $qb->select('COUNT(c)')
+           ->where('c.user IS NULL')
+           ->andWhere('c.id_cv != :currentId')
+           ->andWhere('c.title LIKE :pattern')
+           ->setParameter('currentId', $cv->getId())
+           ->setParameter('pattern', $originalTitle . '%');
+        $existingCount = (int)$qb->getQuery()->getSingleScalarResult();
+
+        // Append numeric suffix if duplicate exists.
+        if ($existingCount > 0) {
+            $cv->setTitle($originalTitle . ' (' . ($existingCount + 1) . ')');
+        } else {
+            $cv->setTitle($originalTitle);
+        }
+
+        $cv->setLastViewed(new \DateTime());
+        $em->flush();
+
+        $this->addFlash('success', 'CV updated successfully!');
+        return $this->redirectToRoute('cv_show');
+    }
+
+    // If form is not valid, retrieve available languages from the external API.
+    try {
+        $response = $httpClient->request('GET', 'https://restcountries.com/v2/all?fields=languages', [
+            'http_version' => '1.1',
+            'timeout'      => 10,
+        ]);
+        $countries = $response->toArray(false);
+        $set = [];
+        foreach ($countries as $c) {
+            if (!empty($c['languages']) && is_array($c['languages'])) {
+                foreach ($c['languages'] as $langObj) {
+                    $set[$langObj['name']] = true;
+                }
+            }
+        }
+        $availableLanguages = array_keys($set);
+        sort($availableLanguages, SORT_FLAG_CASE | SORT_STRING);
+    } catch (\Exception $e) {
+        $availableLanguages = [];
+    }
+    if (empty($availableLanguages)) {
+        $availableLanguages = array_values(IntlLanguages::getNames());
+    }
+
+    // Re-render the edit form (with any errors) along with additional data.
+    return $this->render('cv/edit.html.twig', [
+        'cvForm'            => $form->createView(),
+        'cv'                => $cv,
+        'languages'         => $availableLanguages,
+        'cvLanguages'       => $cv->getLanguages(),
+        'experiences'       => $cv->getExperiences(),
+        'certificates'      => $cv->getCertificates(),
+    ]);
+}
+
+
+
+
     
-     // New route to add an example CV to the database
-     #[Route('/cv/add-example', name: 'cv_add_example')]
-     public function addExample(EntityManagerInterface $em): Response
-     {
-        // First, check if the user with id_user = 0 exists, or create a new one if not
-  
-         // Create an example CV
-         $cv = new Cv();
-         $cv->setUserTitle('Sample CV Title');
-         $cv->setIntroduction('This is an introduction to the sample CV.');
-         $cv->setSkills('HTML, CSS, JavaScript');
-         $cv->setDateCreation(new \DateTime());
-         $cv->setLastViewed(new \DateTime());
-         $cv->setFavorite(true);
-         $cv->setTitle($cv->getUserTitle()); 
-        //ually setting an ID temporarily // Copy the user_title value to the title
-         
-         // Example of adding Languages
-         $language1 = new EntityLanguages();
-         $language1->setCv($cv);
-         $language1->setLanguage_name('English');
-         $language1->setLevel('Advanced');
-         $em->persist($language1);
- 
-         $language2 = new EntityLanguages();
-         $language2->setCv($cv);
-         $language2->setLanguage_name('French');
-         $language2->setLevel('Intermediate');
-         $em->persist($language2);
- 
-         // Example of adding Experiences
-         $experience = new Experience();
-         $experience->setCv($cv);
-         $experience->setType('Internship');
-         $experience->setPosition('Front-end Developer');
-         $experience->setLocation_name('New York');
-         $experience->setStart_date(new \DateTime('2022-01-01'));
-         $experience->setEnd_date(new \DateTime('2022-06-01'));
-         $experience->setDescription('Developed and maintained websites using HTML, CSS, and JavaScript.');
-         $em->persist($experience);
- 
-         // Example of adding Certificates
-         $certificate = new Certificates();
-         $certificate->setCv($cv);
-         $certificate->setTitle('Web Development Certification');
-         $certificate->setDescription('Certificate awarded for completing a web development course.');
-         $certificate->setMedia('web_dev_cert.pdf');
-         $certificate->setIssue_date(new \DateTime('2022-07-01'));
-         $certificate->setIssued_by('Udemy');
-         $em->persist($certificate);
- 
-         // Persist the CV object with its associated entities
-         $em->persist($cv);
-         $em->flush();
-       
-         // Provide feedback to the user
-         $this->addFlash('success', 'Example CV has been added successfully.');
- 
-         return $this->redirectToRoute('app_cv'); // Redirect to a page that lists CVs or show confirmation
-     }
 
 }

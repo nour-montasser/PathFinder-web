@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My CVs{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1>My CVs</h1>
+                    <a href="{{ path('app_cv') }}" class="btn btn-primary"> Create A Cv </a>
+    <div class="row">
+        {% for cv in cvs %}
+            <div class="col-md-4">
+                <div class="card mb-4 position-relative">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ cv.userTitle }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ cv.title }}</h6>
+                        <p class="card-text">
+                            Created: {{ cv.dateCreation|date('Y-m-d') }}
+                        </p>
+                    </div>
+                    <div class="card-footer text-end">
+                        <!-- Edit button -->
+                        <a href="{{ path('cv_edit', { 'id': cv.id }) }}" class="btn btn-primary me-2">Edit</a>
+                        
+                        <!-- Delete form -->
+                        <form method="post" action="{{ path('cv_delete', { 'id': cv.id }) }}" style="display: inline-block;" onsubmit="return confirm('Are you sure you want to delete this CV?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ cv.id) }}">
+                            <button class="btn btn-danger" type="submit">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <p>No CV found.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

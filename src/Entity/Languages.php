@@ -24,12 +24,12 @@ class Languages
 
     // Getters and Setters
 
-    public function getId_language(): string
+    public function getIdLanguage(): string
     {
         return $this->id_language;
     }
 
-    public function setId_language(int $id_language): self
+    public function setIdLanguage(int $id_language): self
     {
         $this->id_language = $id_language;
         return $this;
@@ -46,12 +46,12 @@ class Languages
         return $this;
     }
 
-    public function getLanguage_name(): string
+    public function getLanguageName(): string
     {
         return $this->language_name;
     }
 
-    public function setLanguage_name(string $language_name): self
+    public function setLanguageName(string $language_name): self
     {
         $this->language_name = $language_name;
         return $this;

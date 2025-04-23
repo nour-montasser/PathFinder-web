@@ -149,32 +149,31 @@
 			<div class="col-md-6">
 				<div class="card mb-4">
 					<div class="card-header">
-						<h3>Create CV</h3>
+						<h3>Edit CV</h3>
 					</div>
-					 <a href="{{ path('cv_show') }}" class="btn btn-primary">CV Manager</a>
+					<a href="{{ path('cv_show') }}" class="btn btn-primary">CV Manager</a>
+
 					<div class="card-body">
-						{{ form_start(cvForm, {'action': path('cv_create'), 'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+						{{ form_start(cvForm, { 'action': path('cv_update', { 'id': cv.id }), 'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'} } ) }}
+
 
 						<!-- CV Title (user_title field) -->
-						<div class="mb-3">
-							{{ form_label(cvForm.user_title, 'CV Title', {'label_attr': {'class': 'form-label'}}) }}
-							{{ form_widget(cvForm.user_title, {'attr': {'class': 'form-control', 'placeholder': 'Enter CV Title', 'maxlength': '100', 'id': 'titleField'}}) }}
-							{{ form_errors(cvForm.user_title) }}
-							
+						<!-- CV Title Field -->
+							<div class="mb-3">       {{ form_label(cvForm.user_title, 'CV Title', { 'label_attr': { 'class': 'form-label' } }) }}
+                {{ form_widget(cvForm.user_title, { 'attr': { 'class': 'form-control', 'placeholder': 'Enter CV Title', 'maxlength': '100' } }) }}
+                {{ form_errors(cvForm.user_title) }}
 						</div>
 						<!-- CV Introduction -->
 						<div class="mb-3">
-							{{ form_label(cvForm.introduction, 'CV Introduction', {'label_attr': {'class': 'form-label'}}) }}
-							{{ form_widget(cvForm.introduction, {'attr': {'class': 'form-control', 'placeholder': 'Enter CV Introduction', 'rows': 3, 'maxlength': '300', 'id': 'introductionField'}}) }}
-							{{ form_errors(cvForm.introduction) }}
-						
+							   {{ form_label(cvForm.introduction, 'CV Introduction', { 'label_attr': { 'class': 'form-label' } }) }}
+                {{ form_widget(cvForm.introduction, { 'attr': { 'class': 'form-control', 'placeholder': 'Enter CV Introduction', 'rows': 3, 'maxlength': '300' } }) }}
+                {{ form_errors(cvForm.introduction) }}
 						</div>
 						<!-- Skills Section -->
 						<div class="mb-3">
-
-							{{ form_label(cvForm.skills, 'Skills (comma-separated)', {'label_attr': {'class': 'form-label'}}) }}
-							{{ form_widget(cvForm.skills, {'attr': {'class': 'form-control', 'placeholder': 'e.g., HTML, CSS, JavaScript'}}) }}
-							{{ form_errors(cvForm.skills) }}
+						  {{ form_label(cvForm.skills, 'Skills (comma-separated)', { 'label_attr': { 'class': 'form-label' } }) }}
+                {{ form_widget(cvForm.skills, { 'attr': { 'class': 'form-control', 'placeholder': 'e.g., HTML, CSS, JavaScript', 'maxlength': '255' } }) }}
+                {{ form_errors(cvForm.skills) }}
 
 
 							<label class="form-label">Search for a Skill:</label>
@@ -207,7 +206,13 @@
 						<div class="mb-3">
 							<h5>Languages</h5>
 							<!-- Container where added languages appear -->
-							<div id="languageContainer"></div>
+							<div id="languageContainer">
+                                {% for language in cvLanguages %}
+            <div class="alert alert-secondary d-flex align-items-center justify-content-between" data-index="{{ loop.index0 }}">
+                <div><strong>{{ language.languageName }}</strong> — {{ language.level }}</div>
+                <button type="button" class="btn-close" aria-label="Remove" onclick="removeLanguage({{ loop.index0 }})"></button>
+            </div>
+        {% endfor %}</div>
 
 							<!-- Language selection dropdown -->
 							<div class="mb-2">
@@ -245,7 +250,18 @@
 						<div class="mb-3">
 							<h5>Experiences</h5>
 							<div
-								id="experienceContainer">{# Experience entries will be added dynamically #}
+								id="experienceContainer">
+                                    {% for exp in experiences %}
+            <div class="mb-2 p-2 border" data-index="{{ loop.index0 }}">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>{{ exp.type }}:</strong> {{ exp.position }} at {{ exp.locationName }} ({{ exp.startDate|date('Y-m-d') }} → {{ exp.endDate|date('Y-m-d') }})<br>
+                        {{ exp.description }}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger remove-experience" data-index="{{ loop.index0 }}">X</button>
+                </div>
+            </div>
+        {% endfor %}
 							</div>
 							<small id="experienceErrorLabel" class="text-danger d-none">At least one experience is required!</small>
 							<button id="addExperienceBtn" type="button" class="btn btn-secondary mt-2">
@@ -263,10 +279,22 @@
 								Add Certificate
 							</button>
 						</div>
-						<div id="hiddenExperiences"></div>
+						<div id="hiddenExperiences">
+                          {% for exp in experiences %}
+            <input type="hidden" name="experiences[{{ loop.index0 }}][type]" value="{{ exp.type }}">
+            <input type="hidden" name="experiences[{{ loop.index0 }}][position]" value="{{ exp.position }}">
+            <input type="hidden" name="experiences[{{ loop.index0 }}][location]" value="{{ exp.locationName }}">
+            <input type="hidden" name="experiences[{{ loop.index0 }}][description]" value="{{ exp.description }}">
+            <input type="hidden" name="experiences[{{ loop.index0 }}][startDate]" value="{{ exp.startDate|date('Y-m-d') }}">
+            <input type="hidden" name="experiences[{{ loop.index0 }}][endDate]" value="{{ exp.endDate|date('Y-m-d') }}">
+        {% endfor %}</div>
 						<div id="hiddenCertificates"></div>
-						<div id="hiddenLanguages"></div>
-						
+						<div id="hiddenLanguages">
+                        {% for language in cvLanguages %}
+            <input type="hidden" name="languages[{{ loop.index0 }}][name]" value="{{ language.languageName }}">
+            <input type="hidden" name="languages[{{ loop.index0 }}][level]" value="{{ language.level }}">
+        {% endfor %}</div>
+
 						<button type="submit" class="btn btn-primary" id="submit-cv">Submit CV</button>
 						{{ form_end(cvForm) }}
 					</div>
@@ -345,7 +373,7 @@
 						<div class="mb-3">
 							<label for="descriptionField" class="form-label">Experience Description</label>
 							<textarea id="descriptionField" class="form-control" rows="3" placeholder="Enter Description" maxlength="500"></textarea>
-							
+
 							<small id="descritpionErrorLabel" class="text-danger d-none">Description cannot be empty!</small>
 						</div>
 						<div class="mb-3">
@@ -459,5 +487,28 @@
 {% block javascripts %}
 	{{ parent() }}
 	<script src="{{ asset('js/cvjs.js') }}"></script>
-	<script></script>
+	<script>
+    document.addEventListener('DOMContentLoaded', () => {
+  const languageContainer = document.getElementById('languageContainer');
+  
+  // Use event delegation to listen for clicks on any .btn-close inside the container.
+  languageContainer.addEventListener('click', function(event) {
+    if (event.target.classList.contains('btn-close')) {
+      // Get the parent tag (the element with the data-index attribute).
+      const tag = event.target.closest('[data-index]');
+      if (tag) {
+        const index = tag.dataset.index;
+        // Remove the tag.
+        tag.remove();
+        // Update hidden languages if needed.
+        const hidden = document.getElementById('hiddenLanguages');
+        if (hidden) {
+          const inputs = hidden.querySelectorAll(`input[name^="languages[${index}]"]`);
+          inputs.forEach(input => input.remove());
+        }
+      }
+    }
+  });
+});
+</script>
 {% endblock %}

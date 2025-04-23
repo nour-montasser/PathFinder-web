@@ -12,6 +12,7 @@ class CvRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Cv::class);
     }
+    
 
     // Add custom methods as needed
 }

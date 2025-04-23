@@ -35,12 +35,12 @@ class Experience
     #[ORM\Column(type: "string", length: 500)]
     private string $description;
 
-    public function getId_experience(): int
+    public function getIdExperience(): int
     {
         return $this->id_experience;
     }
 
-    public function setId_experience(int $id_experience): self
+    public function setIdExperience(int $id_experience): self
     {
         $this->id_experience = $id_experience;
         return $this;
@@ -79,34 +79,34 @@ class Experience
         return $this;
     }
 
-    public function getLocation_name(): string
+    public function getLocationName(): string
     {
         return $this->location_name;
     }
 
-    public function setLocation_name(string $location_name): self
+    public function setLocationName(string $location_name): self
     {
         $this->location_name = $location_name;
         return $this;
     }
 
-    public function getStart_date(): \DateTimeInterface
+    public function getStartDate(): \DateTimeInterface
     {
         return $this->start_date;
     }
 
-    public function setStart_date(\DateTimeInterface $start_date): self
+    public function setStartDate(\DateTimeInterface $start_date): self
     {
         $this->start_date = $start_date;
         return $this;
     }
 
-    public function getEnd_date(): \DateTimeInterface
+    public function getEndDate(): \DateTimeInterface
     {
         return $this->end_date;
     }
 
-    public function setEnd_date(\DateTimeInterface $end_date): self
+    public function setEndDate(\DateTimeInterface $end_date): self
     {
         $this->end_date = $end_date;
         return $this;
