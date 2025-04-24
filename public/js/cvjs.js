@@ -382,7 +382,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const hiddenSkills = document.getElementById('hiddenSkills');
   const clearSkillSearchBtn = document.getElementById('clearSkillSearchBtn');
   const cvForm = document.querySelector('form[name="cv"]');
+   // ---- seed your counters from what's already in the DOM ----
+   const expContainer  = document.getElementById('experienceContainer');
+   const certContainer = document.getElementById('certificateContainer');
   // You can check that cvForm is not null
+    // start the counters at the current number of items
+    let experienceCount  = expContainer  ? expContainer.children.length  : 0;
+    let certificateCount = certContainer ? certContainer.children.length : 0;
   console.log(validateCVForm());
 
   // Attach submit listener on the form
@@ -605,7 +611,7 @@ clearSkillSearchBtn.addEventListener('click', () => {
   const levelName = lvl => ['Beginner', 'Novice', 'Intermediate', 'Advanced', 'Expert'][lvl - 1] || '';
 
   // ─── EXPERIENCE SECTION ─────────────────────────────
-  let experienceCount = 0;
+
   const addExpBtn   = document.getElementById('addExperienceBtn');
   const closeExpBtn = document.getElementById('closeExperienceBtn');
   const confirmExp  = document.getElementById('confirmExperienceBtn');
@@ -708,7 +714,6 @@ function removeExperienceEntry(index) {
   }
 
   // ─── CERTIFICATE SECTION ───────────────────────────
-  let certificateCount = 0;
   const addCertBtn   = document.getElementById('addCertificateBtn');
   const closeCertBtn = document.getElementById('closeCertificateBtn');
   const confirmCert  = document.getElementById('confirmCertificateBtn');

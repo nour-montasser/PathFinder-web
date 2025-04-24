@@ -29,22 +29,7 @@ class CvType extends AbstractType
                     'maxlength' => 255
                 ]
             ])
-            ->add('languages', CollectionType::class, [
-                'entry_type' => LanguagesType::class,  // A form type for Languages
-                'allow_add' => true,
-                'allow_delete' => true,
-            ])
-            ->add('experiences', CollectionType::class, [
-                'entry_type' => ExperienceType::class,  // A form type for Experiences
-                'allow_add' => true,
-                'allow_delete' => true,
-            ])
-            ->add('certificates', CollectionType::class, [
-                'entry_type' => CertificatesType::class,  // A form type for Certificates
-                'allow_add' => true,
-                'allow_delete' => true,
-            ])
-        ;
+  ;
     }
 
     public function configureOptions(OptionsResolver $resolver)

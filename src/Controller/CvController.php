@@ -294,42 +294,136 @@ public function delete(Request $request, Cv $cv, EntityManagerInterface $em): Re
     return $this->redirectToRoute('cv_show');
 }
 #[Route('/cv/{id}/update', name: 'cv_update', methods: ['POST'])]
-public function update(Request $request, Cv $cv, EntityManagerInterface $em, HttpClientInterface $httpClient): Response
-{
-    // Create the form using the existing CV entity.
+public function update(
+    Request $request,
+    Cv $cv,
+    EntityManagerInterface $em,
+    HttpClientInterface $httpClient
+): Response {
     $form = $this->createForm(CvType::class, $cv);
     $form->handleRequest($request);
+    
+    dump($request->request->all());
 
     if ($form->isSubmitted() && $form->isValid()) {
-        // Get the user-submitted title
+        // 1) Title / lastViewed logic (unchanged)
         $originalTitle = $cv->getUserTitle();
-        
-        // Check for duplicate titles among CVs where user IS NULL (excluding current)
-        $repository = $em->getRepository(Cv::class);
-        $qb = $repository->createQueryBuilder('c');
-        $qb->select('COUNT(c)')
-           ->where('c.user IS NULL')
-           ->andWhere('c.id_cv != :currentId')
-           ->andWhere('c.title LIKE :pattern')
-           ->setParameter('currentId', $cv->getId())
-           ->setParameter('pattern', $originalTitle . '%');
-        $existingCount = (int)$qb->getQuery()->getSingleScalarResult();
+        $repo = $em->getRepository(Cv::class);
+        $count = (int) $repo->createQueryBuilder('c')
+            ->select('COUNT(c)')
+            ->where('c.user IS NULL')
+            ->andWhere('c.id_cv != :id')
+            ->andWhere('c.title LIKE :pattern')
+            ->setParameter('id', $cv->getId())
+            ->setParameter('pattern', $originalTitle.'%')
+            ->getQuery()
+            ->getSingleScalarResult();
 
-        // Append numeric suffix if duplicate exists.
-        if ($existingCount > 0) {
-            $cv->setTitle($originalTitle . ' (' . ($existingCount + 1) . ')');
-        } else {
-            $cv->setTitle($originalTitle);
+        $cv->setTitle($count ? sprintf('%s (%d)', $originalTitle, $count+1) : $originalTitle);
+        $cv->setLastViewed(new \DateTime());
+
+        // 2) Synchronize Languages
+        $postedLangs = $request->get('languages', []);
+        // Index existing by ID
+        $origLangs = [];
+        foreach ($cv->getLanguages() as $lang) {
+            $origLangs[$lang->getIdLanguage()] = $lang;
+        }
+        foreach ($postedLangs as $entry) {
+            if (!empty($entry['id']) && isset($origLangs[$entry['id']])) {
+                // update existing
+                $lang = $origLangs[$entry['id']];
+                $lang->setLanguageName($entry['name'])
+                     ->setLevel($entry['level']);
+                unset($origLangs[$entry['id']]);
+            } else {
+                // new
+                $lang = new EntityLanguages();
+                $lang->setCv($cv)
+                     ->setLanguageName($entry['name'])
+                     ->setLevel($entry['level']);
+                $em->persist($lang);
+            }
+        }
+        // any left in $origLangs were removed in the form → delete
+        foreach ($origLangs as $toRemove) {
+            $cv->getLanguages()->removeElement($toRemove);
+            $em->remove($toRemove);
         }
 
-        $cv->setLastViewed(new \DateTime());
+        // 3) Synchronize Experiences (same pattern)
+        $postedExps = $request->get('experiences', []);
+        $origExps = [];
+        foreach ($cv->getExperiences() as $exp) {
+            $origExps[$exp->getIdExperience()] = $exp;
+        }
+        foreach ($postedExps as $entry) {
+            if (!empty($entry['id']) && isset($origExps[$entry['id']])) {
+                $exp = $origExps[$entry['id']];
+                $exp->setType($entry['type'])
+                    ->setPosition($entry['position'])
+                    ->setLocationName($entry['location'])
+                    ->setStartDate(new \DateTime($entry['startDate']))
+                    ->setEndDate(new \DateTime($entry['endDate']))
+                    ->setDescription($entry['description']);
+                unset($origExps[$entry['id']]);
+            } else {
+                $exp = new Experience();
+                $exp->setCv($cv)
+                    ->setType($entry['type'])
+                    ->setPosition($entry['position'])
+                    ->setLocationName($entry['location'])
+                    ->setStartDate(new \DateTime($entry['startDate']))
+                    ->setEndDate(new \DateTime($entry['endDate']))
+                    ->setDescription($entry['description']);
+                $em->persist($exp);
+                $cv->addExperience($exp);      // <— ADD THIS
+            }
+        }
+        foreach ($origExps as $toRemove) {
+            $cv->getExperiences()->removeElement($toRemove);
+            $em->remove($toRemove);
+        }
+
+        // 4) Synchronize Certificates (same pattern)
+        $postedCerts = $request->get('certificates', []);
+        $origCerts = [];
+        foreach ($cv->getCertificates() as $cert) {
+            $origCerts[$cert->getIdCertificate()] = $cert;
+        }
+        foreach ($postedCerts as $entry) {
+            if (!empty($entry['id']) && isset($origCerts[$entry['id']])) {
+                $cert = $origCerts[$entry['id']];
+                $cert->setTitle($entry['name'])
+                     ->setIssuedBy($entry['association'])
+                     ->setIssueDate(new \DateTime($entry['date']))
+                     ->setDescription($entry['description'])
+                     ->setMedia($entry['media']);
+                unset($origCerts[$entry['id']]);
+            } else {
+                $cert = new Certificates();
+                $cert->setCv($cv)
+                     ->setTitle($entry['name'])
+                     ->setIssuedBy($entry['association'])
+                     ->setIssueDate(new \DateTime($entry['date']))
+                     ->setDescription($entry['description'])
+                     ->setMedia($entry['media']);
+                $em->persist($cert);
+                $cv->addCertificate($cert);
+            }
+        }
+        foreach ($origCerts as $toRemove) {
+            $cv->getCertificates()->removeElement($toRemove);
+            $em->remove($toRemove);
+        }
+
+        // Finally flush everything
         $em->flush();
 
         $this->addFlash('success', 'CV updated successfully!');
-        return $this->redirectToRoute('cv_show');
+      // return $this->redirectToRoute('cv_show');
     }
-
-    // If form is not valid, retrieve available languages from the external API.
+    
     try {
         $response = $httpClient->request('GET', 'https://restcountries.com/v2/all?fields=languages', [
             'http_version' => '1.1',
@@ -349,20 +443,22 @@ public function update(Request $request, Cv $cv, EntityManagerInterface $em, Htt
     } catch (\Exception $e) {
         $availableLanguages = [];
     }
+
     if (empty($availableLanguages)) {
-        $availableLanguages = array_values(IntlLanguages::getNames());
+        $availableLanguages = array_values(\Symfony\Component\Intl\Languages::getNames());
     }
 
-    // Re-render the edit form (with any errors) along with additional data.
+    // **Return** the edit form with all needed data
     return $this->render('cv/edit.html.twig', [
-        'cvForm'            => $form->createView(),
-        'cv'                => $cv,
-        'languages'         => $availableLanguages,
-        'cvLanguages'       => $cv->getLanguages(),
-        'experiences'       => $cv->getExperiences(),
-        'certificates'      => $cv->getCertificates(),
+        'cvForm'       => $form->createView(),
+        'cv'           => $cv,
+        'languages'    => $availableLanguages,
+        'cvLanguages'  => $cv->getLanguages(),
+        'experiences'  => $cv->getExperiences(),
+        'certificates' => $cv->getCertificates(),
     ]);
 }
+
 #[Route('/cv/grammar-check', name: 'cv_grammar_check', methods: ['POST'])]
 public function checkGrammar(Request $request): JsonResponse
 {

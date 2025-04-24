@@ -159,21 +159,21 @@
 
 						<!-- CV Title (user_title field) -->
 						<!-- CV Title Field -->
-							<div class="mb-3">       {{ form_label(cvForm.user_title, 'CV Title', { 'label_attr': { 'class': 'form-label' } }) }}
-                {{ form_widget(cvForm.user_title, { 'attr': { 'class': 'form-control', 'placeholder': 'Enter CV Title', 'maxlength': '100' } }) }}
-                {{ form_errors(cvForm.user_title) }}
+							<div class="mb-3"> {{ form_label(cvForm.user_title, 'CV Title', { 'label_attr': { 'class': 'form-label' } }) }}
+							{{ form_widget(cvForm.user_title, { 'attr': { 'class': 'form-control', 'placeholder': 'Enter CV Title', 'maxlength': '100' } }) }}
+							{{ form_errors(cvForm.user_title) }}
 						</div>
 						<!-- CV Introduction -->
 						<div class="mb-3">
-							   {{ form_label(cvForm.introduction, 'CV Introduction', { 'label_attr': { 'class': 'form-label' } }) }}
-                {{ form_widget(cvForm.introduction, { 'attr': { 'class': 'form-control', 'placeholder': 'Enter CV Introduction', 'rows': 3, 'maxlength': '300' } }) }}
-                {{ form_errors(cvForm.introduction) }}
+							{{ form_label(cvForm.introduction, 'CV Introduction', { 'label_attr': { 'class': 'form-label' } }) }}
+							{{ form_widget(cvForm.introduction, { 'attr': { 'class': 'form-control', 'placeholder': 'Enter CV Introduction', 'rows': 3, 'maxlength': '300' } }) }}
+							{{ form_errors(cvForm.introduction) }}
 						</div>
 						<!-- Skills Section -->
 						<div class="mb-3">
-						  {{ form_label(cvForm.skills, 'Skills (comma-separated)', { 'label_attr': { 'class': 'form-label' } }) }}
-                {{ form_widget(cvForm.skills, { 'attr': { 'class': 'form-control', 'placeholder': 'e.g., HTML, CSS, JavaScript', 'maxlength': '255' } }) }}
-                {{ form_errors(cvForm.skills) }}
+							{{ form_label(cvForm.skills, 'Skills (comma-separated)', { 'label_attr': { 'class': 'form-label' } }) }}
+							{{ form_widget(cvForm.skills, { 'attr': { 'class': 'form-control', 'placeholder': 'e.g., HTML, CSS, JavaScript', 'maxlength': '255' } }) }}
+							{{ form_errors(cvForm.skills) }}
 
 
 							<label class="form-label">Search for a Skill:</label>
@@ -207,12 +207,16 @@
 							<h5>Languages</h5>
 							<!-- Container where added languages appear -->
 							<div id="languageContainer">
-                                {% for language in cvLanguages %}
-            <div class="alert alert-secondary d-flex align-items-center justify-content-between" data-index="{{ loop.index0 }}">
-                <div><strong>{{ language.languageName }}</strong> — {{ language.level }}</div>
-                <button type="button" class="btn-close" aria-label="Remove" onclick="removeLanguage({{ loop.index0 }})"></button>
-            </div>
-        {% endfor %}</div>
+								{% for language in cvLanguages %}
+									<div class="alert alert-secondary d-flex align-items-center justify-content-between" data-index="{{ loop.index0 }}">
+										<div>
+											<strong>{{ language.languageName }}</strong>
+											—
+											{{ language.level }}</div>
+										<button type="button" class="btn-close" aria-label="Remove" onclick="removeLanguage({{ loop.index0 }})"></button>
+									</div>
+								{% endfor %}
+							</div>
 
 							<!-- Language selection dropdown -->
 							<div class="mb-2">
@@ -249,19 +253,24 @@
 						<!-- Experience Section -->
 						<div class="mb-3">
 							<h5>Experiences</h5>
-							<div
-								id="experienceContainer">
-                                    {% for exp in experiences %}
-            <div class="mb-2 p-2 border" data-index="{{ loop.index0 }}">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong>{{ exp.type }}:</strong> {{ exp.position }} at {{ exp.locationName }} ({{ exp.startDate|date('Y-m-d') }} → {{ exp.endDate|date('Y-m-d') }})<br>
-                        {{ exp.description }}
-                    </div>
-                    <button type="button" class="btn btn-sm btn-danger remove-experience" data-index="{{ loop.index0 }}">X</button>
-                </div>
-            </div>
-        {% endfor %}
+							<div id="experienceContainer">
+								{% for exp in experiences %}
+									<div class="mb-2 p-2 border" data-index="{{ loop.index0 }}">
+										<div style="display: flex; justify-content: space-between; align-items: center;">
+											<div>
+												<strong>{{ exp.type }}:</strong>
+												{{ exp.position }}
+												at
+												{{ exp.locationName }}
+												({{ exp.startDate|date('Y-m-d') }}
+												→
+												{{ exp.endDate|date('Y-m-d') }})<br>
+												{{ exp.description }}
+											</div>
+											<button type="button" class="btn btn-sm btn-danger remove-experience" data-index="{{ loop.index0 }}">X</button>
+										</div>
+									</div>
+								{% endfor %}
 							</div>
 							<small id="experienceErrorLabel" class="text-danger d-none">At least one experience is required!</small>
 							<button id="addExperienceBtn" type="button" class="btn btn-secondary mt-2">
@@ -272,31 +281,58 @@
 						<!-- Certificate Section -->
 						<div class="mb-3">
 							<h5>Certificates</h5>
-							<div
-								id="certificateContainer">{# Certificate entries will be added dynamically #}
+							<div id="certificateContainer">
+								{% for cert in certificates %}
+									<div class="mb-2 p-2 border" data-index="{{ loop.index0 }}">
+										<div style="display:flex;justify-content:space-between;align-items:center;">
+											<div>
+												<strong>{{ cert.title }}</strong><br>
+												Issued by:
+												{{ cert.issuedBy }}
+												on
+												{{ cert.issueDate|date('Y-m-d') }}<br>
+												{{ cert.description }}
+											</div>
+											<button type="button" class="btn btn-sm btn-danger remove-certificate" data-index="{{ loop.index0 }}">X</button>
+										</div>
+									</div>
+								{% endfor %}
 							</div>
 							<button id="addCertificateBtn" type="button" class="btn btn-secondary mt-2">
 								Add Certificate
 							</button>
 						</div>
 						<div id="hiddenExperiences">
-                          {% for exp in experiences %}
-            <input type="hidden" name="experiences[{{ loop.index0 }}][type]" value="{{ exp.type }}">
-            <input type="hidden" name="experiences[{{ loop.index0 }}][position]" value="{{ exp.position }}">
-            <input type="hidden" name="experiences[{{ loop.index0 }}][location]" value="{{ exp.locationName }}">
-            <input type="hidden" name="experiences[{{ loop.index0 }}][description]" value="{{ exp.description }}">
-            <input type="hidden" name="experiences[{{ loop.index0 }}][startDate]" value="{{ exp.startDate|date('Y-m-d') }}">
-            <input type="hidden" name="experiences[{{ loop.index0 }}][endDate]" value="{{ exp.endDate|date('Y-m-d') }}">
-        {% endfor %}</div>
-						<div id="hiddenCertificates"></div>
+							{% for exp in experiences %}
+								<input type="hidden" name="experiences[{{ loop.index0 }}][id]" value="{{ exp.idExperience }}">
+								<input type="hidden" name="experiences[{{ loop.index0 }}][type]" value="{{ exp.type }}">
+								<input type="hidden" name="experiences[{{ loop.index0 }}][position]" value="{{ exp.position }}">
+								<input type="hidden" name="experiences[{{ loop.index0 }}][location]" value="{{ exp.locationName }}">
+								<input type="hidden" name="experiences[{{ loop.index0 }}][description]" value="{{ exp.description }}">
+								<input type="hidden" name="experiences[{{ loop.index0 }}][startDate]" value="{{ exp.startDate|date('Y-m-d') }}">
+								<input type="hidden" name="experiences[{{ loop.index0 }}][endDate]" value="{{ exp.endDate|date('Y-m-d') }}">
+							{% endfor %}
+						</div>
+						<div id="hiddenCertificates">
+							{% for cert in certificates %}
+								<input type="hidden" name="certificates[{{ loop.index0 }}][id]" value="{{ cert.idCertificate }}">
+								<input type="hidden" name="certificates[{{ loop.index0 }}][name]" value="{{ cert.title }}">
+								<input type="hidden" name="certificates[{{ loop.index0 }}][association]" value="{{ cert.issuedBy }}">
+								<input type="hidden" name="certificates[{{ loop.index0 }}][description]" value="{{ cert.description }}">
+								<input type="hidden" name="certificates[{{ loop.index0 }}][date]" value="{{ cert.issueDate|date('Y-m-d') }}">
+								<input type="hidden" name="certificates[{{ loop.index0 }}][media]" value="{{ cert.media }}">
+							{% endfor %}
+						</div>
 						<div id="hiddenLanguages">
-                        {% for language in cvLanguages %}
-            <input type="hidden" name="languages[{{ loop.index0 }}][name]" value="{{ language.languageName }}">
-            <input type="hidden" name="languages[{{ loop.index0 }}][level]" value="{{ language.level }}">
-        {% endfor %}</div>
-
+							{% for language in cvLanguages %}
+								<input type="hidden" name="languages[{{ loop.index0 }}][id]" value="{{ language.idLanguage }}">
+								<input type="hidden" name="languages[{{ loop.index0 }}][name]" value="{{ language.languageName }}">
+								<input type="hidden" name="languages[{{ loop.index0 }}][level]" value="{{ language.level }}">
+							{% endfor %}
+						</div>
+						{{ form_widget(cvForm._token) }}
 						<button type="submit" class="btn btn-primary" id="submit-cv">Submit CV</button>
-						{{ form_end(cvForm) }}
+						{{ form_end(cvForm, { render_rest: false }) }}
 					</div>
 				</div>
 			</div>
@@ -488,27 +524,26 @@
 	{{ parent() }}
 	<script src="{{ asset('js/cvjs.js') }}"></script>
 	<script>
-    document.addEventListener('DOMContentLoaded', () => {
-  const languageContainer = document.getElementById('languageContainer');
-  
-  // Use event delegation to listen for clicks on any .btn-close inside the container.
-  languageContainer.addEventListener('click', function(event) {
-    if (event.target.classList.contains('btn-close')) {
-      // Get the parent tag (the element with the data-index attribute).
-      const tag = event.target.closest('[data-index]');
-      if (tag) {
-        const index = tag.dataset.index;
-        // Remove the tag.
-        tag.remove();
-        // Update hidden languages if needed.
-        const hidden = document.getElementById('hiddenLanguages');
-        if (hidden) {
-          const inputs = hidden.querySelectorAll(`input[name^="languages[${index}]"]`);
-          inputs.forEach(input => input.remove());
-        }
-      }
-    }
-  });
+		document.addEventListener('DOMContentLoaded', () => {
+const languageContainer = document.getElementById('languageContainer');
+
+// Use event delegation to listen for clicks on any .btn-close inside the container.
+languageContainer.addEventListener('click', function (event) {
+if (event.target.classList.contains('btn-close')) { // Get the parent tag (the element with the data-index attribute).
+const tag = event.target.closest('[data-index]');
+if (tag) {
+const index = tag.dataset.index;
+// Remove the tag.
+tag.remove();
+// Update hidden languages if needed.
+const hidden = document.getElementById('hiddenLanguages');
+if (hidden) {
+const inputs = hidden.querySelectorAll (`input[name^="languages[${index}]"]`);
+inputs.forEach(input => input.remove());
+}
+}
+}
 });
-</script>
+});
+	</script>
 {% endblock %}
