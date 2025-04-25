@@ -40,9 +40,19 @@
             <span class="text-muted">No messages</span>
         {% endif %}
     </td>
-    <td>
-        {# Action buttons remain the same #}
-    </td>
+      <td>
+                                                            <button class="btn btn-sm btn-danger" 
+                                                                onclick="if(confirm('Delete this application?')) { 
+                                                                    document.getElementById('delete-app-{{ channel.getId_channel}}').submit(); 
+                                                                }">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                            <form id="delete-app-{{ channel.getId_channel }}" 
+                                                                action="{{ path('admin_channel_delete', {'id': channel.getId_channel}) }}" 
+                                                                method="POST" style="display: none;">
+                                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ channel.getId_channel ) }}">
+                                                            </form>
+                                                        </td>
 </tr>
 {% endfor %}
                             </tbody>

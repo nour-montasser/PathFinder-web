@@ -35,57 +35,55 @@
                     <div class="mb-4">
                         {{ form_label(form.cv, 'Choose from your CVs', {'label_attr': {'class': 'form-label fw-bold'}}) }}
                         {{ form_widget(form.cv, {'attr': {'class': 'form-select form-select-lg'}}) }}
-							<div class="invalid-feedback">
-								Please select a CV to continue
-							</div>
+                        <div class="invalid-feedback">
+                            {{ form_errors(form.cv) }}
+                        </div>
                     </div>
                     
                     <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-primary btn-lg px-4" data-step-action="next">
-                            Continue <i class="bi bi-arrow-right ms-2"></i>
-                        </button>
-                    </div>
+    <button type="submit" class="btn btn-primary btn-lg px-4" name="action" value="next">
+        Continue <i class="bi bi-arrow-right ms-2"></i>
+    </button>
+</div>
                 </div>
 
-<!-- Step 2: Cover Letter -->
-<div class="step step-2 {{ current_step != 2 ? 'd-none' : '' }} animate__animated animate__fadeIn">
-    <div class="step-header mb-4">
-        <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">2</div>
-        <h4 class="d-inline ms-3">Cover Letter</h4>
+                <!-- Step 2: Cover Letter -->
+                <div class="step step-2 {{ current_step != 2 ? 'd-none' : '' }} animate__animated animate__fadeIn">
+                    <div class="step-header mb-4">
+                        <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">2</div>
+                        <h4 class="d-inline ms-3">Cover Letter</h4>
+                    </div>
+                    
+                     <div class="mb-4">
+        {% if form.coverletter is defined %}
+            {{ form_row(form.coverletter.subject, {
+                'label': 'Subject *',
+                'attr': {
+                    'class': 'form-control form-control-lg mb-3',
+                    'placeholder': 'Application for ' ~ job_offer.title ~ ' position'
+                }
+            }) }}
+            
+            {{ form_label(form.coverletter.content, 'Content *', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+            {{ form_widget(form.coverletter.content, {
+                'attr': {
+                    'class': 'form-control',
+                    'rows': 8,
+                    'id': 'application_job_coverletter_content'
+                }
+            }) }}
+        {% endif %}
     </div>
-    
-    <div class="mb-4">
-        <label for="subject" class="form-label fw-bold">Subject *</label>
-        <input type="text" 
-               name="subject" 
-               class="form-control form-control-lg mb-3" 
-               placeholder="Application for {{ job_offer.title }} position"
-               value="{{ cover_letter.subject }}"
-               required>
-        <div class="invalid-feedback">
-            Please enter a subject for your cover letter
-        </div>
-        
-        <label for="content" class="form-label fw-bold">Content *</label>
-        <textarea name="content" 
-                  class="form-control" 
-                  rows="8" 
-                  placeholder="Write your cover letter here..."
-                  required>{{ cover_letter.content }}</textarea>
-        <div class="invalid-feedback">
-            Please write your cover letter content
-        </div>
-    </div>
-    
-    <div class="d-flex justify-content-between">
-        <button type="button" class="btn btn-outline-secondary btn-lg px-4" data-step-action="prev" name="action" value="prev">
-            <i class="bi bi-arrow-left me-2"></i> Back
-        </button>
-        <button type="button" class="btn btn-primary btn-lg px-4" data-step-action="next" name="action" value="next" id="cover-letter-next">
-            Continue <i class="bi bi-arrow-right ms-2"></i>
-        </button>
-    </div>
+                    
+                    <div class="d-flex justify-content-between">
+    <button type="submit" class="btn btn-outline-secondary btn-lg px-4" name="action" value="prev">
+        <i class="bi bi-arrow-left me-2"></i> Back
+    </button>
+    <button type="submit" class="btn btn-primary btn-lg px-4" name="action" value="next" id="cover-letter-next">
+        Continue <i class="bi bi-arrow-right ms-2"></i>
+    </button>
 </div>
+                </div>
 
                 <!-- Step 3: Skill Test -->
                 <div class="step step-3 {{ current_step != 3 ? 'd-none' : '' }} animate__animated animate__fadeIn">
@@ -99,20 +97,13 @@
                         The skill test feature is coming soon. You can proceed to review your application.
                     </div>
                     
-                    <!-- In each step, update the buttons like this: -->
-<div class="d-flex justify-content-between">
-    <button type="button" class="btn btn-outline-secondary btn-lg px-4" data-step-action="prev" name="action" value="prev">
+                    <div class="d-flex justify-content-between">
+    <button type="submit" class="btn btn-outline-secondary btn-lg px-4" name="action" value="prev">
         <i class="bi bi-arrow-left me-2"></i> Back
     </button>
-    {% if current_step == 4 %}
-        <button type="submit" class="btn btn-success btn-lg px-4" name="submit_final" value="1">
-            <i class="bi bi-check-circle-fill me-2"></i> Submit Application
-        </button>
-    {% else %}
-        <button type="button" class="btn btn-primary btn-lg px-4" data-step-action="next" name="action" value="next">
-            Continue <i class="bi bi-arrow-right ms-2"></i>
-        </button>
-    {% endif %}
+    <button type="submit" class="btn btn-primary btn-lg px-4" name="action" value="next">
+        Continue <i class="bi bi-arrow-right ms-2"></i>
+    </button>
 </div>
                 </div>
 
@@ -123,53 +114,46 @@
                         <h4 class="d-inline ms-3">Review Your Application</h4>
                     </div>
                     
-                     <div class="card mb-4 border-primary">
-        <div class="card-header bg-light">
-            <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Application Summary</h5>
-        </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <h6 class="text-muted">Selected CV:</h6>
-                <p class="fs-5">{{ form.cv.vars.value }}</p>
-            </div>
-            <div class="mb-3">
-                <h6 class="text-muted">Position:</h6>
-                <p class="fs-5">{{ job_offer.title }}</p>
-            </div>
-            {% if cover_letter.subject or cover_letter.content %}
-            <div class="mb-3">
-                <h6 class="text-muted">Cover Letter:</h6>
-                <div class="card">
-                    <div class="card-body">
-                        <h5>{{ cover_letter.subject }}</h5>
-                        <hr>
-                        <p style="white-space: pre-wrap;">{{ cover_letter.content }}</p>
+                    <div class="card mb-4 border-primary">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Application Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6 class="text-muted">Selected CV:</h6>
+                                <p class="fs-5">{{ form.cv.vars.value }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="text-muted">Position:</h6>
+                                <p class="fs-5">{{ job_offer.title }}</p>
+                            </div>
+                            {% if form.coverletter is defined and form.coverletter.vars.value and (form.coverletter.vars.value.subject or form.coverletter.vars.value.content) %}
+                                <div class="mb-3">
+                                    <h6 class="text-muted">Cover Letter:</h6>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5>{{ form.coverletter.vars.value.subject }}</h5>
+                                            <hr>
+                                            <div>{{ form.coverletter.vars.value.content|raw }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
                     
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         Please review your information carefully before submitting.
                     </div>
                     
-                    <!-- In each step, update the buttons like this: -->
-<div class="d-flex justify-content-between">
-    <button type="button" class="btn btn-outline-secondary btn-lg px-4" data-step-action="prev" name="action" value="prev">
+                   <div class="d-flex justify-content-between">
+    <button type="submit" class="btn btn-outline-secondary btn-lg px-4" name="action" value="prev">
         <i class="bi bi-arrow-left me-2"></i> Back
     </button>
-    {% if current_step == 4 %}
-        <button type="submit" class="btn btn-success btn-lg px-4" name="submit_final" value="1">
-            <i class="bi bi-check-circle-fill me-2"></i> Submit Application
-        </button>
-    {% else %}
-        <button type="button" class="btn btn-primary btn-lg px-4" data-step-action="next" name="action" value="next">
-            Continue <i class="bi bi-arrow-right ms-2"></i>
-        </button>
-    {% endif %}
+    <button type="submit" class="btn btn-success btn-lg px-4" name="submit_final" value="1">
+        <i class="bi bi-check-circle-fill me-2"></i> Submit Application
+    </button>
 </div>
                 </div>
 
@@ -179,11 +163,11 @@
     </div>
 
     <style>
-    .job-application-header {
-    color:rgb(234, 232, 232);
-    padding: 1rem;
-    border-radius: 0.25rem;
-   
+        .job-application-header {
+            color:rgb(234, 232, 232);
+            padding: 1rem;
+            border-radius: 0.25rem;
+        }
         .step {
             padding: 20px;
             border-radius: 8px;
@@ -198,97 +182,53 @@
             border-radius: 12px;
             overflow: hidden;
         }
-        .form-control, .form-select {
-            border-radius: 8px;
-        }
-        .btn {
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
     </style>
 
-    <script>
-       document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('application-form');
-    const currentStepInput = document.getElementById('current_step_input');
+       
     
-    // Bootstrap validation for form submission
-    form.addEventListener('submit', function(event) {
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        form.classList.add('was-validated');
-    }, false);
 
-    // Single event listener for all step actions
-    document.querySelectorAll('[data-step-action]').forEach(button => {
+        <!-- Replace the JavaScript section with this: -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Initialize CKEditor for the cover letter content
+    if (document.querySelector('#application_job_coverletter_content')) {
+        ClassicEditor
+            .create(document.querySelector('#application_job_coverletter_content'))
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    // Get the form and buttons
+    const form = document.querySelector('#application-form');
+    const nextButtons = form.querySelectorAll('[data-step-action="next"]');
+    const prevButtons = form.querySelectorAll('[data-step-action="prev"]');
+    const currentStepInput = document.getElementById('current_step_input');
+    const stepActionInput = document.getElementById('step-action');
+
+    // Handle the "Next" button
+    nextButtons.forEach(button => {
         button.addEventListener('click', function(e) {
-            e.preventDefault();
-            let currentStep = parseInt(currentStepInput.value);
-            const action = this.getAttribute('data-step-action');
-            let isValid = true;
-
-            // Validate current step before proceeding
-            if (action === 'next') {
-                // Step 1 validation (CV selection)
-                if (currentStep === 1) {
-                    const cvSelect = form.querySelector('[name="application_job[cv]"]');
-                    if (!cvSelect || !cvSelect.value) {
-                        cvSelect.classList.add('is-invalid');
-                        cvSelect.focus();
-                        isValid = false;
-                    }
-                }
-                
-                // Step 2 validation (Cover Letter)
-                if (currentStep === 2) {
-                    const subject = form.querySelector('[name="subject"]');
-                    const content = form.querySelector('[name="content"]');
-                    
-                    if (!subject.value.trim()) {
-                        subject.classList.add('is-invalid');
-                        isValid = false;
-                    }
-                    
-                    if (!content.value.trim()) {
-                        content.classList.add('is-invalid');
-                        isValid = false;
-                    }
-                }
-            }
-
-            // If validation failed, scroll to first invalid field
-            if (!isValid) {
-                const firstInvalid = form.querySelector('.is-invalid');
-                if (firstInvalid) {
-                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                return;
-            }
-
-            // Update step counter
-            if (action === 'next' && currentStep < 4) {
+            stepActionInput.value = 'next';
+            const currentStep = parseInt(currentStepInput.value);
+            if (currentStep < 4) {
                 currentStepInput.value = currentStep + 1;
-            } else if (action === 'prev' && currentStep > 1) {
+            }
+            form.submit();
+        });
+    });
+
+    // Handle the "Back" button
+    prevButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            stepActionInput.value = 'prev';
+            const currentStep = parseInt(currentStepInput.value);
+            if (currentStep > 1) {
                 currentStepInput.value = currentStep - 1;
             }
-
-            // Add action to form and submit
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = action;
-            form.appendChild(actionInput);
-            
             form.submit();
         });
     });
 });
-    </script>
-{% endblock %}
+</script>
+    {% endblock %}

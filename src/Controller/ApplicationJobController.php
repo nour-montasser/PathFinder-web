@@ -52,141 +52,118 @@ final class ApplicationJobController extends BaseController
     }
 
     #[Route('/new', name: 'app_application_job_new', methods: ['GET', 'POST'])]
-public function new(Request $request, EntityManagerInterface $entityManager): Response
-{
-    $this->ensureUserSession();
-    $user = $this->getCurrentUser();
-    $jobOfferId = $request->query->get('job_offer_id');
-    $jobOffer = $entityManager->getRepository(Job_offer::class)->find($jobOfferId);
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
+        $jobOfferId = $request->query->get('job_offer_id');
+        $jobOffer = $entityManager->getRepository(Job_offer::class)->find($jobOfferId);
     
-    if (!$jobOffer) {
-        throw $this->createNotFoundException('Job offer not found');
-    }
-
-    // Find or create application
-    $application = $entityManager->getRepository(ApplicationJob::class)->findOneBy([
-        'user' => $user,
-        'jobOffer' => $jobOffer
-    ]);
-
-    // Handle existing applications
-    if ($application) {
-        if ($application->getStatus() === 'Pending') {
+        if (!$jobOffer) {
+            throw $this->createNotFoundException('Job offer not found');
+        }
+    
+        // Find or create application
+        $application = $entityManager->getRepository(ApplicationJob::class)->findOneBy([
+            'user' => $user,
+            'jobOffer' => $jobOffer
+        ]);
+    
+        if ($application && $application->getStatus() === 'Pending') {
             $this->addFlash('warning', 'You have already submitted this application');
             return $this->redirectToRoute('app_application_job_index');
         }
-    } else {
-        // Create new application
-        $application = (new ApplicationJob())
-            ->setUser($user)
-            ->setJobOffer($jobOffer)
-            ->setStatus('Applying-1')  // Start at step 1
-            ->setDateApplication(new \DateTime());
-        $entityManager->persist($application);
-        
-    }
-
-    $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
-    $form = $this->createForm(ApplicationJobType::class, $application, [
-        'available_cvs' => $userCvs
-    ]);
-    $form->handleRequest($request);
     
-    if ($form->isSubmitted() && $form->isValid()) {
-        $requestedStep = (int) $request->request->get('current_step', 1);
-        $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
-
-        // Only process cover letter if we're actually on step 2
-        // In the new action, modify the step 2 validation part:
-if ($currentStep === 2) {
-    $subject = $request->request->get('subject', '');
-    $content = $request->request->get('content', '');
-    
-    // Validate required fields
-    $hasErrors = false;
-    
-    // In your new action, after checking for empty fields:
-if (empty($subject)) {
-    $this->addFlash('error', 'subject'); // Just flag which field has error
-    $hasErrors = true;
-}
-
-if (empty($content)) {
-    $this->addFlash('error', 'content'); // Just flag which field has error
-    $hasErrors = true;
-}
-    
-    if ($hasErrors) {
-        return $this->redirectToRoute('app_application_job_new', [
-            'job_offer_id' => $jobOfferId
-        ]);
-    }
-    
-    $coverLetter = $application->getCoverletter();
-    if (!$coverLetter) {
-        $coverLetter = new Coverletter($application);
-    }
-    
-    $coverLetter->setSubject($subject);
-    $coverLetter->setContent($content);
-    
-    $application->setCoverletter($coverLetter);
-    $entityManager->persist($coverLetter);
-}
-
-        // Determine next step based on button click
-        $action = $request->request->get('action', 'next');
-        if ($action === 'next') {
-            $nextStep = min($currentStep + 1, 5); // Don't go beyond step 4
-        } else {
-            $nextStep = max($currentStep - 1, 1); // Don't go below step 1
+        if (!$application) {
+            $application = (new ApplicationJob())
+                ->setUser($user)
+                ->setJobOffer($jobOffer)
+                ->setStatus('Applying-1')
+                ->setDateApplication(new \DateTime());
+            $entityManager->persist($application);
         }
-
-        // Update status based on next step
-        $application->setStatus($nextStep === 5 ? 'Pending' : 'Applying-' . $nextStep);
-        
-        // Final submission
-        if ($nextStep === 4 && $request->request->get('submit_final')) {
-            $application->setDateApplication(new \DateTime());
-            $this->addFlash('success', 'Application submitted successfully!');
-            $entityManager->flush();
+    
+        $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
+        $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
+    
+        $form = $this->createForm(ApplicationJobType::class, $application, [
+            'available_cvs' => $userCvs,
+            'current_step' => $currentStep
+        ]);
+    
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted()) {
+            $action = $request->request->get('action');
             
-            return $this->redirectToRoute('app_job_offer_show', [
-                'id_offer' => $jobOffer->getIdOffer()
+            // Determine next step
+            if ($action === 'prev') {
+                $nextStep = max($currentStep - 1, 1);
+            } else {
+                // Only validate when moving forward
+                if (!$form->isValid()) {
+                    return $this->render('application_job/new.html.twig', [
+                        'form' => $form->createView(),
+                        'job_offer' => $jobOffer,
+                        'current_step' => $currentStep,
+                        'cover_letter' => [
+                            'subject' => $application->getCoverletter()?->getSubject() ?? '',
+                            'content' => $application->getCoverletter()?->getContent() ?? ''
+                        ]
+                    ]);
+                }
+                
+                $nextStep = min($currentStep + 1, 4);
+            }
+    
+            // Process cover letter data when moving forward from step 2
+            if ($currentStep === 2 && $action === 'next') {
+                $coverLetterForm = $form->get('coverletter');
+                $subject = $coverLetterForm->get('subject')->getData();
+                $content = $coverLetterForm->get('content')->getData();
+    
+                if (!$application->getCoverletter()) {
+                    $coverLetter = new Coverletter();
+                    $coverLetter->setApplication($application);
+                    $application->setCoverletter($coverLetter);
+                    $entityManager->persist($coverLetter);
+                }
+    
+                $application->getCoverletter()
+                    ->setSubject($subject)
+                    ->setContent($content);
+            }
+    
+            // Final submission
+            if ($nextStep === 4 && $request->request->get('submit_final')) {
+                $application->setStatus('Pending');
+                $application->setDateApplication(new \DateTime());
+                $entityManager->flush();
+                $this->addFlash('success', 'Application submitted successfully!');
+                return $this->redirectToRoute('app_job_offer_show', [
+                    'id_offer' => $jobOffer->getIdOffer()
+                ]);
+            }
+    
+            $application->setStatus('Applying-' . $nextStep);
+            $entityManager->flush();
+    
+            return $this->redirectToRoute('app_application_job_new', [
+                'job_offer_id' => $jobOfferId
             ]);
         }
-
-        $entityManager->flush();
-        
-        return $this->redirectToRoute('app_application_job_new', [
-            'job_offer_id' => $jobOfferId
+    
+        return $this->render('application_job/new.html.twig', [
+            'form' => $form->createView(),
+            'job_offer' => $jobOffer,
+            'current_step' => $currentStep,
+            'cover_letter' => [
+                'subject' => $application->getCoverletter()?->getSubject() ?? '',
+                'content' => $application->getCoverletter()?->getContent() ?? ''
+            ]
         ]);
     }
     
-    $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
-    
-    // Pre-fill cover letter fields if they exist
-    $coverLetterData = [
-        'subject' => '',
-        'content' => ''
-    ];
-    
-    if ($application->getCoverletter()) {
-        $coverLetterData = [
-            'subject' => $application->getCoverletter()->getSubject(),
-            'content' => $application->getCoverletter()->getContent()
-        ];
-    }
-    
-    return $this->render('application_job/new.html.twig', [
-        'form' => $form->createView(),
-        'job_offer' => $jobOffer,
-        'current_step' => $currentStep,
-        'cover_letter' => $coverLetterData
-    ]);
-}
-    
-
 
     #[Route('/delete/{application_id}', name: 'app_application_job_delete', methods: ['POST'])]
 public function delete(Request $request, ApplicationJob $applicationJob, EntityManagerInterface $entityManager): Response
@@ -221,50 +198,46 @@ public function edit(Request $request, ApplicationJob $application, EntityManage
     $jobOffer = $application->getJobOffer();
     $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
 
+    $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
+
     $form = $this->createForm(ApplicationJobType::class, $application, [
-        'available_cvs' => $userCvs
+        'available_cvs' => $userCvs,
+        'current_step' => $currentStep
+
     ]);
     $form->handleRequest($request);
     
     if ($form->isSubmitted() && $form->isValid()) {
         $requestedStep = (int) $request->request->get('current_step', 1);
         $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
-
-        // Process cover letter if on step 2
-        if ($currentStep === 2) {
-            $subject = $request->request->get('subject', '');
-            $content = $request->request->get('content', '');
-            
-            $hasErrors = false;
-            
-            if (empty($subject)) {
-                $this->addFlash('error', 'subject');
-                $hasErrors = true;
+        $action = $request->request->get('action', 'next');
+        if ($currentStep === 1 && $action === 'next') {
+            // Create cover letter if not exists
+            if (!$application->getCoverletter()) {
+                $coverLetter = new Coverletter();
+                $coverLetter->setSubject('');
+                $coverLetter->setContent('');
+                
+                // Set the association properly
+                $coverLetter->setApplication($application); // Set this first
+                $application->setCoverletter($coverLetter); // Then set the reverse
+                
+                $entityManager->persist($coverLetter);
             }
-
-            if (empty($content)) {
-                $this->addFlash('error', 'content');
-                $hasErrors = true;
-            }
-            
-            if ($hasErrors) {
-                return $this->redirectToRoute('app_application_job_edit', [
-                    'application_id' => $application->getApplication_id()
-                ]);
-            }
-            
-            $coverLetter = $application->getCoverletter();
-            if (!$coverLetter) {
-                $coverLetter = new Coverletter($application);
-            }
-            
-            $coverLetter->setSubject($subject);
-            $coverLetter->setContent($content);
-            
-            $application->setCoverletter($coverLetter);
-            $entityManager->persist($coverLetter);
         }
-
+        
+        // Only process cover letter data when on step 2
+        if ($currentStep === 2) {
+            $coverLetterData = $form->get('coverletter')->getData();
+            if ($coverLetterData) {
+                $subject = $form->get('coverletter')->get('subject')->getData() ?: '';
+                $content = $form->get('coverletter')->get('content')->getData() ?: '';
+                
+                $coverLetter = $application->getCoverletter();
+                $coverLetter->setSubject($subject);
+                $coverLetter->setContent($content);
+            }
+        }
         // Handle final submission
         if ($currentStep === 4 && $request->request->get('submit_final')) {
             $application->setStatus('Pending');
@@ -467,10 +440,6 @@ private function prepareJobApplicationsChartData(array $jobOffers): array
 
     return $data;
 }
-
-
-
-
 
 
 

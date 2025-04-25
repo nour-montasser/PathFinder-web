@@ -13,11 +13,17 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\Positive;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 class JobOfferType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        // Retrieve countries passed as form option
+        $countryChoices = $options['countries'];
+    $currentCountry = $options['current_country'];
+    $currentCity = $options['current_city'];
+
         $builder
             ->add('title', TextType::class, [
                 'attr' => ['class' => 'form-control'],
@@ -79,22 +85,39 @@ class JobOfferType extends AbstractType
                     new NotBlank(['message' => 'Please select a field'])
                 ]
             ])
-            ->add('city', TextType::class, [
-                'attr' => ['class' => 'form-control'],
-                'required' => false,
-                'mapped' => false
-            ])
             ->add('country', ChoiceType::class, [
-                'choices' => [
-                    'United States' => 'United States',
-                    'Canada' => 'Canada',
-                    'United Kingdom' => 'United Kingdom',
-                    'France' => 'France',
-                ],
-                'attr' => ['class' => 'form-select'],
-                'required' => false,
+                'choices' => $options['countries'], // Keep original structure: ['CountryName' => 'CountryCode']
+                'choice_label' => function ($value, $key, $index) {
+                    return $key; // Show country names in dropdown
+                },
+                'placeholder' => 'Select a country',
                 'mapped' => false,
-                'placeholder' => 'Select a country'
+                'attr' => ['class' => 'form-select'],
+                'constraints' => [
+                    new NotBlank(['message' => 'Please select a country'])
+                ]
+            ])
+            ->add('city', TextType::class, [ // Changed from ChoiceType to TextType
+                'mapped' => false,
+                'attr' => [
+                    'class' => 'form-control d-none', // Hide the input
+                    'data-city-target' => 'input' // Add data attribute for JavaScript
+                ],
+                'constraints' => [
+                    new NotBlank(['message' => 'Please select a city'])
+                ]
+            ])
+            ->add('city_display', TextType::class, [ // New field for display only
+                'mapped' => false,
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-control',
+                    'readonly' => true,
+                    'data-city-target' => 'display'
+                ]
+            ])
+            ->add('address', HiddenType::class, [
+                'attr' => ['class' => 'd-none']
             ]);
     }
 
@@ -103,6 +126,9 @@ class JobOfferType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Job_offer::class,
             'allow_extra_fields' => true,
+            'countries' => [], // This will be passed from controller
+            'current_country' => null,
+            'current_city' => null
         ]);
     }
 }

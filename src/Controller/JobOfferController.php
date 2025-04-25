@@ -14,6 +14,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\JobOfferRepository;
 use App\Entity\Skilltest;
 use App\Form\SkilltestType;
+use App\Service\GeonamesService;
+use Symfony\Component\Form\FormError;
 
 #[Route('/jobOffer')]
 final class JobOfferController extends BaseController
@@ -36,11 +38,22 @@ final class JobOfferController extends BaseController
     
         // Automatically filter by user if role is 1 (employer)
         $filterUser = ($user->getRole() === 1) ? $user : null;
+
+        $locationFilter = null;
+        if ($request->query->has('location')) {
+            $locationFilter = [
+                'city' => $request->query->get('location'),
+                'radius' => $request->query->get('locationType') === 'nearby' 
+                    ? (int)$request->query->get('distance', 50) 
+                    : 0
+            ];
+        }
     
-        $jobOffers = $repository->findFilteredJobOffers(
+        $jobOffers = $repository->findWithLocationFilter(
             $searchTerm,
             $filters,
-            $filterUser
+            $filterUser,
+            $locationFilter
         );
     
         $hasApplied = [];
@@ -86,41 +99,80 @@ final class JobOfferController extends BaseController
     }
 
     #[Route('/new', name: 'app_job_offer_new', methods: ['GET', 'POST'])]
-    public function new(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        JobOfferRepository $jobOfferRepository
-    ): Response {
+public function new(
+    Request $request,
+    EntityManagerInterface $entityManager,
+    JobOfferRepository $jobOfferRepository,
+    GeonamesService $geonamesService
+): Response {
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
 
-        $this->ensureUserSession();
-        $user = $this->getCurrentUser();
-
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        }
-
-        $jobOffer = new Job_offer();
-        $jobOffer->setDatePosted(new \DateTime("now"));
-        $jobOffer->setUser($user); // Set the current user as the owner
-        $form = $this->createForm(JobOfferType::class, $jobOffer);
-        $form->handleRequest($request);
-
-        // Get all stats from the JobOfferRepository
-        $stats = $jobOfferRepository->getUserStats($user->getId_user());
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($jobOffer);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_job_offer_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('job_offer/new.html.twig', [
-            'job_offer' => $jobOffer,
-            'form' => $form,
-            'stats' => $stats
-        ]);
+    if (!$user) {
+        return $this->redirectToRoute('app_login');
     }
+
+    $jobOffer = new Job_offer();
+    $jobOffer->setDatePosted(new \DateTime("now"));
+    $jobOffer->setUser($user);
+    
+    $countryMap = $geonamesService->fetchCountryMap();
+    
+    $form = $this->createForm(JobOfferType::class, $jobOffer, [
+        'countries' => $countryMap
+    ]);
+    
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted()) {
+        // Manually validate the city
+        $countryCode = $form->get('country')->getData();
+        $city = $form->get('city')->getData();
+        
+        if ($countryCode && $city) {
+            try {
+                $validCities = $geonamesService->fetchCities($countryCode);
+                if (!in_array($city, $validCities)) {
+                    $form->get('city')->addError(new FormError('Invalid city for selected country'));
+                }
+            } catch (\Exception $e) {
+                $form->get('city')->addError(new FormError('Could not validate city'));
+            }
+        }
+    }
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $countryCode = $form->get('country')->getData();
+        $countryName = array_search($countryCode, $countryMap);
+        $city = $form->get('city')->getData();
+        
+        $jobOffer->setAddress("$countryName, $city");
+        
+        $entityManager->persist($jobOffer);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('app_job_offer_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    $stats = $jobOfferRepository->getUserStats($user->getId_user());
+    
+    return $this->render('job_offer/new.html.twig', [
+        'job_offer' => $jobOffer,
+        'form' => $form,
+        'stats' => $stats
+    ]);
+}
+    
+#[Route('/get-cities/{countryCode}', name: 'app_job_offer_cities', methods: ['GET'])]
+public function getCities(string $countryCode, GeonamesService $geonamesService): JsonResponse
+{
+    try {
+        $cities = $geonamesService->fetchCities($countryCode);
+        return $this->json($cities);
+    } catch (\Exception $e) {
+        return $this->json(['error' => $e->getMessage()], 400);
+    }
+}
 
     #[Route('/{id_offer}', name: 'app_job_offer_show', methods: ['GET'])]
     public function show(
@@ -200,30 +252,48 @@ final class JobOfferController extends BaseController
     }
 
     #[Route('/{id_offer}/edit', name: 'app_job_offer_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Job_offer $jobOffer, EntityManagerInterface $entityManager): Response
-    {
-        $this->ensureUserSession();
-        $user = $this->getCurrentUser();
+public function edit(
+    Request $request, 
+    Job_offer $jobOffer, 
+    EntityManagerInterface $entityManager,
+    GeonamesService $geonamesService
+): Response {
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
 
-        if (!$user || $jobOffer->getUser() !== $user) {
-            throw $this->createAccessDeniedException('You can only edit your own job offers');
-        }
-
-        $form = $this->createForm(JobOfferType::class, $jobOffer);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_job_offer_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('job_offer/edit.html.twig', [
-            'job_offer' => $jobOffer,
-            'form' => $form,
-            
-        ]);
+    if (!$user || $jobOffer->getUser() !== $user) {
+        throw $this->createAccessDeniedException('You can only edit your own job offers');
     }
+
+    // Parse existing address
+    $addressParts = explode(', ', $jobOffer->getAddress() ?? '');
+    $countryMap = $geonamesService->fetchCountryMap();
+    
+    $form = $this->createForm(JobOfferType::class, $jobOffer, [
+        'countries' => $countryMap,
+        'current_country' => $addressParts[0] ?? null,
+        'current_city' => $addressParts[1] ?? null
+    ]);
+
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        // Rebuild address from form data
+        $countryCode = $form->get('country')->getData();
+        $countryName = array_search($countryCode, $countryMap);
+        $city = $form->get('city')->getData();
+        $jobOffer->setAddress("$countryName, $city");
+        
+        $entityManager->flush();
+
+        return $this->redirectToRoute('app_job_offer_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    return $this->render('job_offer/edit.html.twig', [
+        'job_offer' => $jobOffer,
+        'form' => $form,
+    ]);
+}
 
     #[Route('/{id_offer}', name: 'app_job_offer_delete', methods: ['POST'])]
     public function delete(Request $request, Job_offer $jobOffer, EntityManagerInterface $entityManager): Response
@@ -246,6 +316,47 @@ final class JobOfferController extends BaseController
 
         return $this->redirectToRoute('app_job_offer_index', [], Response::HTTP_SEE_OTHER);
     }
+
+    // JobOfferController.php
+
+    #[Route('/search-cities', name: 'app_job_offer_search_cities', methods: ['GET'])]
+    public function searchCities(Request $request, GeonamesService $geonamesService): JsonResponse
+    {
+        $query = $request->query->get('query');
+        $countryCode = $request->query->get('countryCode');
+        
+        if (empty($query)) {
+            return $this->json([]);
+        }
+
+        try {
+            // If you want to search globally without country code:
+            $cities = $geonamesService->fetchCities($countryCode ?? '');
+            $filtered = array_filter($cities, fn($city) => stripos($city, $query) !== false);
+            return $this->json(array_values($filtered));
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 400);
+        }
+    }
+    
+
+#[Route('/get-city-coordinates', name: 'app_job_offer_city_coordinates', methods: ['GET'])]
+public function getCityCoordinates(Request $request, GeonamesService $geonamesService): JsonResponse
+{
+    $city = $request->query->get('city');
+    $countryCode = $request->query->get('countryCode');
+    
+    if (empty($city)) {
+        return $this->json(['error' => 'City is required'], 400);
+    }
+
+    try {
+        $coordinates = $geonamesService->fetchCityCoordinates($city, $countryCode);
+        return $this->json($coordinates ?: ['error' => 'City not found']);
+    } catch (\Exception $e) {
+        return $this->json(['error' => $e->getMessage()], 400);
+    }
+}
 
     
 }

@@ -66,6 +66,10 @@
 															<i class="bi bi-briefcase me-2 text-primary"></i>
 															<span>{{ job_offer.getRequiredExperience }}</span>
 														</div>
+														<div class="d-flex align-items-center mb-1">
+															<i class="bi bi-pin-map me-2 text-primary"></i>
+															<span>{{ job_offer.getAddress }}</span>
+														</div>
 													</div>
 													<div class="skills mb-3">
 														<h6 class="small text-muted mb-1">
@@ -161,22 +165,58 @@
 
 				<!-- Sidebar Column -->
 				<div class="col-lg-4">
-					<!-- Search Card -->
-					<div class="card mb-4 shadow-sm">
-						<div class="card-header bg-light">
-							<h5><i class="bi bi-search me-2"></i>Search Jobs</h5>
-						</div>
-						<div class="card-body">
-							<form id="searchForm" autocomplete="off">
-								<div class="input-group mb-3">
-									<input type="text" class="form-control" id="searchInput" placeholder="Search by title, company..." value="{{ app.request.query.get('search', '') }}">
-									<button class="btn btn-primary" type="button" id="searchButton">
-										<i class="bi bi-search"></i>
-									</button>
-								</div>
-							</form>
-						</div>
-					</div>
+					<!-- Add this to your search card -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-light">
+        <h5><i class="bi bi-search me-2"></i>Search Jobs</h5>
+    </div>
+    <div class="card-body">
+        <form id="searchForm" autocomplete="off">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search by title, company..." value="{{ app.request.query.get('search', '') }}">
+                <button class="btn btn-primary" type="button" id="searchButton">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+            
+             <!-- Location Search -->
+    <div class="mb-3">
+        <label class="form-label">Location</label>
+        <div class="input-group mb-2">
+            <input type="text" class="form-control" id="locationInput" placeholder="Enter city name" value="{{ app.request.query.get('location', '') }}">
+            <button class="btn btn-outline-secondary" type="button" id="locationSearchBtn">
+                <i class="bi bi-geo-alt"></i>
+            </button>
+        </div>
+        <div id="locationSuggestions" class="list-group d-none" style="position: absolute; z-index: 1000; width: 100%;"></div>
+        
+        <div id="locationOptions" class="mt-2 {% if not app.request.query.has('location') %}d-none{% endif %}">
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="locationType" id="exactLocation" value="exact" {% if app.request.query.get('locationType') != 'nearby' %}checked{% endif %}>
+                <label class="form-check-label" for="exactLocation">Exact match</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="locationType" id="nearbyLocation" value="nearby" {% if app.request.query.get('locationType') == 'nearby' %}checked{% endif %}>
+                <label class="form-check-label" for="nearbyLocation">Nearby</label>
+            </div>
+            
+            <!-- Distance Slider (only visible when nearby is selected) -->
+            <div id="distanceSliderContainer" class="mt-2 {% if app.request.query.get('locationType') != 'nearby' %}d-none{% endif %}">
+                <label for="distanceSlider" class="form-label">
+                    Distance: <span id="distanceValue">{{ app.request.query.get('distance', 50) }}</span> km
+                </label>
+                <input type="range" class="form-range" min="1" max="200" step="1" 
+                       id="distanceSlider" value="{{ app.request.query.get('distance', 50) }}">
+            </div>
+            
+            <button type="button" class="btn btn-sm btn-danger mt-2" id="clearLocationBtn">
+                <i class="bi bi-x"></i> Clear location
+            </button>
+        </div>
+    </div>
+        </form>
+    </div>
+</div>
 
 					<!-- Filters Card -->
 					<div class="card mb-4 shadow-sm">
@@ -340,6 +380,53 @@ body.modal-open .job-card:hover {
     transform: none !important;
     box-shadow: none !important;
 }
+
+/* Add to your style block */
+#locationSuggestions {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+
+#locationSuggestions button {
+    border: none;
+    background: none;
+    text-align: left;
+    width: 100%;
+}
+
+#locationSuggestions button:hover {
+    background-color: #f8f9fa;
+}	
+#distanceSlider {
+    width: 100%;
+    height: 8px;
+    border-radius: 5px;
+}
+
+#distanceSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--bs-primary);
+    cursor: pointer;
+}
+
+#distanceSlider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--bs-primary);
+    cursor: pointer;
+}
+
+#distanceValue {
+    font-weight: bold;
+    color: var(--bs-primary);
+}	
 		
 	</style>
 {% endblock %}
@@ -351,10 +438,109 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchButton = document.getElementById('searchButton');
     const container = document.getElementById('job-offers-container');
     const filtersForm = document.getElementById('filtersForm');
-    let searchTimer;
+    const locationInput = document.getElementById('locationInput');
+    const locationSearchBtn = document.getElementById('locationSearchBtn');
+    const locationSuggestions = document.getElementById('locationSuggestions');
+    const locationOptions = document.getElementById('locationOptions');
+    const clearLocationBtn = document.getElementById('clearLocationBtn');
+	const distanceSlider = document.getElementById('distanceSlider');
+        const distanceValue = document.getElementById('distanceValue');
+        const distanceSliderContainer = document.getElementById('distanceSliderContainer');
 
-    // Only make AJAX requests when actually needed (not initial page load)
+        // Update distance value display
+        if (distanceSlider) {
+            distanceSlider.addEventListener('input', function() {
+                distanceValue.textContent = this.value;
+            });
+        }
+
+        // Show/hide distance slider based on location type
+        document.querySelectorAll('input[name="locationType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'nearby') {
+                    distanceSliderContainer.classList.remove('d-none');
+                } else {
+                    distanceSliderContainer.classList.add('d-none');
+                }
+                loadJobOffers();
+            });
+        });
+    
+    let searchTimer;
+    let selectedLocation = null;
     let isInitialLoad = true;
+
+    // Debounce function
+    const debounce = (func, delay) => {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
+    };
+
+     // Fetch city suggestions
+    const fetchCitySuggestions = debounce(async (query) => {
+        if (!query || query.length < 2) {
+            locationSuggestions.classList.add('d-none');
+            return;
+        }
+
+        try {
+            // Add countryCode if you have it, or remove if you want global search
+            const response = await fetch(`{{ path('app_job_offer_search_cities') }}?query=${encodeURIComponent(query)}`);	
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Handle both success and error responses
+            if (data.error) {
+                console.error('API Error:', data.error);
+                locationSuggestions.classList.add('d-none');
+                return;
+            }
+
+            if (data.length > 0) {
+                locationSuggestions.innerHTML = '';
+                data.forEach(city => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'list-group-item list-group-item-action';
+                    item.textContent = city;
+                    item.addEventListener('click', () => {
+                        selectCity(city);
+                    });
+                    locationSuggestions.appendChild(item);
+                });
+                locationSuggestions.classList.remove('d-none');
+            } else {
+                locationSuggestions.classList.add('d-none');
+            }
+        } catch (error) {
+            console.error('Error fetching cities:', error);
+            locationSuggestions.classList.add('d-none');
+        }
+    }, 300);
+
+    // Select a city
+    const selectCity = (city) => {
+        selectedLocation = city;
+        locationInput.value = city;
+        locationSuggestions.classList.add('d-none');
+        locationOptions.classList.remove('d-none');
+        loadJobOffers();
+    };
+
+    // Clear location
+    clearLocationBtn.addEventListener('click', () => {
+        selectedLocation = null;
+        locationInput.value = '';
+        locationOptions.classList.add('d-none');
+        loadJobOffers();
+    });
 
     async function loadJobOffers() {
         // Don't make AJAX call on initial page load
@@ -392,6 +578,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 params.append('education[]', checkbox.value);
             });
 
+           // Add location filter if selected
+            if (selectedLocation) {
+                const locationType = document.querySelector('input[name="locationType"]:checked').value;
+                params.append('location', selectedLocation);
+                params.append('locationType', locationType);
+                
+                if (locationType === 'nearby') {
+                    params.append('distance', distanceSlider.value);
+                }
+            }
+
             const response = await fetch(`{{ path('app_job_offer_index') }}?${params.toString()}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
@@ -425,7 +622,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Event listeners
+    // Event listeners for search
     searchButton.addEventListener('click', loadJobOffers);
     
     searchInput.addEventListener('input', function() {
@@ -447,6 +644,24 @@ document.addEventListener('DOMContentLoaded', function() {
             loadJobOffers();
         });
     }
+
+    // Event listeners for location search
+    locationInput.addEventListener('input', (e) => {
+        fetchCitySuggestions(e.target.value);
+    });
+
+    locationSearchBtn.addEventListener('click', () => {
+        if (locationInput.value.trim()) {
+            selectCity(locationInput.value.trim());
+        }
+    });
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!locationInput.contains(e.target) && !locationSuggestions.contains(e.target)) {
+            locationSuggestions.classList.add('d-none');
+        }
+    });
 
     // Remove the initial load call - let server render the initial content
 });

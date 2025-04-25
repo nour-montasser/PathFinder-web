@@ -150,4 +150,12 @@ public function isPending(): bool
     return $this->status === 'Pending';
 }
 
+
+
+public function __construct()
+{
+    $this->coverletter = new Coverletter();
+   // $this->coverletter->setApplication($this);
+}
+
 }

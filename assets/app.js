@@ -10,4 +10,10 @@ import './js/vendors';
 import 'chart.js/auto';     
 
 
-console.log('App initialized'); // Confirms proper loading
+import 'jquery';
+
+
+/*
+import 'ckeditor4';
+initCKEditor();
+console.log('App initialized'); // Confirms proper loading*/

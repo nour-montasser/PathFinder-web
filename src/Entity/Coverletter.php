@@ -15,14 +15,14 @@ class Coverletter
 
     #[ORM\OneToOne(inversedBy: "coverletter", targetEntity: ApplicationJob::class)]
     #[ORM\JoinColumn(name: "id_app", referencedColumnName: "application_id", onDelete: "CASCADE")]
-    private ?ApplicationJob $application;
+    private ?ApplicationJob $application=null;
     
 
     #[ORM\Column(type: "text", length: 5000)]
-    private string $content;
+    private string $content='';
 
     #[ORM\Column(type: "string", length: 255)]
-    private string $subject;
+    private string $subject='';
 
     public function getId_cover_letter(): int
     {
@@ -35,7 +35,7 @@ class Coverletter
         return $this;
     }
 
-    public function getApplication(): ApplicationJob
+    public function getApplication(): ?ApplicationJob
     {
         return $this->application;
     }
@@ -53,9 +53,15 @@ class Coverletter
         return $this->content;
     }
 
-    public function setContent(string $content): self
+    public function setSubject(?string $subject): self
     {
-        $this->content = $content;
+        $this->subject = $subject ?: '';
+        return $this;
+    }
+    
+    public function setContent(?string $content): self
+    {
+        $this->content = $content ?: '';
         return $this;
     }
 
@@ -64,11 +70,7 @@ class Coverletter
         return $this->subject;
     }
 
-    public function setSubject(string $subject): self
-    {
-        $this->subject = $subject;
-        return $this;
-    }
+   
 
 
      public function __construct(ApplicationJob $application = null)
