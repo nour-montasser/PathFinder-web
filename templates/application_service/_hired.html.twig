@@ -7,7 +7,17 @@
   <div class="text-end">
     <span class="badge bg-success">Accepted</span>
     <div class="mt-2">
-      <button class="btn btn-sm btn-primary">Start Payment Process</button>
+     {% if hire.idApp %}
+  <button 
+    class="btn btn-sm btn-primary start-payment-btn"
+    data-service-id="{{ hire.idApp }}">
+    Start Payment Process
+  </button>
+{% else %}
+  <p class="text-danger small">Missing Application ID</p>
+{% endif %}
+
+
     </div>
   </div>
 </li>

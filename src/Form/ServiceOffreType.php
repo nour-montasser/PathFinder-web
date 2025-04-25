@@ -10,6 +10,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Validator\Constraints as Assert;
 
 
@@ -21,7 +24,15 @@ class ServiceoffreType extends AbstractType
         $builder
            
             ->add('description')
-            
+            ->add('generateDescription', SubmitType::class, [
+                'label' => 'Generate with AI',
+                'attr' => [
+                    'class' => 'btn btn-secondary',
+                    'formnovalidate' => 'formnovalidate',
+                    'onclick' => 'event.preventDefault(); generateDescription(this.form);'
+                ],
+                'validate' => false
+            ])
             ->add('title')
             ->add('field', ChoiceType::class, [
                 'label' => 'Field',
@@ -36,31 +47,16 @@ class ServiceoffreType extends AbstractType
                     'Other' => 'Other',
                 ],
                 'placeholder' => 'Choose a field...',
-                'attr' => ['class' => 'form-control']
+                'attr' => ['class' => 'form-control'],
+                
             ])
             ->add('price', MoneyType::class, [
                 'label' => 'Prix',
                 'currency' => 'EUR', // or 'USD' based on your app
-                'required' => true,
-                'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'Le prix est requis.'
-                    ]),
-                    new Assert\GreaterThan([
-                        'value' => 0,
-                        'message' => 'Le prix doit être supérieur à 0.'
-                    ]),
-                    new Assert\LessThan([
-                        'value' => 100000,
-                        'message' => 'Le prix ne peut pas dépasser 100 000€.'
-                    ])
-                ],
-                'attr' => [
-                    'min' => 1,
-                    'step' => 0.01,
-                    'placeholder' => 'Entrez un prix en €'
-                ]
+                'required' => false,
+                
             ])
+    
             ->add('required_education')
             ->add('skills')
             ->add('experience_level', ChoiceType::class, [
@@ -97,12 +93,22 @@ class ServiceoffreType extends AbstractType
                 'constraints' => [
                     new Assert\NotBlank(message: 'La date de fin est requise.'),
                 ]
+            ])
+            ->add('price_estimation', NumberType::class, [
+                'required' => false, // 💡 prevent validation when AI button is clicked
+                'label' => 'Price (Estimated)',
+            ])
+            ->add('generatePrice', SubmitType::class, [
+                'label' => 'Estimate Price with AI',
+                'attr' => ['formnovalidate' => 'formnovalidate']
             ]);
+            
+            
         
             
             
     
-        ;
+        
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -283,24 +283,26 @@ body {
 
 </style>
 
-<!-- Service Drawer with Animation -->
-<div id="serviceDrawer" class="service-drawer position-fixed top-0 end-0 bg-white shadow" style="width: 50%; height: 100vh; z-index: 1050; transform: translateX(100%); transition: transform 0.3s ease-out;">
+<!-- Drawer container -->
+<div id="serviceDrawer" class="service-drawer position-fixed top-0 end-0 bg-white shadow"
+     style="width: 50%; height: 100vh; z-index: 1050; transform: translateX(100%); transition: transform 0.3s ease-out;">
   <div class="d-flex justify-content-between align-items-center border-bottom p-4">
     <h5 class="m-0 fw-bold">Service Details</h5>
     <button class="btn btn-sm btn-close" onclick="closeDrawer()"></button>
   </div>
   <div id="drawerContent" class="p-4" style="overflow-y: auto; height: calc(100% - 60px);"></div>
 </div>
-<div id="drawerOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark" style="opacity: 0; z-index: 1040; pointer-events: none; transition: opacity 0.3s ease;"></div>
 
-{% if isFormOpen %}
+<!-- Overlay for the drawer -->
+<div id="drawerOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark"
+     style="opacity: 0; z-index: 1040; pointer-events: none; transition: opacity 0.3s ease;"></div>
+
 <script>
   function openDrawer(id) {
     const drawer = document.getElementById('serviceDrawer');
-     const overlay = document.getElementById('drawerOverlay');
+    const overlay = document.getElementById('drawerOverlay');
     const content = document.getElementById('drawerContent');
 
-      // Show overlay with animation
     overlay.style.pointerEvents = 'auto';
     overlay.style.opacity = '0.5';
 
@@ -311,12 +313,12 @@ body {
     .then(html => {
       content.innerHTML = html;
       drawer.style.transform = 'translateX(0)';
-       document.body.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
       drawer.style.display = 'block';
     })
-     .catch(error => {
-      console.error('Error:', error);
-      content.innerHTML = `<div class="alert alert-danger">Error loading service details</div>`;
+    .catch(error => {
+      console.error('Erreur de chargement du drawer :', error);
+      content.innerHTML = `<div class="alert alert-danger">Erreur lors du chargement des détails.</div>`;
     });
   }
 
@@ -324,25 +326,19 @@ body {
     const drawer = document.getElementById('serviceDrawer');
     const overlay = document.getElementById('drawerOverlay');
     
-    // Slide out drawer
     drawer.style.transform = 'translateX(100%)';
-    // Hide overlay
     overlay.style.opacity = '0';
     overlay.style.pointerEvents = 'none';
-    // Restore body scrolling
     document.body.style.overflow = '';
-    
-    // Clear content after animation completes
+
     setTimeout(() => {
       document.getElementById('drawerContent').innerHTML = '';
     }, 300);
   }
 
-  // Close drawer when clicking on overlay
-  document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
-
+  document.getElementById('drawerOverlay')?.addEventListener('click', closeDrawer);
 </script>
-{% endif %}
+
  <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Check if all required elements exist
@@ -448,23 +444,22 @@ document.addEventListener('DOMContentLoaded', function() {
     <h3 class="m-0" style="color: #3B261D;">Create New Service Offer</h3>
     <button class="btn btn-sm btn-secondary" onclick="closeFormDrawer()">Close</button>
   </div>
-  
   {{ form_start(form) }}
-   <!-- Title -->
-      <div class="mb-3">
-        {{ form_label(form.title, 'Title', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.title, {
-          'attr': {
-            'class': 'form-control',
-            'placeholder': 'Enter job title',
-            'id': 'serviceoffre_title',
-            'aria-describedby': 'titleHelp'
-          }
-        }) }}
 
-      </div>
-    
-    <!-- Description -->
+<!-- Title -->
+<div class="mb-3">
+  {{ form_label(form.title, 'Title', {'label_attr': {'class': 'form-label'}}) }}
+  {{ form_widget(form.title, {
+    'attr': {
+      'class': 'form-control',
+      'placeholder': 'Enter job title',
+      'id': 'serviceoffre_title',
+      'aria-describedby': 'titleHelp'
+    }
+  }) }}
+</div>
+
+<!-- Description -->
 <div class="mb-3">
   {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
 
@@ -473,80 +468,92 @@ document.addEventListener('DOMContentLoaded', function() {
     'attr': {
       'class': 'form-control ' ~ errorClass,
       'rows': 4,
-      'placeholder': 'Décrivez votre service...'
+      'placeholder': 'Describe your service'
     }
   }) }}
 
-  {# Error message shown properly #}
   {% if form_errors(form.description) %}
     <div class="text-danger mt-1">
       {{ form_errors(form.description) }}
     </div>
   {% endif %}
 
-  {# AI Generate button and helper text - moved outside error block #}
-  <button type="button"
-          id="generateDescBtn"
-          onclick="generateDescriptionAI()"
-          class="btn-generate-desc mt-2"
-          aria-label="Generate description using AI">
-    <i class="bi bi-magic me-1"></i> Generate Description ✨
-  </button>
+  <!-- AI Buttons -->
+  <div class="d-flex gap-2 mt-2">
+    <button type="submit" name="generate_description" value="1" class="btn btn-outline-primary btn-sm">
+      <i class="fas fa-robot me-1"></i> Generate with AI
+    </button>
+
+    <button type="submit" name="generate_price" value="1" class="btn btn-outline-success btn-sm">
+      Estimate a Price with AI
+    </button>
+  </div>
 
   <small id="descHelp" class="form-text text-muted">Describe your service in detail</small>
 </div>
+{% if generatedDescription is defined and generatedDescription %}
+  <div class="alert alert-info mt-2">
+    <strong>AI Suggested Description:</strong><br>
+    <div class="border rounded p-2 mt-1 bg-white">{{ generatedDescription|raw }}</div>
+    <button type="button" class="btn btn-outline-primary btn-sm mt-2"
+            onclick="document.getElementById('{{ form.description.vars.id }}').value = `{{ generatedDescription|escape('js') }}`">
+      Use this description
+    </button>
+  </div>
+{% endif %}
 
-    
-    <!-- Field -->
-    <div class="mb-3">
-      {{ form_label(form.field, 'Field', {'label_attr': {'class': 'form-label'}}) }}
-      {{ form_widget(form.field, {'attr': {'class': 'form-control'}}) }}
-    </div>
-    
-    <!-- Start / End Date -->
-    <div class="row">
-      <div class="col mb-3">
-        {{ form_label(form.startDate, 'Start Date', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.startDate, {'attr': {'class': 'form-control'}}) }}
-      </div>
-      <div class="col mb-3">
-        {{ form_label(form.endDate, 'End Date', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.endDate, {'attr': {'class': 'form-control'}}) }}
-      </div>
-    </div>
-    
-    <!-- Education -->
-    <div class="mb-3">
-      {{ form_label(form.required_education, 'Education', {'label_attr': {'class': 'form-label'}}) }}
-      {{ form_widget(form.required_education, {'attr': {'class': 'form-control'}}) }}
-    </div>
-    
-    <!-- Experience Level -->
-     <!-- Field -->
-    <div class="mb-3">
-      {{ form_label(form.experience_level, 'Experience_level', {'label_attr': {'class': 'form-label'}}) }}
-      {{ form_widget(form.experience_level, {'attr': {'class': 'form-control'}}) }}
-              <small id="titleHelp" class="form-text text-muted" style="color: #9B7B58;">
-          ⚡ Price estimation with AI will appear after setting the Field.
-        </small>
-    </div>
-    
-    <!-- Price -->
-  <div class="mb-3">
-  {{ form_label(form.price, 'Price', {'label_attr': {'class': 'form-label'}}) }}
+{% if generatedPrice is defined and generatedPrice %}
+  <div class="alert alert-success mt-2">
+    <strong>AI Estimated Price:</strong> €{{ generatedPrice }}
+  </div>
+{% endif %}
 
-  {% set priceErrorClass = form_errors(form.price) ? 'is-invalid' : '' %}
-  {{ form_widget(form.price, {'attr': {'class': 'form-control ' ~ priceErrorClass}}) }}
 
-  {% if form_errors(form.price) %}
-    <div class="text-danger mt-1">
-      {{ form_errors(form.price) }}
-    </div>
-  {% endif %}
+<!-- Price Estimation -->
+<div class="mb-3">
+  {{ form_label(form.price_estimation, 'Price (Estimated)', {'label_attr': {'class': 'form-label'}}) }}
+  {{ form_widget(form.price_estimation, {
+    'attr': {
+      'class': 'form-control',
+      'readonly': true
+    }
+  }) }}
 </div>
 
-    
-    <!-- Skills -->
+<!-- Field -->
+<div class="mb-3">
+  {{ form_label(form.field, 'Field', {'label_attr': {'class': 'form-label'}}) }}
+  {{ form_widget(form.field, {'attr': {'class': 'form-control'}}) }}
+</div>
+
+<!-- Dates -->
+<div class="row">
+  <div class="col mb-3">
+    {{ form_label(form.startDate, 'Start Date', {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.startDate, {'attr': {'class': 'form-control'}}) }}
+  </div>
+  <div class="col mb-3">
+    {{ form_label(form.endDate, 'End Date', {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.endDate, {'attr': {'class': 'form-control'}}) }}
+  </div>
+</div>
+
+<!-- Education -->
+<div class="mb-3">
+  {{ form_label(form.required_education, 'Education', {'label_attr': {'class': 'form-label'}}) }}
+  {{ form_widget(form.required_education, {'attr': {'class': 'form-control'}}) }}
+</div>
+
+<!-- Experience Level -->
+<div class="mb-3">
+  {{ form_label(form.experience_level, 'Experience Level', {'label_attr': {'class': 'form-label'}}) }}
+  {{ form_widget(form.experience_level, {'attr': {'class': 'form-control'}}) }}
+  <small class="form-text text-muted" style="color: #9B7B58;">
+    ⚡ AI-based price will appear after field & level selection.
+  </small>
+</div>
+
+<!-- Skills -->
 <div class="mb-3">
   {{ form_label(form.skills, 'Skills', {'label_attr': {'class': 'form-label'}}) }}
 
@@ -560,28 +567,26 @@ document.addEventListener('DOMContentLoaded', function() {
   {% endif %}
 </div>
 
-    
-    <!-- Status (if needed) -->
-    {% if form.status is defined %}
-      <div class="mb-3">
-        {{ form_label(form.status, 'Status', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.status, {'attr': {'class': 'form-control'}}) }}
-      </div>
-    {% endif %}
-
-    {% if isFormOpen and not form.vars.valid %}
-  <div class="alert alert-danger">
-    Veuillez corriger les erreurs dans le formulaire.
+<!-- Status -->
+{% if form.status is defined %}
+  <div class="mb-3">
+    {{ form_label(form.status, 'Status', {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.status, {'attr': {'class': 'form-control'}}) }}
   </div>
 {% endif %}
 
-    
-      
+<!-- Validation Errors -->
+{% if isFormOpen and not form.vars.valid %}
+  <div class="alert alert-danger">
+    Please correct the errors in the form.
+  </div>
+{% endif %}
 
-      <!-- Form Submit Button -->
+<!-- Submit -->
 <button type="submit" class="btn-submit">Save</button>
-  {{ form_end(form) }}
-</div>
+
+{{ form_end(form) }}
+
 
 <!-- Styles for the + button -->
 <style>
@@ -834,6 +839,13 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 
+    .spinner-border {
+        vertical-align: middle;
+    }
+    .card {
+        border-left: 3px solid #0d6efd;
+    }
+
 
 </style>
 
@@ -883,6 +895,29 @@ setTimeout(() => {
   }
 
  
+ document.addEventListener('DOMContentLoaded', function() {
+    // Watch for changes in required fields
+    const triggerFields = ['#serviceoffre_field', '#serviceoffre_experience_level'];
+    
+    triggerFields.forEach(fieldId => {
+        const field = document.querySelector(fieldId);
+        if (field) {
+            field.addEventListener('change', function() {
+                // Trigger form submission to activate the subscriber
+                const form = this.closest('form');
+                if (form) {
+                    // Create a temporary submit button
+                    const tempSubmit = document.createElement('button');
+                    tempSubmit.type = 'submit';
+                    tempSubmit.style.display = 'none';
+                    form.appendChild(tempSubmit);
+                    tempSubmit.click();
+                    form.removeChild(tempSubmit);
+                }
+            });
+        }
+    });
+});
 </script>
 
 

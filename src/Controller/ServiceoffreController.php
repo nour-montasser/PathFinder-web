@@ -13,110 +13,205 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Form\FormError;
+use App\Service\AIDescriptionGenerator; // Ensure this is the correct namespace for the class
 
 #[Route('/serviceoffre')]
 final class ServiceoffreController extends AbstractController
 {
     #[Route('/', name: 'app_serviceoffre_index', methods: ['GET', 'POST'])]
-    public function index(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $sessionUser = $this->getSessionUser($request, $entityManager);
-        $showOnlyMyJobs = $request->query->getBoolean('my_jobs');
-        $user = $showOnlyMyJobs ? $sessionUser : null;
+public function index(
+    Request $request, 
+    EntityManagerInterface $entityManager,
+    AIDescriptionGenerator $aiGenerator
+): Response {
+    $sessionUser = $this->getSessionUser($request, $entityManager);
+    $showOnlyMyJobs = $request->query->getBoolean('my_jobs');
+    $user = $showOnlyMyJobs ? $sessionUser : null;
+
+    $serviceoffres = $user
+        ? $entityManager->getRepository(Serviceoffre::class)->findBy(['user' => $user])
+        : $entityManager->getRepository(Serviceoffre::class)->findAll();
+
+    $serviceoffre = new Serviceoffre();
+    $serviceoffre->setDatePosted(new \DateTime());
+    $serviceoffre->setDescription(''); // Initialize with empty string to prevent null
+
+    $form = $this->createForm(ServiceoffreType::class, $serviceoffre);
+    $form->handleRequest($request);
+   
     
-        $serviceoffres = $user
-            ? $entityManager->getRepository(Serviceoffre::class)->findBy(['user' => $user])
-            : $entityManager->getRepository(Serviceoffre::class)->findAll();
-    
-        $serviceoffre = new Serviceoffre();
-        $serviceoffre->setDatePosted(new \DateTime());
-    
-        $form = $this->createForm(ServiceoffreType::class, $serviceoffre);
-        $form->handleRequest($request);
-        
-        $isFormOpen = false; // default: form is closed
-        
-        if ($form->isSubmitted()) {
-            $startDate = $form->get('startDate')->getData();
-            $endDate = $form->get('endDate')->getData();
-        
-            if ($startDate && $endDate && $startDate >= $endDate) {
-                $form->get('endDate')->addError(new FormError("La date de fin doit être postérieure à la date de début."));
-            }
-        
-            if ($form->isValid()) {
-                // Duration calculation
-                $interval = $startDate->diff($endDate);
-                $months = ($interval->y * 12) + $interval->m;
-        
-                if ($months < 1) {
-                    $serviceoffre->setDuration('less than 1 month');
-                } elseif ($months <= 3) {
-                    $serviceoffre->setDuration('1 to 3 months');
-                } elseif ($months <= 6) {
-                    $serviceoffre->setDuration('3 to 6 months');
+
+
+
+    $isFormOpen = false;
+
+    // Handle AI description generation
+    if ($request->request->has('generate_description')) {
+        $isFormOpen = true;
+        $title = $form->get('title')->getData();
+
+        if (empty($title)) {
+            $this->addFlash('error', 'Please enter a title to generate description');
+        } else {
+            try {
+                $prompt = "Generate a professional service description for: $title";
+
+                // Add additional context to the prompt if available
+                $field = $form->get('field')->getData();
+                $experienceLevel = $form->get('experience_level')->getData();
+
+                if ($field) $prompt .= " in field: $field";
+                if ($experienceLevel) $prompt .= " for $experienceLevel level";
+
+                // Generate description using AI
+                $generatedDescription = $aiGenerator->generateDescription($prompt);
+
+                // If the generated description is null, set a default message
+                if ($generatedDescription === null) {
+                    $this->addFlash('warning', 'AI generated an empty description');
+                    $serviceoffre->setDescription('No description could be generated');
                 } else {
-                    $serviceoffre->setDuration('more than 6 months');
+                    // Set the generated description in the entity
+                    $serviceoffre->setDescription($generatedDescription);  // <-- Add this line
+                    $this->addFlash('success', 'Description generated successfully');
                 }
-        
-                $serviceoffre->setUser($sessionUser);
+
+                
+                
+                
+
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Failed to generate description: '.$e->getMessage());
+                $serviceoffre->setDescription(''); // Reset description on error
+               
+            
+            }
+        }
+    }
+     // 🔸 5. AI Price Estimation Trigger (NEW BUTTON HANDLER)
+     if ($request->request->has('generate_price')) {
+        $isFormOpen = true;
+
+        $title = $form->get('title')->getData();
+        $description = $form->get('description')->getData();
+        $field = $form->get('field')->getData();
+        $experienceLevel = $form->get('experience_level')->getData();
+
+        if (empty($title) || empty($description) || empty($field) || empty($experienceLevel)) {
+            $this->addFlash('error', 'All fields must be filled to generate a price.');
+        } else {
+            try {
+                $price = $aiGenerator->generatePriceEstimation($title, $description, $field, $experienceLevel);
+                if ($price !== null) {
+                    $serviceoffre->setPriceEstimation($price);
+                    $form->get('price_estimation')->setData($price);
+                    $this->addFlash('success', 'Price estimation generated: €' . $price);
+                } else {
+                    $this->addFlash('warning', 'AI could not generate a price.');
+                }
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Failed to generate price: ' . $e->getMessage());
+            }
+        }
+    }
+
+
+    // Handle form submission
+    if (!$request->request->has('generate_price') && !$request->request->has('generate_description')) {
+    if ($form->isSubmitted() && $form->isValid()) {
+        $startDate = $form->get('startDate')->getData();
+        $endDate = $form->get('endDate')->getData();
+
+        // Validate dates
+        if ($startDate && $endDate && $startDate >= $endDate) {
+            $form->get('endDate')->addError(new FormError("La date de fin doit être postérieure à la date de début."));
+            $isFormOpen = true;
+        } else {
+            // Calculate duration
+            $interval = $startDate->diff($endDate);
+            $months = ($interval->y * 12) + $interval->m;
+
+            if ($months < 1) {
+                $serviceoffre->setDuration('less than 1 month');
+            } elseif ($months <= 3) {
+                $serviceoffre->setDuration('1 to 3 months');
+            } elseif ($months <= 6) {
+                $serviceoffre->setDuration('3 to 6 months');
+            } else {
+                $serviceoffre->setDuration('more than 6 months');
+            }
+
+            $serviceoffre->setUser($sessionUser);
+            try {
                 $entityManager->persist($serviceoffre);
                 $entityManager->flush();
-        
+                $this->addFlash('success', 'Service created successfully');
                 return $this->redirectToRoute('app_serviceoffre_index');
-            } else {
-                // 👇 If the form is invalid, reopen the drawer
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Error saving service: '.$e->getMessage());
                 $isFormOpen = true;
             }
         }
-        
-    
-        $fields = $entityManager->getRepository(Serviceoffre::class)
-            ->createQueryBuilder('s')
-            ->select('DISTINCT s.field')
-            ->getQuery()
-            ->getSingleColumnResult();
-    
-        $skills = $entityManager->getRepository(Serviceoffre::class)
-            ->createQueryBuilder('s')
-            ->select('DISTINCT s.skills')
-            ->getQuery()
-            ->getSingleColumnResult();
-    
-        $newAppCount = 0;
-        $firstServiceWithNewApps = null;
-    
-        if ($user) {
-            $userServices = $entityManager->getRepository(Serviceoffre::class)->findBy(['user' => $user]);
-    
-            foreach ($userServices as $service) {
-                foreach ($service->getApplicationservices() as $app) {
-                    if ($app->getStatus() === 'pending') {
-                        $newAppCount++;
-                        if (!$firstServiceWithNewApps) {
-                            $firstServiceWithNewApps = $service;
-                        }
-                        break;
+    } elseif ($form->isSubmitted() && !$form->isValid()) {
+        $isFormOpen = true;
+        $this->addFlash('error', 'Please correct the errors in the form');
+    }
+}
+
+    // Get distinct fields and skills for filters
+    $fields = $entityManager->getRepository(Serviceoffre::class)
+        ->createQueryBuilder('s')
+        ->select('DISTINCT s.field')
+        ->where('s.field IS NOT NULL')
+        ->getQuery()
+        ->getSingleColumnResult();
+
+    $skills = $entityManager->getRepository(Serviceoffre::class)
+        ->createQueryBuilder('s')
+        ->select('DISTINCT s.skills')
+        ->where('s.skills IS NOT NULL')
+        ->getQuery()
+        ->getSingleColumnResult();
+
+    // Count new applications
+    $newAppCount = 0;
+    $firstServiceWithNewApps = null;
+
+    if ($user) {
+        $userServices = $entityManager->getRepository(Serviceoffre::class)->findBy(['user' => $user]);
+        foreach ($userServices as $service) {
+            foreach ($service->getApplicationservices() as $app) {
+                if ($app->getStatus() === 'pending') {
+                    $newAppCount++;
+                    if (!$firstServiceWithNewApps) {
+                        $firstServiceWithNewApps = $service;
                     }
+                    break;
                 }
             }
         }
-    
-        return $this->render('serviceoffre/index.html.twig', [
-            'serviceoffres' => $serviceoffres,
-            'form' => $form->createView(),
-            'fields' => $fields,
-            'skills' => $skills,
-            'sessionUser' => $sessionUser,
-            'newAppCount' => $newAppCount,
-            'firstServiceWithNewApps' => $firstServiceWithNewApps,
-            'isFormOpen' => $isFormOpen ?? false,
-        ]);
     }
-    
+
+
+    return $this->render('serviceoffre/index.html.twig', [
+        'serviceoffres' => $serviceoffres,
+        'form' => $form->createView(),
+        'fields' => $fields ?? [],
+        'skills' => $skills ?? [],
+        'sessionUser' => $sessionUser,
+        'newAppCount' => $newAppCount,
+        'firstServiceWithNewApps' => $firstServiceWithNewApps,
+        'isFormOpen' => $isFormOpen,
+        'generatedDescription' => $serviceoffre->getDescription(),
+        'generatedPrice' => $serviceoffre->getPriceEstimation(),
+    ]);
+}
+
+
 
     #[Route('/{idService}/edit', name: 'app_serviceoffre_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Serviceoffre $serviceoffre, EntityManagerInterface $entityManager): Response
@@ -353,6 +448,8 @@ public function manage(Serviceoffre $serviceoffre, Request $request, EntityManag
         'serviceoffre' => $serviceoffre,
         'applications' => $applications,
         'hired' => $hired,
+        'stripe_public_key' => $_ENV['STRIPE_PUBLIC_KEY'],
+
     ]);
 }
 
@@ -417,6 +514,47 @@ public function myServicesDashboard(Request $request, EntityManagerInterface $em
         'stats' => $stats,
         'selectedPeriod' => $period,
         'services' => $services,
+    ]);
+}
+
+
+#[Route('/generate-description', name: 'app_serviceoffre_generate_description', methods: ['POST'])]
+public function generateDescription(
+    Request $request,
+    AIDescriptionGenerator $aiGenerator
+): JsonResponse {
+    $serviceTitle = $request->request->get('title');
+    $serviceTitle = $request->request->get('duration');
+    $serviceTitle = $request->request->get('field');
+    $serviceTitle = $request->request->get('experience_level');
+    if (empty($serviceTitle)) {
+        return $this->json([
+            'success' => false,
+            'error' => 'Please enter a service title first!'
+        ], Response::HTTP_BAD_REQUEST);
+    }
+
+    $description = $aiGenerator->generateDescription($serviceTitle);
+
+    if ($description === null) {
+        return $this->json([
+            'success' => false,
+            'error' => 'Unable to generate a professional description.'
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    return $this->json([
+        'success' => true,
+        'description' => $description
+    ]);
+}
+
+
+#[Route('/pay', name: 'stripe_pay')]
+public function pay(): Response
+{
+    return $this->render('stripe/payment.html.twig', [
+        'stripe_public_key' => $_ENV['STRIPE_PUBLIC_KEY']
     ]);
 }
 

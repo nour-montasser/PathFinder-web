@@ -24,11 +24,7 @@ class Serviceoffre
     
 
     #[ORM\Column(type: "text")]
-    #[Assert\NotBlank(message: "a description is required.")]
-#[Assert\Length(
-    min: 20,
-    minMessage: " description must have {{ limit }} caractères."
-)]
+
     private string $description;
 
     #[ORM\Column(type: "string", length: 25)]
@@ -47,13 +43,11 @@ class Serviceoffre
     #[ORM\Column(type: "string", length: 25)]
     private string $field;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+private $priceEstimation;
+
+
     #[ORM\Column(type: "float")]
-    #[Assert\NotNull(message: "Le prix est requis.")]
-#[Assert\Positive(message: "Le price must be positive.")]
-#[Assert\NotBlank(message: "Price is Obligatory.")]
-#[Assert\GreaterThan(value: 0, message: "Price must be Greater than 0.")]
-#[Assert\Type(type: "numeric", message: "Price must be a number.")]
-#[Assert\LessThan(value: 100000, message: "Price too high!")]
     private float $price;
 
     #[ORM\Column(type: "string", length: 100)]
@@ -97,7 +91,7 @@ public function setUser(?App_user $user): self { $this->user = $user; return $th
         return $this->description;
     }
 
-    public function setDescription(string $description): self
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
         return $this;
@@ -203,6 +197,17 @@ public function setRequiredEducation(string $required_education): self
         return $this;
     }
 
+    public function getPriceEstimation(): ?string
+{
+    return $this->priceEstimation;
+}
+
+public function setPriceEstimation(?string $priceEstimation): self
+{
+    $this->priceEstimation = $priceEstimation;
+
+    return $this;
+}
    
 
 
