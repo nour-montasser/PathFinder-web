@@ -12,17 +12,17 @@
 
 <body>
     <div id="app">
-        
-            {% include "includes/navbar.html.twig" %}
-      
 
-        
-        
+            {% include "includes/navbar.html.twig" %}
+
+
+
+
             <div id="main-content">
                 {% block body %}{% endblock %}
                 {% include "includes/footer.html.twig" %}
             </div>
-        
+
     </div>
 
     {{ encore_entry_script_tags('app') }}

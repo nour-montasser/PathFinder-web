@@ -1,0 +1,11 @@
+{% for skilltest in skilltests %}
+    <div class="skilltest-card mb-3 p-3" style="border: 1px solid #ccc; border-radius: 8px;">
+        <h4>{{ skilltest.title }}</h4>
+        <p>{{ skilltest.description }}</p>
+        <p><strong>Duration:</strong> {{ skilltest.duration }} mins</p>
+        <p><strong>Score Required:</strong> {{ skilltest.scoreRequired }}</p>
+        <a href="{{ path('app_skilltest_show', { id: skilltest.id }) }}" class="btn btn-sm btn-dark">View</a>
+    </div>
+{% else %}
+    <p>No skill tests match your search criteria.</p>
+{% endfor %}

@@ -3,6 +3,34 @@
 
 {% block body %}
     <style>
+        #timer {
+            font-size: 1.2rem;
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            height: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #2ecc71;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            line-height: 20px;
+            transition: width 0.3s ease;
+        }
+
         .skilltest-form-container {
             max-width: 800px;
             margin: 50px auto;
@@ -18,6 +46,7 @@
             margin-bottom: 30px;
             font-weight: bold;
             font-size: 28px;
+            text-align: center;
         }
 
         .question-block {
@@ -49,7 +78,7 @@
 
         .form-check-input {
             margin-right: 12px;
-            accent-color: #2ecc71; /* green radio when selected */
+            accent-color: #2ecc71;
             transform: scale(1.2);
         }
 
@@ -57,11 +86,6 @@
             font-size: 16px;
             color: #2c3e50;
             font-weight: 500;
-        }
-
-
-        .form-check-input {
-            margin-right: 8px;
         }
 
         .btn-submit {
@@ -82,6 +106,15 @@
 
     <div class="skilltest-form-container">
         <h2>🧪 {{ skilltest.title }}</h2>
+
+        <!-- 🟢 Timer -->
+        <div id="timer">⏳ Time Left: <span id="countdown"></span></div>
+
+        <!-- 🟢 Progress Bar -->
+        <div class="progress-container">
+            <div id="progressBar" class="progress-bar">0%</div>
+        </div>
+
         <form method="POST">
             {% for question in skilltest.questions %}
                 <div class="question-block">
@@ -95,7 +128,47 @@
                     {% endfor %}
                 </div>
             {% endfor %}
+
             <button type="submit" class="btn-submit mt-3">✅ Submit Test</button>
         </form>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Timer
+            let totalMinutes = {{ skilltest.duration }};
+            let duration = totalMinutes * 60;
+            const countdown = document.getElementById('countdown');
+            const form = document.querySelector('form');
+
+            const timer = setInterval(() => {
+                const minutes = Math.floor(duration / 60);
+                const seconds = duration % 60;
+                countdown.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                if (duration <= 0) {
+                    clearInterval(timer);
+                    alert("⏱️ Time's up! Submitting your answers...");
+                    form.submit();
+                }
+
+                duration--;
+            }, 1000);
+
+            // Progress Bar
+            const totalQuestions = {{ skilltest.questions|length }};
+            const progressBar = document.getElementById('progressBar');
+            const allRadios = document.querySelectorAll('input[type="radio"]');
+            const answered = new Set();
+
+            allRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    answered.add(radio.name);
+                    const percentage = Math.floor((answered.size / totalQuestions) * 100);
+                    progressBar.style.width = percentage + '%';
+                    progressBar.textContent = percentage + '%';
+                });
+            });
+        });
+    </script>
 {% endblock %}

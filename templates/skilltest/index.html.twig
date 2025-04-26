@@ -85,9 +85,14 @@
         }
     </style>
 
+
     <div class="create-btn-wrapper">
         <a href="{{ path('app_skilltest_new') }}" class="create-btn">➕ Create New Skilltest</a>
     </div>
+    <a href="{{ path('app_skilltest_search_advanced') }}" class="create-btn" style="margin-right: 10px;">
+        🔎 Advanced Search
+    </a>
+
 
     <h1 class="text-center mt-4" style="color: #3B261D">Available Skill Tests</h1>
 
@@ -119,3 +124,4 @@
         {% endfor %}
     </div>
 {% endblock %}
+
