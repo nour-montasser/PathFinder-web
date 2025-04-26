@@ -26,3 +26,7 @@ services:
     App\Service\GeonamesService:
         arguments:
             $geonamesUsername: '%geonames_username%'
+
+    App\Service\ApplicationMailer:
+        autowire: true
+        autoconfigure: true

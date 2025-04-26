@@ -43,9 +43,9 @@
 															<span class="badge bg-danger mb-1">New</span>
 														{% endif %}
 														<span class="badge bg-{{ job_offer.getNumberOfSpots() > 0 ? 'success' : 'danger' }}">
-															{{ job_offer.getNumberOfSpots }}
-															spots
-														</span>
+    {{ job_offer.getNumberOfSpots }} spot{{ job_offer.getNumberOfSpots() != 1 ? 's' : '' }}
+    {{ job_offer.getNumberOfSpots() <= 0 ? 'left' : '' }}
+</span>
 													</div>
 												</div>
 												<div class="card-body">
@@ -102,54 +102,58 @@
 															
 																	
 															{% elseif current_user.role == 2 %}
-														
-															
-	{% if has_applied[job_offer.getIdOffer()] is defined %}
-	
-    <!-- DEBUG: Application exists for job {{ job_offer.getIdOffer() }} -->
-    {% set application = has_applied[job_offer.getIdOffer()] %}
-	
-    <!-- DEBUG: Status: {{ application.status }} -->
-    <!-- DEBUG: isApplying: {{ 'Applying-' in application.status ? 'YES' : 'NO' }} -->
-	
-    
-    {% if 'Applying-' in application.status %}
-        <!-- DEBUG: Showing Continue button -->
-        <a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" 
-           class="btn btn-sm btn-primary" title="Continue Application">
-            <i class="bi bi-pencil-square"></i>
-            Continue (Step {{ application.status|split('-')[1] }}/4)
-        </a>
-    {% elseif application.status == 'Pending' %}
-        <!-- DEBUG: Showing View button -->
-        <button class="btn btn-sm btn-outline-primary" 
-				data-bs-toggle="modal" 
-                data-bs-target="#applicationModal-{{ application.application_id }}" 
-                data-application-id="{{ application.application_id }}">
-            <i class="bi bi-eye"></i>
-            View Application
+  {% if job_offer.getNumberOfSpots <= 0 %}
+  
+        <!-- No spots available - with working tooltip -->
+        <button class="btn btn-sm btn-danger position-relative" 
+                disabled
+                data-bs-toggle="tooltip" 
+                data-bs-placement="top"
+                title="All positions for this job have been filled. Check back later for new openings.">
+            <i class="bi bi-slash-circle"></i>
+            No Spots Available
+            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                <span class="visually-hidden">No spots</span>
+            </span>
         </button>
-        {% include 'application_job/_applicationModal.html.twig' with {'application': application} %}
-     {% elseif application.status == 'Accepted'%}
-                                    <button class="btn btn-outline-secondary  " disabled>
-                                        <i class="bi bi-check-circle"></i> 
-                                        {{ application.status }}
-                                    </button>
-                                      {% else %}
-                                    <button class="btn btn-outline-secondary " disabled>
-                                        <i class="bi bi-x-circle"></i> 
-                                        {{ application.status }}
-                                    </button>
+    {% elseif has_applied[job_offer.getIdOffer()] is defined %}
+        <!-- Existing application logic -->
+        {% set application = has_applied[job_offer.getIdOffer()] %}
+        {% if 'Applying-' in application.status %}
+            <a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" 
+               class="btn btn-sm btn-primary" title="Continue Application">
+                <i class="bi bi-pencil-square"></i>
+                Continue (Step {{ application.status|split('-')[1] }}/4)
+            </a>
+        {% elseif application.status == 'Pending' %}
+            <button class="btn btn-sm btn-outline-primary" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#applicationModal-{{ application.application_id }}" 
+                    data-application-id="{{ application.application_id }}">
+                <i class="bi bi-eye"></i>
+                View Application
+            </button>
+            {% include 'application_job/_applicationModal.html.twig' with {'application': application} %}
+        {% elseif application.status == 'Accepted'%}
+            <button class="btn btn-outline-secondary" disabled>
+                <i class="bi bi-check-circle"></i> 
+                {{ application.status }}
+            </button>
+        {% else %}
+            <button class="btn btn-outline-secondary" disabled>
+                <i class="bi bi-x-circle"></i> 
+                {{ application.status }}
+            </button>
+        {% endif %}
+    {% else %}
+        <!-- New application -->
+        <a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" 
+           class="btn btn-sm btn-primary" title="Apply">
+            <i class="bi bi-send-check"></i>
+            Apply
+        </a>
     {% endif %}
-{% else %}
-    <!-- DEBUG: No application found for job {{ job_offer.getIdOffer() }} -->
-    <a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" 
-       class="btn btn-sm btn-primary" title="Apply">
-        <i class="bi bi-send-check"></i>
-        Apply
-    </a>
 {% endif %}
-															{% endif %}
 														</div>
 													</div>
 												</div>
@@ -447,6 +451,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const distanceValue = document.getElementById('distanceValue');
         const distanceSliderContainer = document.getElementById('distanceSliderContainer');
 
+ // Initialize Bootstrap tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            trigger: 'hover focus' // Show on hover or focus
+        });
+    });
         // Update distance value display
         if (distanceSlider) {
             distanceSlider.addEventListener('input', function() {

@@ -11,6 +11,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Form\FormInterface;
+use App\Form\ScheduleInterviewType;
+use App\Service\GoogleCalendarService;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
 use App\Entity\Cv;
 use App\Repository\CvRepository;
 use App\Repository\JobOfferRepository;
@@ -20,6 +25,8 @@ use App\Entity\Coverletter;
 use Knp\Snappy\Pdf;
 use Dompdf\Dompdf;
 use App\Service\PdfGenerator;
+use App\Service\ApplicationMailer;
+
 
 
 #[Route('/application/job')]
@@ -290,26 +297,191 @@ public function edit(Request $request, ApplicationJob $application, EntityManage
 }   
 
 
-#[Route('/{id}/accept', name: 'app_application_job_accept', methods: ['POST'])]
+#[Route('/application/{id}/accept', name: 'app_application_job_accept')]
 public function accept(
-    ApplicationJob $applicationJob, 
+    ApplicationJob $application,
+    Request $request,
+    ApplicationMailer $mailer,
+    GoogleCalendarService $calendarService,
     EntityManagerInterface $entityManager
 ): Response {
-    $applicationJob->setStatus('Accepted');
-    $entityManager->flush();
-    
-    return $this->redirectToRoute('app_job_offer_show', [
-        'id_offer' => $applicationJob->getJobOffer()->getIdOffer()
+    $tokenPath = $this->getParameter('kernel.project_dir').'/config/google_token.json';
+    if (!file_exists($tokenPath)) {
+        $request->getSession()->set('google_auth_redirect', $request->getUri());
+        return $this->redirectToRoute('app_google_auth');
+    }
+
+    $form = $this->createForm(ScheduleInterviewType::class);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted()) {
+        // Handle AJAX requests
+        if ($request->isXmlHttpRequest()) {
+            try {
+                if (!$form->isValid()) {
+                    return $this->json([
+                        'success' => false,
+                        'errors' => $this->getFormErrors($form),
+                    ], 400);
+                }
+
+                $data = $form->getData();
+                $startTime = null;
+                $meetLink = null;
+                
+                if (!$data['scheduleNow'] && $data['interviewDate'] && $data['interviewTime']) {
+                    $startTime = \DateTime::createFromFormat(
+                        'Y-m-d H:i:s',
+                        $data['interviewDate']->format('Y-m-d') . ' ' . $data['interviewTime']->format('H:i:s')
+                    );
+                }
+
+                if ($this->getParameter('kernel.environment') !== 'test') {
+                    $result = $calendarService->scheduleInterview(
+                        "nourmo49@gmail.com",
+                        $application->getUser()->getEmail(),
+                        $application->getJobOffer()->getTitle(),
+                        $startTime
+                    );
+
+                    if (!$result['success']) {
+                        throw new \RuntimeException($result['error']);
+                    }
+                    
+                    $meetLink = $result['meetLink'];
+                } else {
+                    $meetLink = 'https://meet.google.com/mock-interview-link';
+                }
+
+                $application->setStatus('Accepted');
+                $application->getJobOffer()->setNumberOfSpots(
+                    $application->getJobOffer()->getNumberOfSpots() - 1
+                );
+                $entityManager->flush();
+
+                $mailer->sendApplicationStatusEmail(
+                    $application, 
+                    'Accepted',
+                    $meetLink,
+                    $startTime
+                );
+
+                return $this->json([
+                    'success' => true,
+                    'meetLink' => $meetLink,
+                    'message' => 'Interview scheduled successfully!',
+                    'redirect' => $this->generateUrl('app_job_offer_show', [
+                        'id_offer' => $application->getJobOffer()->getIdOffer()
+                    ])
+                ]);
+
+            } catch (\Exception $e) {
+                return $this->json([
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ], 400);
+            }
+        }
+
+        // Traditional form submission
+        if ($form->isValid()) {
+            $data = $form->getData();
+            $startTime = null;
+            $meetLink = null;
+            
+            if (!$data['scheduleNow'] && $data['interviewDate'] && $data['interviewTime']) {
+                $startTime = \DateTime::createFromFormat(
+                    'Y-m-d H:i:s',
+                    $data['interviewDate']->format('Y-m-d') . ' ' . $data['interviewTime']->format('H:i:s')
+                );
+            }
+
+            if ($this->getParameter('kernel.environment') !== 'test') {
+                $result = $calendarService->scheduleInterview(
+                    "nourmo49@gmail.com",
+                    $application->getUser()->getEmail(),
+                    $application->getJobOffer()->getTitle(),
+                    $startTime
+                );
+
+                if (!$result['success']) {
+                    $this->addFlash('error', 'Failed to schedule interview: ' . $result['error']);
+                    return $this->redirectToRoute('app_job_offer_show', ['id_offer' => $application->getJobOffer()->getIdOffer()]);
+                }
+                
+                $meetLink = $result['meetLink'];
+            } else {
+                $meetLink = 'https://meet.google.com/mock-interview-link';
+            }
+
+            $application->setStatus('Accepted');
+            $entityManager->flush();
+
+            $mailer->sendApplicationStatusEmail(
+                $application, 
+                'Accepted',
+                $meetLink,
+                $startTime
+            );
+
+            $this->addFlash('success', 'Interview scheduled successfully!');
+            $this->addFlash('meet_link', $meetLink);
+            return $this->redirectToRoute('app_job_offer_show', ['id_offer' => $application->getJobOffer()->getIdOffer()]);
+        }
+    }
+
+    return $this->render('application_job/schedule_interview.html.twig', [
+        'form' => $form->createView(),
+        'application' => $application,
     ]);
+}
+
+private function getFormErrors(FormInterface $form): array
+{
+    $errors = [];
+    foreach ($form->getErrors(true) as $error) {
+        $errors[$error->getOrigin()->getName()] = $error->getMessage();
+    }
+    return $errors;
+}
+
+
+#[Route('/application/google/auth', name: 'app_google_auth')]
+public function googleAuth(Request $request, GoogleCalendarService $calendarService): Response
+{
+    // Store the original URL in session before redirecting to Google
+    $request->getSession()->set('google_auth_redirect', $request->headers->get('referer'));
+    
+    $authUrl = $calendarService->getAuthUrl();
+    return $this->redirect($authUrl);
+}
+
+#[Route('/google/auth/callback', name: 'app_google_auth_callback')]
+public function googleAuthCallback(Request $request, GoogleCalendarService $calendarService): Response
+{
+    $code = $request->query->get('code');
+    if (!$code) {
+        throw new \RuntimeException('No authorization code provided.');
+    }
+
+    $calendarService->handleAuthCallback($code);
+    
+    // Redirect back to the original URL stored in session
+    $redirectUrl = $request->getSession()->get('google_auth_redirect', $this->generateUrl('app_job_offer_index'));
+    return $this->redirect($redirectUrl);
 }
 
 #[Route('/{id}/reject', name: 'app_application_job_reject', methods: ['POST'])]
 public function reject(
     ApplicationJob $applicationJob, 
-    EntityManagerInterface $entityManager
+    EntityManagerInterface $entityManager,
+    ApplicationMailer $mailer
 ): Response {
     $applicationJob->setStatus('Rejected');
     $entityManager->flush();
+    
+    // Send rejection email
+    $mailer->sendApplicationStatusEmail($applicationJob, 'Rejected');
     
     return $this->redirectToRoute('app_job_offer_show', [
         'id_offer' => $applicationJob->getJobOffer()->getIdOffer()
@@ -511,8 +683,16 @@ public function exportPdf(
     ], $request);
 }
 
-
+// src/Controller/GoogleAuthTestController.php
+#[Route('/google/test', name: 'google_auth_test')]  
+public function testAuth(GoogleCalendarService $calendarService): Response
+{   
+    $authUrl = $calendarService->getClient()->createAuthUrl();
+    return $this->redirect($authUrl);
+}
 
 
 
 }
+
+

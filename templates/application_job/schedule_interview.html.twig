@@ -1,0 +1,245 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="h4 mb-0 text-white">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Schedule Interview for {{ application.jobOffer.title }}
+                    </h2>
+                    <p class="mb-0 mt-1">
+                        <i class="fas fa-user me-1"></i>
+                        Applicant: {{ application.user.name }}
+                    </p>
+                </div>
+                <div class="badge bg-light text-dark">
+                    <i class="fas fa-briefcase me-1"></i>
+                    {{ application.jobOffer.user.name }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body p-4">
+            {{ form_start(form, {'attr': {'id': 'interview-form', 'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+            
+            <div class="mb-4">
+                <div class="form-check form-switch">
+                    {{ form_widget(form.scheduleNow, {
+                        'attr': {
+                            'class': 'form-check-input',
+                            'role': 'switch'
+                        }
+                    }) }}
+                    <label class="form-check-label fw-bold" for="{{ form.scheduleNow.vars.id }}">
+                        <i class="fas fa-video me-2"></i>Start Meeting Immediately
+                    </label>
+                    <small class="form-text text-muted d-block mt-1">
+                        Uncheck to schedule for a later time
+                    </small>
+                </div>
+            </div>
+            
+            <div id="scheduleLaterSection" class="mb-4 bg-light p-3 rounded" style="display: none;">
+                <h5 class="mb-3 text-primary">
+                    <i class="far fa-clock me-2"></i>Schedule for Later
+                </h5>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form_widget(form.interviewDate, {
+                                'attr': {
+                                    'class': 'form-control',
+                                    'placeholder': 'Interview Date'
+                                }
+                            }) }}
+                            {{ form_label(form.interviewDate, 'Interview Date') }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form_widget(form.interviewTime, {
+                                'attr': {
+                                    'class': 'form-control',
+                                    'placeholder': 'Interview Time'
+                                }
+                            }) }}
+                            {{ form_label(form.interviewTime, 'Interview Time') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                <button type="submit" class="btn btn-primary px-4 py-2" id="submit-btn">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    <span class="submit-text">Schedule Interview</span>
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
+                <a href="{{ path('app_job_offer_show', {'id_offer': application.getJobOffer.getIdOffer}) }}" 
+                   class="btn btn-outline-secondary px-4 py-2">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </a>
+            </div>
+            
+            {{ form_end(form) }}
+        </div>
+        
+        <div class="card-footer bg-light py-3">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                A Google Meet link will be generated and sent to both parties
+            </small>
+        </div>
+    </div>
+</div>
+
+<style>
+    .headerr {
+        color: #f8f9fa;
+    }
+    .form-floating > label {
+        padding: 1rem 0.75rem;
+    }
+    #scheduleLaterSection {
+        transition: all 0.3s ease;
+    }
+    .card {
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle schedule later section with animation
+    const scheduleNow = document.querySelector('#{{ form.scheduleNow.vars.id }}');
+    const scheduleLaterSection = document.getElementById('scheduleLaterSection');
+    
+    scheduleNow.addEventListener('change', function() {
+        if (this.checked) {
+            scheduleLaterSection.style.display = 'none';
+        } else {
+            scheduleLaterSection.style.display = 'block';
+            // Focus on first field when shown
+            document.querySelector('#{{ form.interviewDate.vars.id }}').focus();
+        }
+    });
+    
+    // Initialize visibility
+    scheduleLaterSection.style.display = scheduleNow.checked ? 'none' : 'block';
+
+    // Enhanced form submission
+    const form = document.getElementById('interview-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitText = submitBtn.querySelector('.submit-text');
+    const spinner = submitBtn.querySelector('.spinner-border');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitText.classList.add('d-none');
+        spinner.classList.remove('d-none');
+        
+        // Clear previous alerts
+        document.querySelectorAll('.alert-dynamic').forEach(el => el.remove());
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                let errorHtml = '<div class="alert alert-danger alert-dynamic mt-3"><ul class="mb-0">';
+                if (data.errors) {
+                    for (const field in data.errors) {
+                        errorHtml += `<li>${data.errors[field]}</li>`;
+                    }
+                } else {
+                    errorHtml += `<li>${data.error || 'An unknown error occurred'}</li>`;
+                }
+                errorHtml += '</ul></div>';
+                form.insertAdjacentHTML('afterend', errorHtml);
+                return;
+            }
+
+            if (data.success) {
+                // Success message
+                const successHtml = `
+                    <div class="alert alert-success alert-dynamic mt-3 d-flex align-items-center">
+                        <i class="fas fa-check-circle me-2 fs-4"></i>
+                        <div>
+                            <h5 class="alert-heading mb-1">Interview Scheduled!</h5>
+                            <p class="mb-0">${data.message}</p>
+                        </div>
+                    </div>
+                `;
+                form.insertAdjacentHTML('afterend', successHtml);
+
+                // Open Meet in new tab
+                if (data.meetLink) {
+                    setTimeout(() => {
+                        const meetWindow = window.open(data.meetLink, '_blank', 'noopener,noreferrer');
+                        if (!meetWindow) {
+                            const meetAlert = `
+                                <div class="alert alert-info alert-dynamic mt-3">
+                                    <i class="fas fa-external-link-alt me-2"></i>
+                                    Your interview was scheduled! Popup was blocked - 
+                                    <a href="${data.meetLink}" target="_blank" class="alert-link">click here to join the meeting</a>.
+                                </div>
+                            `;
+                            form.insertAdjacentHTML('afterend', meetAlert);
+                        }
+                    }, 500);
+                }
+
+                // Redirect after delay
+                if (data.redirect) {
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 3000);
+                }
+            }
+        } catch (error) {
+            const errorHtml = `
+                <div class="alert alert-danger alert-dynamic mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Network error: ${error.message}
+                </div>
+            `;
+            form.insertAdjacentHTML('afterend', errorHtml);
+        } finally {
+            submitBtn.disabled = false;
+            submitText.classList.remove('d-none');
+            spinner.classList.add('d-none');
+        }
+    });
+    
+    // Handle flash messages for traditional form submission
+    {% for message in app.flashes('meet_link') %}
+        setTimeout(() => {
+            window.open('{{ message }}', '_blank', 'noopener,noreferrer');
+        }, 500);
+    {% endfor %}
+});
+</script>
+{% endblock %}

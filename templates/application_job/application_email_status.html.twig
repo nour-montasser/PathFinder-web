@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% if status == 'Rejected' %}Application Update{% else %}{% if meetLink %}Interview Scheduled{% else %}Application Accepted{% endif %}{% endif %}</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header { 
+            background-color: #4e73df; 
+            padding: 30px 20px; 
+            text-align: center; 
+            color: white;
+        }
+        .content { 
+            padding: 30px;
+        }
+        .footer { 
+            text-align: center; 
+            padding: 20px; 
+            font-size: 12px; 
+            color: #777;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eaeaea;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4e73df;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .status-card {
+            padding: 20px;
+            border-left: 4px solid {% if status == 'Accepted' %}#28a745{% else %}#dc3545{% endif %};
+            margin: 20px 0;
+            background-color: #f8f9fa;
+        }
+        .interview-details {
+            background-color: #f1f8fe;
+            padding: 20px;
+            border-left: 4px solid #4e73df;
+            margin: 20px 0;
+        }
+        .rejection-advice {
+            background-color: #fff8f8;
+            padding: 15px;
+            border-left: 4px solid #dc3545;
+            margin: 20px 0;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+        h3 {
+            font-size: 18px;
+        }
+        a {
+            color: #4e73df;
+        }
+        .text-success {
+            color: #28a745;
+        }
+        .text-danger {
+            color: #dc3545;
+        }
+        .text-muted {
+            color: #6c757d;
+        }
+        .mt-3 {
+            margin-top: 15px;
+        }
+        .mb-0 {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>
+                {% if status == 'Rejected' %}
+                    Application Update
+                {% else %}
+                    {% if meetLink %}
+                        Interview Scheduled
+                    {% else %}
+                        Application Accepted
+                    {% endif %}
+                {% endif %}
+            </h1>
+            <p>{{ companyName }}</p>
+        </div>
+        
+        <div class="content">
+            <h2>Dear {{ applicantName }},</h2>
+            
+            <div class="status-card">
+                <h3 style="margin-top: 0;">
+                    Regarding your application for: <strong>{{ jobTitle }}</strong>
+                </h3>
+                
+                <p class="mb-0">
+                    Status: 
+                    <span class="{% if status == 'Accepted' %}text-success{% else %}text-danger{% endif %}">
+                        <strong>{{ status }}</strong>
+                    </span>
+                </p>
+            </div>
+
+            {% if status == 'Rejected' %}
+                <div class="rejection-advice">
+                    <h3>Thank you for your interest</h3>
+                    <p>After careful consideration, we've decided to move forward with other candidates whose qualifications more closely match our current needs.</p>
+                    
+                    <h3 class="mt-3">We encourage you to:</h3>
+                    <ul>
+                        <li>Review our <a href="{{ companyWebsite }}">careers page</a> for other opportunities</li>
+                        <li>Apply again in the future</li>
+                        <li>Continue developing your skills</li>
+                    </ul>
+                </div>
+            {% elseif meetLink %}
+                <div class="interview-details">
+                    <h3 style="margin-top: 0;">Interview Details</h3>
+                    
+                    {% if interviewTime %}
+                        <p><strong>Date & Time:</strong> {{ interviewTime|date('F j, Y \\a\\t g:i a') }}</p>
+                    {% else %}
+                        <p><strong>Start your interview now:</strong></p>
+                    {% endif %}
+                    
+                    <p><strong>Meeting Link:</strong> 
+                        <a href="{{ meetLink }}">{{ meetLink }}</a>
+                    </p>
+                    
+                    <a href="{{ meetLink }}" class="button">Join Interview</a>
+                </div>
+                
+                <p>Please ensure you:</p>
+                <ul>
+                    <li>Join 5 minutes early</li>
+                    <li>Have a stable internet connection</li>
+                    <li>Prepare any questions you may have</li>
+                </ul>
+            {% else %}
+                <p>We're excited about your application and will be in touch soon to discuss next steps in our hiring process.</p>
+                
+                <a href="{{ companyWebsite }}" class="button">Learn More About Our Company</a>
+            {% endif %}
+            
+            <p class="mt-3 text-muted">
+                {% if status == 'Rejected' %}
+                    We appreciate the time and effort you put into your application.
+                {% elseif meetLink %}
+                    If you need to reschedule or have any questions, please reply to this email.
+                {% else %}
+                    For any questions about your application status, please reply to this email.
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; {{ "now"|date("Y") }} {{ companyName }}. All rights reserved.</p>
+            <p>
+                <a href="{{ privacyPolicyUrl }}">Privacy Policy</a> | 
+                <a href="{{ unsubscribeUrl }}">Unsubscribe</a> |
+                <a href="{{ companyWebsite }}">Website</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
