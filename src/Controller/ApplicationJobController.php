@@ -16,6 +16,7 @@ use App\Form\ScheduleInterviewType;
 use App\Service\GoogleCalendarService;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use App\Entity\Cv;
 use App\Repository\CvRepository;
 use App\Repository\JobOfferRepository;
@@ -26,6 +27,7 @@ use Knp\Snappy\Pdf;
 use Dompdf\Dompdf;
 use App\Service\PdfGenerator;
 use App\Service\ApplicationMailer;
+use App\Service\AiCoverLetterGenerator;
 
 
 
@@ -692,6 +694,45 @@ public function testAuth(GoogleCalendarService $calendarService): Response
 }
 
 
+
+
+#[Route('/application/generate-coverletter/{job_offer_id}', name: 'app_application_generate_coverletter', methods: ['POST'])]
+public function generateCoverLetter(
+    Request $request,
+    EntityManagerInterface $entityManager,
+    int $job_offer_id,
+    AiCoverLetterGenerator $aiGenerator
+): Response {
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
+    
+    $jobOffer = $entityManager->getRepository(Job_offer::class)->find($job_offer_id);
+    if (!$jobOffer) {
+        return $this->json(['error' => 'Job offer not found'], Response::HTTP_NOT_FOUND);
+    }
+    
+    // Get user's CV data
+    $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
+    if (empty($userCvs)) {
+        return $this->json(['error' => 'No CV found for this user'], Response::HTTP_BAD_REQUEST);
+    }
+    
+    try {
+        // Use the first CV (or let user select one in a more advanced version)
+        $cv = $userCvs[0];
+        
+        $result = $aiGenerator->generateCoverLetter($cv, $jobOffer);
+        
+        return $this->json([
+            'subject' => $result['subject'],
+            'content' => $result['content']
+        ]);
+    } catch (\Exception $e) {
+        return $this->json([
+            'error' => $e->getMessage()
+        ], $e instanceof HttpException ? $e->getStatusCode() : Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+}
 
 }
 

@@ -451,13 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const distanceValue = document.getElementById('distanceValue');
         const distanceSliderContainer = document.getElementById('distanceSliderContainer');
 
- // Initialize Bootstrap tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl, {
-            trigger: 'hover focus' // Show on hover or focus
-        });
-    });
+
         // Update distance value display
         if (distanceSlider) {
             distanceSlider.addEventListener('input', function() {

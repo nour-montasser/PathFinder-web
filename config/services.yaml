@@ -30,3 +30,8 @@ services:
     App\Service\ApplicationMailer:
         autowire: true
         autoconfigure: true
+        
+    App\Service\AiCoverLetterGenerator:
+            arguments:
+                $huggingFaceToken: '%env(HUGGING_FACE_API_TOKEN)%'
+                $modelName: '%env(HUGGING_FACE_MODEL)%'        

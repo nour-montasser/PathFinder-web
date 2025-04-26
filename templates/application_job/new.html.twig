@@ -54,7 +54,18 @@
                         <h4 class="d-inline ms-3">Cover Letter</h4>
                     </div>
                     
-                     <div class="mb-4">
+                     <!-- Add this AI generation button section -->
+<div class="mb-3">
+    <button type="button" id="generate-cover-letter" class="btn btn-info mb-3">
+        <i class="bi bi-magic me-2"></i> Generate with AI
+    </button>
+    <div id="generation-loading" class="spinner-border text-primary d-none" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <div id="generation-error" class="alert alert-danger d-none mt-2"></div>
+</div>
+    
+    <div class="mb-4">
         {% if form.coverletter is defined %}
             {{ form_row(form.coverletter.subject, {
                 'label': 'Subject *',
@@ -186,49 +197,125 @@
 
        
     
-
-        <!-- Replace the JavaScript section with this: -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // Initialize CKEditor for the cover letter content
+    let editor;
     if (document.querySelector('#application_job_coverletter_content')) {
         ClassicEditor
             .create(document.querySelector('#application_job_coverletter_content'))
+            .then(createdEditor => {
+                editor = createdEditor;
+            })
             .catch(error => {
                 console.error(error);
             });
     }
 
+    // AI Cover Letter Generation
+    const generateBtn = document.getElementById('generate-cover-letter');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', async function() {
+            const loadingIndicator = document.getElementById('generation-loading');
+            const errorDisplay = document.getElementById('generation-error');
+            const subjectField = document.getElementById('application_job_coverletter_subject');
+            
+            try {
+                // Reset UI
+                generateBtn.disabled = true;
+                loadingIndicator.classList.remove('d-none');
+                errorDisplay.classList.add('d-none');
+                errorDisplay.textContent = '';
+                
+                const response = await fetch('{{ path("app_application_generate_coverletter", {"job_offer_id": job_offer.getIdOffer}) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to generate cover letter');
+                }
+                
+                const data = await response.json();
+                
+                if (subjectField && data.subject) {
+                    subjectField.value = data.subject;
+                }
+                
+                if (data.content) {
+                    if (editor) {
+                        editor.setData(data.content);
+                    } else {
+                        const contentField = document.getElementById('application_job_coverletter_content');
+                        if (contentField) {
+                            contentField.value = data.content;
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error generating cover letter:', error);
+                errorDisplay.textContent = error.message;
+                errorDisplay.classList.remove('d-none');
+            } finally {
+                generateBtn.disabled = false;
+                loadingIndicator.classList.add('d-none');
+            }
+        });
+    }
+
     // Get the form and buttons
     const form = document.querySelector('#application-form');
-    const nextButtons = form.querySelectorAll('[data-step-action="next"]');
-    const prevButtons = form.querySelectorAll('[data-step-action="prev"]');
-    const currentStepInput = document.getElementById('current_step_input');
-    const stepActionInput = document.getElementById('step-action');
+    if (form) {
+        const nextButtons = form.querySelectorAll('[name="action"][value="next"]');
+        const prevButtons = form.querySelectorAll('[name="action"][value="prev"]');
+        const currentStepInput = document.getElementById('current_step_input');
 
-    // Handle the "Next" button
-    nextButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            stepActionInput.value = 'next';
-            const currentStep = parseInt(currentStepInput.value);
-            if (currentStep < 4) {
-                currentStepInput.value = currentStep + 1;
-            }
-            form.submit();
+        // Handle the "Next" button
+        nextButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                const currentStep = parseInt(currentStepInput.value);
+                if (currentStep < 4) {
+                    currentStepInput.value = currentStep + 1;
+                }
+            });
         });
-    });
 
-    // Handle the "Back" button
-    prevButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            stepActionInput.value = 'prev';
-            const currentStep = parseInt(currentStepInput.value);
-            if (currentStep > 1) {
-                currentStepInput.value = currentStep - 1;
-            }
-            form.submit();
+        // Handle the "Back" button
+        prevButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                const currentStep = parseInt(currentStepInput.value);
+                if (currentStep > 1) {
+                    currentStepInput.value = currentStep - 1;
+                }
+            });
         });
-    });
+
+        // Form validation for step 2 (cover letter)
+        form.addEventListener('submit', function(e) {
+            const currentStep = parseInt(currentStepInput.value);
+            if (currentStep === 2) {
+                const subject = document.getElementById('application_job_coverletter_subject')?.value.trim();
+                let content = '';
+                
+                if (editor) {
+                    content = editor.getData().trim();
+                } else {
+                    content = document.getElementById('application_job_coverletter_content')?.value.trim() || '';
+                }
+                
+                if (!subject || !content) {
+                    e.preventDefault();
+                    alert('Please fill in both the subject and content for your cover letter.');
+                }
+            }
+        });
+    }
 });
 </script>
     {% endblock %}
