@@ -235,6 +235,11 @@ class App_user
         return $this;
     }
 
+    public function getId(): int
+{
+    return $this->idUser;
+}
+
     public function __toString(): string
 {
     return $this->email; // assuming you have a public property or getter

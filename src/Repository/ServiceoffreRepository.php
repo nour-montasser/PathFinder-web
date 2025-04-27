@@ -67,4 +67,18 @@ class ServiceoffreRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+
+    public function findFreelancersHiredByClient($client)
+{
+    return $this->createQueryBuilder('a')
+        ->join('a.service', 's')
+        ->where('s.client = :client')
+        ->andWhere('a.status = :status')
+        ->setParameter('client', $client)
+        ->setParameter('status', 'paid')
+        ->getQuery()
+        ->getResult();
+}
+
 }

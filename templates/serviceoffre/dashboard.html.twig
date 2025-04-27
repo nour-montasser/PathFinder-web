@@ -1,80 +1,155 @@
 {% extends 'base.html.twig' %}
-{% block title %}My Dashboard{% endblock %}
+
+{% block title %}My Freelancers Dashboard{% endblock %}
 
 {% block body %}
-<div class="container py-5">
-  <h2 class="mb-4 fw-bold text-brown">My Dashboard</h2>
+<div class="container py-5" style="font-family: 'Poppins', sans-serif;">
+    <h1 class="mb-5 text-center text-primary fw-bold" style="font-size: 2.7rem;"> My Dashboard</h1>
 
-  <!-- Filter Tabs -->
-  <div class="mb-4">
-    <div class="btn-group" role="group">
-      <a href="?filter=today" class="btn btn-outline-brown {{ app.request.query.get('filter') == 'today' ? 'active' : '' }}">Today</a>
-      <a href="?filter=week" class="btn btn-outline-brown {{ app.request.query.get('filter') == 'week' ? 'active' : '' }}">This Week</a>
-      <a href="?filter=month" class="btn btn-outline-brown {{ app.request.query.get('filter') == 'month' ? 'active' : '' }}">This Month</a>
+    <div class="row g-5">
+        <div class="col-lg-8">
+            <div class="card shadow-lg p-4 border-0 rounded-4">
+                <h4 class="mb-4 fw-bold text-brown"> Freelancers Hired</h4>
+
+                {% if applications is not empty %}
+                    <div class="row row-cols-1 g-4">
+                        {% for application in applications %}
+                            <div class="col">
+                                <div class="card border-light shadow-sm h-100 rounded-4 hover-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <img src="{{ asset('uploads/users/' ~ application.user.image) }}" alt="Profile Picture" class="rounded-circle me-3 border" style="width: 55px; height: 55px; object-fit: cover;">
+                                            <div>
+                                                <h5 class="card-title fw-bold mb-1">{{ application.user.name }}</h5>
+                                                <small class="text-muted">{{ application.service.title }}</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <small class="fw-bold text-secondary">Work Progress</small>
+                                            <div class="progress mt-1" style="height: 10px;">
+                                                <div class="progress-bar progress-animated" role="progressbar" style="width: 2%; background-color: #8B4513;" aria-valuenow="2" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <small class="text-muted">2% Completed</small>
+                                        </div>
+
+                                        <div class="d-flex flex-wrap gap-2 mt-4">
+                                            <a href="{{ path('calendar_page') }}" class="btn brown-button rounded-pill px-4 d-flex align-items-center gap-2">
+                                                 <span>Calendar</span>
+                                            </a>
+                                            <a href="#" class="btn brown-button rounded-pill px-4 d-flex align-items-center gap-2">
+                                                 <span>Message</span>
+                                            </a>
+                                            <button class="btn brown-button rounded-pill px-4 d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#rateModal{{ application.idApp }}">
+                                                 <span>End Service</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Modal for Rating #}
+                            <div class="modal fade" id="rateModal{{ application.idApp }}" tabindex="-1" aria-labelledby="rateModalLabel{{ application.idApp }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content shadow-sm rounded-4">
+                                        <div class="modal-header border-0">
+                                            <h5 class="modal-title" id="rateModalLabel{{ application.idApp }}">⭐ Rate this Freelancer</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form action="{{ path('rate_freelancer', {'id': application.idApp}) }}" method="post">
+                                            <div class="modal-body text-center">
+                                                <div class="rating-stars mb-4">
+                                                    {% for i in 5..1 %}
+                                                        <input class="form-check-input d-none" type="radio" name="rating" value="{{ i }}" id="star{{ i }}-{{ application.idApp }}">
+                                                        <label for="star{{ i }}-{{ application.idApp }}" class="star">&#9733;</label>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0">
+                                                <button type="submit" class="btn btn-primary w-100 rounded-pill">Submit Rating</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning mt-3 text-center rounded-pill">
+                        No freelancers hired yet 🚀
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-lg p-4 text-center border-0 rounded-4">
+                <h5 class="mb-4 fw-bold text-brown"> Collaborative Calendar</h5>
+                <a href="{{ path('calendar_page') }}">
+                    <img src="{{ asset('images/calendar.svg') }}" alt="Calendar" class="img-fluid mb-3" style="max-width: 220px;">
+                </a>
+                <p class="small">
+                    Manage tasks, track your freelancers' progress and Schedual meetings !
+                </p>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <!-- Dashboard Table -->
-  <div class="table-responsive shadow-sm rounded">
-    <table class="table table-hover bg-white rounded overflow-hidden">
-      <thead class="table-light text-secondary">
-        <tr>
-          <th>Service Title</th>
-          <th>Created</th>
-          <th>Proposals</th>
-          <th>Messaged</th>
-          <th>Hired</th>
-          <th>Views</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for stat in stats %}
-        <tr>
-  <td class="fw-semibold text-brown">{{ stat.service.title }}</td>
-  <td>{{ stat.service.datePosted|date('M d, Y') }}</td>
-  <td>{{ stat.total }}</td>
-  <td>{{ stat.pending }}</td>
-  <td>{{ stat.hired }}</td>
-  <td>{{ stat.rejected }}</td>
-  <td>
-    <a href="{{ path('app_serviceoffre_manage', { idService: stat.service.idService }) }}"
-       class="btn btn-sm btn-outline-secondary">Manage</a>
-  </td>
-</tr>
-
-        <tr>
-          <td colspan="7" class="text-center text-muted py-4">No services found for this filter.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
 </div>
-{% endblock %}
 
-{% block stylesheets %}
-  <style>
-    .text-brown {
-      color: #3B261D;
-    }
-    .btn-outline-brown {
-      border-color: #3B261D;
-      color: #3B261D;
-    }
-    .btn-outline-brown:hover,
-    .btn-outline-brown.active {
-      background-color: #3B261D;
-      color: white;
-    }
-    table {
-      font-size: 15px;
-    }
-    thead th {
-      font-weight: 600;
-    }
-    tbody tr:hover {
-      background-color: #f5f5f5;
-    }
-  </style>
+{# Custom Styles #}
+<style>
+/* Base UI styling */
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+.rating-stars {
+    font-size: 4rem;
+    direction: rtl;
+    display: inline-flex;
+}
+.rating-stars input[type="radio"] {
+    display: none;
+}
+.rating-stars label {
+    cursor: pointer;
+    color: #ccc;
+    transition: color 0.2s;
+}
+.rating-stars input[type="radio"]:checked ~ label,
+.rating-stars label:hover,
+.rating-stars label:hover ~ label {
+    color: gold;
+}
+.text-brown {
+    color: #8B4513;
+}
+.hover-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+.progress-animated {
+    transition: width 1.2s ease-in-out;
+}
+
+/* Brown Rounded Buttons */
+.brown-button {
+    background-color: #79501B;
+    border: none;
+    color: white;
+    transition: background-color 0.3s, transform 0.2s;
+}
+.brown-button:hover {
+    background-color: #5C3B14;
+    transform: translateY(-2px);
+}
+</style>
+
+{# Google Fonts #}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
 {% endblock %}

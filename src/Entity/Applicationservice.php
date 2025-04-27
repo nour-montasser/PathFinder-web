@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Serviceoffre;
 use App\Entity\App_user;
@@ -37,6 +39,15 @@ private string $status = 'pending';
 
     #[ORM\Column(name: "portfolio", type: 'string', length: 255, nullable: true)]
     private ?string $portfolio = null;
+
+  
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'application')]
+    private Collection $payments;
+
+    public function __construct()
+    {
+        $this->payments = new ArrayCollection();
+    }
 
     public function getIdApp(): ?int
     {
@@ -124,6 +135,36 @@ public function setRating(?int $rating): self
     public function setPortfolio(?string $portfolio): self
     {
         $this->portfolio = $portfolio;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): static
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setApplication($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): static
+    {
+        if ($this->payments->removeElement($payment)) {
+            // set the owning side to null (unless already changed)
+            if ($payment->getApplication() === $this) {
+                $payment->setApplication(null);
+            }
+        }
+
         return $this;
     }
 

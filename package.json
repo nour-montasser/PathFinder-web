@@ -33,6 +33,12 @@
   "author": "",
   "description": "",
   "dependencies": {
-    "bootstrap-icons": "^1.11.3"
+    "@fullcalendar/core": "^6.1.17",
+    "@fullcalendar/daygrid": "^6.1.17",
+    "@fullcalendar/interaction": "^6.1.17",
+    "@fullcalendar/timegrid": "^6.1.17",
+    "bootstrap-icons": "^1.11.3",
+    "fullcalendar": "^6.1.17",
+    "sweetalert2": "^11.19.1"
   }
 }

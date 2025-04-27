@@ -3,7 +3,6 @@
 namespace App\Form;
 
 use App\Entity\Serviceoffre;
-
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -15,25 +14,13 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Validator\Constraints as Assert;
 
-
-
 class ServiceoffreType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-           
-            ->add('description')
-            ->add('generateDescription', SubmitType::class, [
-                'label' => 'Generate with AI',
-                'attr' => [
-                    'class' => 'btn btn-secondary',
-                    'formnovalidate' => 'formnovalidate',
-                    'onclick' => 'event.preventDefault(); generateDescription(this.form);'
-                ],
-                'validate' => false
-            ])
             ->add('title')
+            ->add('description')
             ->add('field', ChoiceType::class, [
                 'label' => 'Field',
                 'choices' => [
@@ -48,15 +35,18 @@ class ServiceoffreType extends AbstractType
                 ],
                 'placeholder' => 'Choose a field...',
                 'attr' => ['class' => 'form-control'],
-                
             ])
             ->add('price', MoneyType::class, [
-                'label' => 'Prix',
-                'currency' => 'EUR', // or 'USD' based on your app
-                'required' => false,
-                
+                'label' => 'Price',
+                'currency' => 'EUR',
+                'required' => true, // ❗ Price is now mandatory
+                'attr' => ['class' => 'form-control'],
             ])
-    
+            ->add('price_estimation', NumberType::class, [
+                'label' => 'Price (Estimated)',
+                'required' => false, // 💡 Optional
+                'attr' => ['readonly' => true, 'class' => 'form-control'],
+            ])
             ->add('required_education')
             ->add('skills')
             ->add('experience_level', ChoiceType::class, [
@@ -68,47 +58,37 @@ class ServiceoffreType extends AbstractType
                     'Expert' => 'Expert',
                 ],
                 'placeholder' => 'Select experience level...',
-                'attr' => ['class' => 'form-control']
+                'attr' => ['class' => 'form-control'],
             ])
-           
             ->add('status')
-             // Mark startDate and endDate as unmapped so they're not tied to the entity
-             ->add('startDate', DateType::class, [
+            ->add('startDate', DateType::class, [
                 'mapped' => false,
                 'widget' => 'single_text',
-                'attr' => ['min' => (new \DateTime())->format('Y-m-d')],
                 'constraints' => [
-                    new Assert\NotBlank(message: 'La date de début est requise.'),
-                    new Assert\GreaterThanOrEqual([
-                        'value' => 'today',
-                        'message' => 'La date de début doit être aujourd\'hui ou une date future.'
-                    ]),
-                ]
-                
+                    new Assert\NotBlank(['message' => 'Start date is required.']),
+                    new Assert\GreaterThanOrEqual(['value' => 'today', 'message' => 'Start date must be today or in the future.']),
+                ],
+                'attr' => ['min' => (new \DateTime())->format('Y-m-d')],
             ])
             ->add('endDate', DateType::class, [
                 'mapped' => false,
                 'widget' => 'single_text',
-                'attr' => ['min' => (new \DateTime())->format('Y-m-d')],
                 'constraints' => [
-                    new Assert\NotBlank(message: 'La date de fin est requise.'),
-                ]
+                    new Assert\NotBlank(['message' => 'End date is required.']),
+                ],
+                'attr' => ['min' => (new \DateTime())->format('Y-m-d')],
             ])
-            ->add('price_estimation', NumberType::class, [
-                'required' => false, // 💡 prevent validation when AI button is clicked
-                'label' => 'Price (Estimated)',
+            ->add('generateDescription', SubmitType::class, [
+                'label' => 'Generate with AI',
+                'attr' => [
+                    'formnovalidate' => 'formnovalidate',
+                    'class' => 'btn btn-secondary',
+                ],
             ])
             ->add('generatePrice', SubmitType::class, [
                 'label' => 'Estimate Price with AI',
-                'attr' => ['formnovalidate' => 'formnovalidate']
+                'attr' => ['formnovalidate' => 'formnovalidate', 'class' => 'btn btn-success'],
             ]);
-            
-            
-        
-            
-            
-    
-        
     }
 
     public function configureOptions(OptionsResolver $resolver): void

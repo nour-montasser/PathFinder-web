@@ -16,61 +16,88 @@
 
 
     <div class="row">
-      <!-- Sidebar Filters -->
-    <div class="col-md-4 bg-linen border-end px-4 py-4 rounded shadow-sm sidebar-filters" style="background-color: #F8F9FA;">
+<!-- Sidebar Filters -->
+<div class="col-md-4 sidebar-filters px-4 py-4 rounded shadow-sm" style="background-color: #ffffff;">
+  
+  <!-- Client Tools Section -->
+  <div class="sidebar d-flex flex-column py-4">
+  <ul class="nav flex-column">
+    <li class="nav-item mb-2">
+      <a href="{{ path('app_serviceoffre_dashboard') }}" class="nav-link sidebar-link {% if app.request.pathinfo starts with path('app_serviceoffre_dashboard') %}active{% endif %}">
+  <i class="bi bi-speedometer2"></i>
+  <span>Dashboard</span>
+</a>
+
+<a href="{{ path('stripe_payment_history') }}" class="nav-link sidebar-link {% if app.request.pathinfo starts with path('stripe_payment_history') %}active{% endif %}">
+  <i class="bi bi-credit-card-2-front"></i>
+  <span>Payment History</span>
+</a>
+
+<a href="{{ path('calendar_page') }}" class="nav-link sidebar-link {% if app.request.pathinfo starts with path('calendar_page') %}active{% endif %}">
+  <i class="bi bi-calendar3"></i>
+  <span>Manage Calendar</span>
+</a>
+
+<a href="#" class="nav-link sidebar-link">
+  <i class="bi bi-pencil-square"></i>
+  <span>Task Tracker</span>
+</a>
+
+    </li>
+  </ul>
+</div>
 
 
-        <h5 class="mb-4 fw-bold text-dark">Find Your Ideal Service</h5>
 
-        <!-- Filters -->
-        <div class="mb-3">
-          <label class="form-label">Field</label>
-          <select id="filterField" class="form-select">
-            <option value="">All Fields</option>
-            {% for field in fields %}
-              <option value="{{ field }}">{{ field }}</option>
-            {% endfor %}
-          </select>
-        </div>
+  <!-- Find Your Service -->
+  <h5 class="mb-4 fw-bold text-brown"><i class="bi bi-search me-2"></i> Find Your Ideal Service</h5>
 
-        <div class="mb-3">
-          <label class="form-label"> Skills </label>
-          <select id="filterSkills" class="form-select">
-            <option value="">All Categories</option>
-            {% for skill in skills %}
-              <option value="{{ skill }}">{{ skill }}</option>
-            {% endfor %}
-          </select>
-        </div>
+  <div class="mb-4">
+    <label class="form-label">Field</label>
+    <select id="filterField" class="form-select">
+      <option value="">All Fields</option>
+      {% for field in fields %}
+        <option value="{{ field }}">{{ field }}</option>
+      {% endfor %}
+    </select>
+  </div>
 
-        <div class="mb-3">
-          <label class="form-label">Duration</label>
-          {% for option in ['less than 1 month', '1 to 3 months', '3 to 6 months', 'more than 6 months'] %}
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="duration[]" value="{{ option }}" id="duration_{{ loop.index }}">
-              <label class="form-check-label" for="duration_{{ loop.index }}">{{ option }}</label>
-            </div>
-          {% endfor %}
-        </div>
+  <div class="mb-4">
+    <label class="form-label">Skills</label>
+    <select id="filterSkills" class="form-select">
+      <option value="">All Categories</option>
+      {% for skill in skills %}
+        <option value="{{ skill }}">{{ skill }}</option>
+      {% endfor %}
+    </select>
+  </div>
 
-        <div class="mb-3">
-          <label class="form-label">Price</label>
-          {% for option in ['Less than $100', '$100 to $500', '$500 to $1K', '$1K+'] %}
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="price[]" value="{{ option }}" id="price_{{ loop.index }}">
-              <label class="form-check-label" for="price_{{ loop.index }}">{{ option }}</label>
-            </div>
-          {% endfor %}
-        </div>
+  <div class="mb-4">
+    <label class="form-label">Duration</label>
+    {% for option in ['less than 1 month', '1 to 3 months', '3 to 6 months', 'more than 6 months'] %}
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="duration[]" value="{{ option }}" id="duration_{{ loop.index }}">
+        <label class="form-check-label" for="duration_{{ loop.index }}">{{ option }}</label>
       </div>
+    {% endfor %}
+  </div>
+
+  <div>
+    <label class="form-label">Price</label>
+    {% for option in ['Less than $100', '$100 to $500', '$500 to $1K', '$1K+'] %}
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="price[]" value="{{ option }}" id="price_{{ loop.index }}">
+        <label class="form-check-label" for="price_{{ loop.index }}">{{ option }}</label>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
 
       <!-- Service Listings -->
       <div class="col-md-9 px-5">
       
         <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="{{ path('app_serviceoffre_dashboard') }}" class="btn btn-db shadow-sm d-flex align-items-center" style="height: 40px; font-size: 0.95rem;">
-  <i class="bi bi-speedometer2 me-2"></i> My Dashboard
-</a>
 
           <div class="dropdown">
             <button class="btn dropdown-toggle text-dark fw-bold fs-4 border-0 bg-transparent shadow-none"
@@ -280,7 +307,62 @@ body {
   text-decoration: none;
 }
 
+.sidebar {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 25px 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  min-height: 300px;
+  width: 100%;
+  transition: all 0.3s ease-in-out;
+}
 
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #453129;
+  border-radius: 10px;
+  transition: all 0.25s ease-in-out;
+  background: transparent;
+  position: relative;
+}
+
+.nav-link i {
+  font-size: 1.3rem;
+  transition: color 0.25s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  background-color: #453129;
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(111, 79, 31, 0.2);
+  transform: translateX(5px);
+}
+
+.nav-link:hover i,
+.nav-link.active i {
+  color: #ffffff;
+}
+
+.nav-link span {
+  transition: color 0.3s ease;
+}
+
+/* Nice press-in effect */
+.nav-link:active {
+  transform: scale(0.98);
+}
+
+/* Sidebar overall feel when hovering */
+.sidebar:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
 </style>
 
 <!-- Drawer container -->
@@ -508,6 +590,11 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 {% endif %}
 
+<!-- Price Field -->
+<div class="mb-3">
+  {{ form_label(form.price) }}
+  {{ form_widget(form.price, {'attr': {'class': 'form-control'}}) }}
+</div>
 
 <!-- Price Estimation -->
 <div class="mb-3">
@@ -763,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .filter-box {
-   background-color: #EBECED !important;
+   background-color: #FFFFFF !important;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.04);
@@ -846,6 +933,11 @@ document.addEventListener('DOMContentLoaded', function() {
         border-left: 3px solid #0d6efd;
     }
 
+.list-group-item a:hover {
+  color: #6f4f1f;
+  transform: translateX(2px);
+  transition: all 0.2s ease-in-out;
+}
 
 </style>
 

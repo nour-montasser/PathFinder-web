@@ -18,6 +18,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Form\FormError;
 use App\Service\AIDescriptionGenerator; // Ensure this is the correct namespace for the class
+use App\Repository\ApplicationserviceRepository; // Add the correct namespace for ApplicationserviceRepository
 
 #[Route('/serviceoffre')]
 final class ServiceoffreController extends AbstractController
@@ -449,12 +450,14 @@ public function manage(Serviceoffre $serviceoffre, Request $request, EntityManag
         'applications' => $applications,
         'hired' => $hired,
         'stripe_public_key' => $_ENV['STRIPE_PUBLIC_KEY'],
+        'sessionUser' => $sessionUser,
+
 
     ]);
 }
 
 #[Route('/freelance/guide', name: 'app_freelance_guide', methods: ['GET'])]
-public function guide(EntityManagerInterface $em): Response
+public function guide(Request $request, EntityManagerInterface $em): Response
 {
     $fields = $em->getRepository(Serviceoffre::class)
         ->createQueryBuilder('s')
@@ -462,58 +465,38 @@ public function guide(EntityManagerInterface $em): Response
         ->getQuery()
         ->getSingleColumnResult();
 
+    $sessionUser = $this->getSessionUser($request, $em);
+
     return $this->render('serviceoffre/guide.html.twig', [
         'fields' => $fields,
+        'sessionUser' => $sessionUser,
     ]);
 }
 
-
-#[Route('/dashboard/myservices', name: 'app_serviceoffre_dashboard')]
-public function myServicesDashboard(Request $request, EntityManagerInterface $em): Response
+#[Route('/dashboard/freelancers', name: 'app_serviceoffre_dashboard')]
+public function freelancerDashboard(ApplicationserviceRepository $appRepo, EntityManagerInterface $em, Request $request): Response
 {
-    $user = $this->getSessionUser($request, $em);
-    if (!$user) {
-        return $this->redirectToRoute('mock_login');
+    $sessionUserId = $request->getSession()->get('mock_user_id');
+
+    if (!$sessionUserId) {
+        throw $this->createAccessDeniedException('No client logged in.');
     }
 
-    $period = $request->query->get('period', 'month');
-    $startDate = match ($period) {
-        'today' => (new \DateTime())->setTime(0, 0),
-        'week' => (new \DateTime('-7 days')),
-        default => (new \DateTime('-1 month')),
-    };
-
-    $services = $em->getRepository(Serviceoffre::class)
-        ->createQueryBuilder('s')
-        ->where('s.user = :user')
-        ->andWhere('s.date_posted >= :start')
-        ->setParameter('user', $user) // or $user->getIdUser() if you still get an error
-        ->setParameter('start', $startDate)
-        
-    
-        ->orderBy('s.date_posted', 'DESC')
-
+    $applications = $appRepo->createQueryBuilder('a')
+        ->join('a.service', 's')
+        ->join('s.user', 'client') // JOIN the client owning the service
+        ->where('client.idUser = :clientId')
+        ->andWhere('a.status = :status')
+        ->setParameter('clientId', $sessionUserId) // 🛠 set each parameter separately
+        ->setParameter('status', 'paid')
         ->getQuery()
         ->getResult();
 
-    $stats = [];
-
-    foreach ($services as $service) {
-        $apps = $service->getApplicationservices();
-
-        $stats[] = [
-            'service' => $service,
-            'total' => count($apps),
-            'pending' => count(array_filter($apps->toArray(), fn($a) => $a->getStatus() === 'pending')),
-            'hired' => count(array_filter($apps->toArray(), fn($a) => $a->getStatus() === 'accepted')),
-            'rejected' => count(array_filter($apps->toArray(), fn($a) => $a->getStatus() === 'rejected')),
-        ];
-    }
+    $sessionUser = $this->getSessionUser($request, $em);
 
     return $this->render('serviceoffre/dashboard.html.twig', [
-        'stats' => $stats,
-        'selectedPeriod' => $period,
-        'services' => $services,
+        'applications' => $applications,
+        'sessionUser' => $sessionUser
     ]);
 }
 
@@ -557,5 +540,29 @@ public function pay(): Response
         'stripe_public_key' => $_ENV['STRIPE_PUBLIC_KEY']
     ]);
 }
+#[Route('/rate-freelancer/{id}', name: 'rate_freelancer', methods: ['POST'])]
+public function rateFreelancer(Request $request, ApplicationserviceRepository $appRepo, EntityManagerInterface $em, int $id): Response
+{
+    $application = $appRepo->find($id);
+
+    if (!$application) {
+        throw $this->createNotFoundException('Application not found.');
+    }
+
+    $rating = (int) $request->request->get('rating');
+
+    if ($rating < 1 || $rating > 5) {
+        $this->addFlash('error', 'Invalid rating! Please rate between 1 and 5 stars.');
+        return $this->redirectToRoute('app_serviceoffre_dashboard');
+    }
+
+    $application->setRating($rating);
+    $application->setStatus('completed'); // 🔥 Mark the service as completed after rating
+    $em->flush();
+
+    $this->addFlash('success', 'Freelancer rated successfully and service completed!');
+    return $this->redirectToRoute('app_serviceoffre_dashboard');
+}
+
 
 }
