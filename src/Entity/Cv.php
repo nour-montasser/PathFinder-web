@@ -10,7 +10,7 @@ use App\Entity\Certificates;
 use App\Entity\Experience;
 use App\Entity\Languages;
 use App\Entity\Application_job;
-
+use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity]
 class Cv
 {
@@ -26,16 +26,16 @@ class Cv
 
     #[ORM\Column(type: "string", length: 255)]
     private string $title;
-
+    #[Assert\NotBlank(message: 'CV Title is required.')]
     #[ORM\Column(type: "string", length: 255)]
     private string $user_title;
-
+    #[Assert\NotBlank(message: 'Introduction is required.')]
     #[ORM\Column(type: "string", length: 500)]
     private string $introduction;
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $date_creation;
-
+    #[Assert\NotBlank(message: 'Skills cannot be blank.')]
     #[ORM\Column(type: "string", length: 255)]
     private string $skills;
 
@@ -47,7 +47,6 @@ class Cv
 
     #[ORM\OneToMany(mappedBy: "cv", targetEntity: Certificates::class, cascade: ["persist", "remove"])]
     private Collection $certificates;
-    
 
     #[ORM\OneToMany(mappedBy: "cv", targetEntity: Experience::class, cascade: ["persist", "remove"])]
     private Collection $experiences;

@@ -161,19 +161,27 @@
 						<!-- CV Title Field -->
 							<div class="mb-3"> {{ form_label(cvForm.user_title, 'CV Title', { 'label_attr': { 'class': 'form-label' } }) }}
 							{{ form_widget(cvForm.user_title, { 'attr': { 'class': 'form-control', 'placeholder': 'Enter CV Title', 'maxlength': '100' } }) }}
-							{{ form_errors(cvForm.user_title) }}
+							{% if titleError is defined and titleError %}
+  <div class="text-danger">{{ titleError }}</div>
+{% endif %}
 						</div>
 						<!-- CV Introduction -->
 						<div class="mb-3">
 							{{ form_label(cvForm.introduction, 'CV Introduction', { 'label_attr': { 'class': 'form-label' } }) }}
 							{{ form_widget(cvForm.introduction, { 'attr': { 'class': 'form-control', 'placeholder': 'Enter CV Introduction', 'rows': 3, 'maxlength': '300' } }) }}
-							{{ form_errors(cvForm.introduction) }}
+					{% if introductionError is defined and introductionError %}
+  <div class="text-danger">{{ introductionError }}</div>
+{% endif %}
+
 						</div>
 						<!-- Skills Section -->
 						<div class="mb-3">
-							{{ form_label(cvForm.skills, 'Skills (comma-separated)', { 'label_attr': { 'class': 'form-label' } }) }}
-							{{ form_widget(cvForm.skills, { 'attr': { 'class': 'form-control', 'placeholder': 'e.g., HTML, CSS, JavaScript', 'maxlength': '255' } }) }}
-							{{ form_errors(cvForm.skills) }}
+							{{ form_widget(cvForm.skills, {
+       attr: {
+         type: 'hidden',
+         id:'skillsInput'  
+       }
+  }) }}
 
 
 							<label class="form-label">Search for a Skill:</label>
@@ -201,7 +209,9 @@
 								id="hiddenSkills" style="display:none;"><!-- Hidden inputs for selected skills will be stored here -->
 							</div>
 
-							<small id="skillsErrorLabel" class="text-danger d-none">Please select a skill!</small>
+			{% if skillsError is defined and skillsError %}
+  <div class="text-danger">{{ skillsError }}</div>
+{% endif %}
 						</div>
 						<div class="mb-3">
 							<h5>Languages</h5>
@@ -216,6 +226,10 @@
 										<button type="button" class="btn-close" aria-label="Remove" onclick="removeLanguage({{ loop.index0 }})"></button>
 									</div>
 								{% endfor %}
+								{% if languageError is defined and languageError %}
+								<small id="languageErrorLabel" class="text-danger {{ languageError ? '' : 'd-none' }}">
+								{{ languageError }}</small>
+								{% endif %}
 							</div>
 
 							<!-- Language selection dropdown -->
@@ -254,6 +268,9 @@
 						<div class="mb-3">
 							<h5>Experiences</h5>
 							<div id="experienceContainer">
+							{% if experienceError is defined and experienceError %}
+														<small id="experienceErrorLabel" class="text-danger {{ experienceError ? '' : 'd-none' }}">{{ experienceError }}</small>
+														{% endif %}
 								{% for exp in experiences %}
 									<div class="mb-2 p-2 border" data-index="{{ loop.index0 }}">
 										<div style="display: flex; justify-content: space-between; align-items: center;">
@@ -330,9 +347,10 @@
 								<input type="hidden" name="languages[{{ loop.index0 }}][level]" value="{{ language.level }}">
 							{% endfor %}
 						</div>
-						{{ form_widget(cvForm._token) }}
+
 						<button type="submit" class="btn btn-primary" id="submit-cv">Submit CV</button>
-						{{ form_end(cvForm, { render_rest: false }) }}
+						{{ form_rest(cvForm) }}
+						{{ form_end(cvForm) }}
 					</div>
 				</div>
 			</div>
@@ -525,6 +543,15 @@
 	<script src="{{ asset('js/cvjs.js') }}"></script>
 	<script>
 		document.addEventListener('DOMContentLoaded', () => {
+		 const raw = "{{ cv.getSkills()|e('js') }}";
+      if (raw) {
+        // split on commas & trim whitespace
+        raw.split(',').map(s => s.trim()).filter(s => s.length).forEach(skill => {
+          // this is your existing function that adds a tag + a hidden input
+          window.addSkillTag(skill)
+        });
+      }
+    });
 const languageContainer = document.getElementById('languageContainer');
 
 // Use event delegation to listen for clicks on any .btn-close inside the container.
@@ -543,7 +570,7 @@ inputs.forEach(input => input.remove());
 }
 }
 }
-});
+
 });
 	</script>
 {% endblock %}
