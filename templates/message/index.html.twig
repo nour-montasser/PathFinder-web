@@ -13,14 +13,13 @@
 			</div>
 
 			<!-- Messages Content -->
-			<div class="col-md-8 d-flex flex-column h-100">
-				<div class="p-3 border-bottom">
-					<div class="d-flex justify-content-between align-items-center">
-						<h5 class="mb-0">Messages</h5>
-						<small class="text-muted">{{ messages|length }}
-							messages</small>
-					</div>
-				</div>
+			<div class="col-md-8 d-flex flex-column h-100 position-relative">
+    <div class="p-3 border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Messages</h5>
+            <small class="text-muted">{{ messages|length }} messages</small>
+        </div>
+    </div>
 
 				<!-- Scrollable messages area -->
 				<div id="messages-container" class="flex-grow-1 overflow-auto p-3 bg-grey">
@@ -84,6 +83,7 @@
 				</div>
 
 				<!-- New Message Form -->
+<<<<<<< Updated upstream
 				<div class="p-3 border-top bg-white" style="position: sticky; bottom: 0;">
 					{{ form_start(form, {'attr': {'class': 'd-flex', 'enctype': 'multipart/form-data'}}) }}
 
@@ -94,22 +94,53 @@
         'class': 'form-control',
         'placeholder': 'Type your message...'
     }}) }}
+=======
+				<!-- New Message Form -->
+<div class="border-top bg-white">
+    {{ form_start(form) }}
+    <div class="input-group">
+        {{ form_widget(form.content, {
+            'attr': {
+                'class': 'form-control',
+                'placeholder': 'Type your message here...'
+            }
+        }) }}
 
-						<label class="input-group-text" for="{{ form.mediaFile.vars.id }}" title="Attach file">
-							<i class="bi bi-paperclip"></i>
-						</label>
+        {{ form_widget(form.mediaFile, {
+            'attr': {
+                'class': 'd-none'
+            },
+            'label': false
+        }) }}
+>>>>>>> Stashed changes
 
+        <label class="input-group-text" for="{{ form.mediaFile.vars.id }}" title="Attach file">
+            <i class="bi bi-paperclip"></i>
+        </label>
+
+<<<<<<< Updated upstream
 
 						<button type="submit" class="btn btn-primary">Send</button>
 					</div>
 
 					{{ form_end(form) }}
 				</div>
+=======
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send"></i>
+        </button>
+    </div>
+    {{ form_end(form) }}
+</div>
+				
+
+>>>>>>> Stashed changes
 			</div>
 		</div>
 	</div>
 	<script>
 function scrollToBottom(force = false) {
+<<<<<<< Updated upstream
 	const container = document.getElementById('messages-container');
 	if (!container) return;
 
@@ -118,15 +149,275 @@ function scrollToBottom(force = false) {
 	if (force || isAtBottom) {
 		container.scrollTop = container.scrollHeight;
 	}
+=======
+    const container = document.getElementById('messages-container');
+    if (!container) return;
+
+    // Add a small delay to ensure content is rendered
+    setTimeout(() => {
+        const scrollHeight = container.scrollHeight;
+        const scrollTop = container.scrollTop;
+        const clientHeight = container.clientHeight;
+        const isAtBottom = scrollHeight - scrollTop <= clientHeight + 100;
+
+        if (force || isAtBottom) {
+            container.scrollTop = scrollHeight;
+        }
+    }, 50);
+>>>>>>> Stashed changes
 }
 
 // Scroll on page load
 document.addEventListener('DOMContentLoaded', () => scrollToBottom(true));
 document.addEventListener('turbo:render', () => scrollToBottom(true));
 window.addEventListener('load', () => scrollToBottom(true));
+<<<<<<< Updated upstream
+</script>
+=======
+const messagesContainer = document.getElementById('messages-container');
+if (messagesContainer) {
+    const observer = new MutationObserver(() => scrollToBottom(true));
+    observer.observe(messagesContainer, { 
+        childList: true, 
+        subtree: true 
+    });
+}
+	</script>
+>>>>>>> Stashed changes
+
+{# Define user variables first #}
+<script>
+    // These variables must be defined BEFORE websocket.js loads
+    const currentUserId = {{ currentUser.getId_user() }};
+    const channelId = {{ selectedChannelId ?? 'null' }};
+    const currentUserImage = "{{ currentUser.image ? currentUser.image : asset('build/images/faces/default-profile.png') }}";
+    const currentUserName = "{{ currentUser.name }}";
 </script>
 
+{# Define user variables in a hidden element #}
+<div id="current-user-data" 
+     data-user-id="{{ currentUser.getId_user() }}"
+     data-channel-id="{{ selectedChannelId ?? '' }}"
+     data-user-image="{{ currentUser.image ? currentUser.image : asset('build/images/faces/default-profile.png') }}"
+     style="display:none;"></div>
 
+{# Single script section #}
+<script>
+// WebSocketClient class definition
+class WebSocketClient {
+    constructor(userId, channelId, userImage) {
+        this.userId = userId;
+        this.channelId = channelId;
+        this.userImage = userImage || '/build/images/faces/default-profile.png';
+        this.socket = null;
+        this.messageQueue = [];
+        this.connectAttempts = 0;
+        this.maxConnectAttempts = 5;
+        this.connect();
+        
+        // Keepalive ping every 25 seconds
+        this.keepaliveInterval = setInterval(() => {
+            if (this.socket?.readyState === WebSocket.OPEN) {
+                this.socket.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 25000);
+    }
+
+    connect() {
+        this.connectAttempts++;
+        if (this.connectAttempts > this.maxConnectAttempts) {
+            console.error('Max connection attempts reached');
+            return;
+        }
+
+        this.socket = new WebSocket(`ws://${window.location.hostname}:8082`);
+
+        this.socket.onopen = () => {
+            console.log('WebSocket connected');
+            this.connectAttempts = 0;
+            this.authenticate();
+            this.subscribe();
+            this.flushMessageQueue();
+        };
+
+        this.socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                this.handleMessage(data);
+            } catch (e) {
+                console.error('Message parse error:', e);
+            }
+        };
+
+        this.socket.onclose = () => {
+            console.log('WebSocket disconnected, reconnecting...');
+            setTimeout(() => this.connect(), 3000);
+        };
+
+        this.socket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+    }
+
+    authenticate() {
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: 'auth',
+                userId: this.userId
+            }));
+        }
+    }
+
+    subscribe() {
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: 'subscribe',
+                channelId: this.channelId,
+                userId: this.userId
+            }));
+        }
+    }
+
+    sendMessage(content) {
+        if (!content || !content.trim()) return;
+
+        const message = {
+            type: 'message',
+            content: content.trim(),
+            channelId: this.channelId,
+            userId: this.userId
+        };
+
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify(message));
+        } else {
+            // Queue message if connection isn't ready
+            this.messageQueue.push(message);
+            console.log('Message queued, connection not ready');
+        }
+    }
+
+    flushMessageQueue() {
+        while (this.messageQueue.length > 0 && this.socket?.readyState === WebSocket.OPEN) {
+            const message = this.messageQueue.shift();
+            this.socket.send(JSON.stringify(message));
+        }
+    }
+
+    handleMessage(data) {
+        switch (data.type) {
+            case 'message':
+                this.displayMessage(data);
+                break;
+            case 'error':
+                console.error('Server error:', data.message);
+                break;
+            case 'authenticated':
+                console.log('Successfully authenticated');
+                break;
+            case 'subscribed':
+                console.log('Successfully subscribed to channel');
+                break;
+            case 'pong':
+                // Keepalive response
+                break;
+            default:
+                console.warn('Unknown message type:', data.type);
+        }
+    }
+
+    displayMessage(message) {
+        const messagesContainer = document.getElementById('messages-container');
+        if (!messagesContainer) {
+            console.error('Messages container not found');
+            return;
+        }
+
+        const isCurrentUser = message.sender?.id === this.userId;
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `d-flex ${isCurrentUser ? 'justify-content-end' : 'justify-content-start'} mb-3`
+        
+        // Use the sender's image from the message or fallback
+        const senderImage = message.sender?.image || '/build/images/faces/default-profile.png';
+        
+        messageDiv.innerHTML = `
+            ${!isCurrentUser ? `
+                <div class="me-3">
+                    <img src="${senderImage}" 
+                         class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
+                </div>
+            ` : ''}
+            
+            <div class="chat-message ${isCurrentUser ? 'sent-message' : 'received-message'}">
+                <div class="message-content">${message.content}</div>
+                <div class="message-meta d-flex justify-content-between mt-1">
+                    <small class="message-time">${message.timeSent}</small>
+                </div>
+            </div>
+            
+            ${isCurrentUser ? `
+                <div class="ms-3">
+                    <img src="${this.userImage}" 
+                         class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
+                </div>
+            ` : ''}
+        `;
+        
+         messagesContainer.appendChild(messageDiv);
+   		 this.scrollToBottom();
+    }
+
+    scrollToBottom() {
+    window.scrollToBottom(true); // Use the global function
+}
+
+    disconnect() {
+        if (this.socket) {
+            clearInterval(this.keepaliveInterval);
+            this.socket.close();
+        }
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    const userData = document.getElementById('current-user-data');
+    if (!userData) {
+        console.error('Current user data element not found');
+        return;
+    }
+
+    const currentUserId = parseInt(userData.dataset.userId);
+    const channelId = userData.dataset.channelId ? parseInt(userData.dataset.channelId) : null;
+    const currentUserImage = userData.dataset.userImage;
+
+    if (channelId && !isNaN(currentUserId)) {
+        window.wsClient = new WebSocketClient(currentUserId, channelId, currentUserImage);
+
+        const messageForm = document.querySelector('form[name="message"]');
+        if (messageForm) {
+            messageForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const input = messageForm.querySelector('input[name="message[content]"]');
+                const textarea = messageForm.querySelector('textarea[name="message[content]"]');
+                const messageInput = input || textarea;
+                
+                if (messageInput?.value.trim()) {
+                    window.wsClient.sendMessage(messageInput.value.trim());
+                    messageInput.value = '';
+                    
+                    // Also submit the form normally for fallback
+                    if (window.wsClient.socket?.readyState !== WebSocket.OPEN) {
+                        messageForm.submit();
+                    }
+                }
+            });
+        }
+    } else {
+        console.error('Missing required user data or channel ID');
+    }
+});
+</script>
 {% endblock %}
 
 
@@ -326,6 +617,7 @@ html, body {
 			background-color: #e9ecef;
 		}
 		#messages-container {
+<<<<<<< Updated upstream
 			overflow-y: auto;
 			scroll-behavior: smooth;
 			-webkit-overflow-scrolling: touch;
@@ -342,5 +634,38 @@ html, body {
 			margin-bottom: 130px; /* Creates space above the input box */
 		}
         
+=======
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    height: calc(100vh - 160px); /* Adjust height to account for header and input */
+    padding-bottom: 80px; /* Increase padding at bottom */
+    position: relative;
+}
+		 .chat-content {
+    min-height: min-content;
+    padding-bottom: 120px;
+}
+	
+		.bg-white {
+			box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+		}
+		 /* Ensure the container fills available space */
+    .flex-grow-1 {
+        flex-grow: 1;
+        min-height: 0; /* Important for flex children */
+    }
+	/* Update the message input container styling */
+.border-top.bg-white {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background: white;
+    z-index: 1000;
+    padding: 15px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    width: 66.67%; /* Width for the input area (matches col-md-8) */
+}
+>>>>>>> Stashed changes
 	</style>
 {% endblock %}
