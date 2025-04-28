@@ -35,3 +35,6 @@ services:
             arguments:
                 $huggingFaceToken: '%env(HUGGING_FACE_API_TOKEN)%'
                 $modelName: '%env(HUGGING_FACE_MODEL)%'        
+    App\Service\DeepseekAIService:
+        arguments:
+            $deepseekApiKey: '%env(DEEPSEEK_API_KEY)%'

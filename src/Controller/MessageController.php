@@ -16,6 +16,8 @@ use App\Repository\ChannelRepository;
 use App\Repository\App_userRepository;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use App\Service\DeepseekAIService;
+
 
 #[Route('/message')]
 final class MessageController extends BaseController
@@ -27,6 +29,7 @@ final class MessageController extends BaseController
         EntityManagerInterface $entityManager,
         ChannelRepository $channelRepository,
         App_userRepository $userRepository,
+        DeepseekAIService $deepseekAI,
         int $id_channel = null
     ): Response {
         $this->ensureUserSession();
@@ -110,34 +113,57 @@ final class MessageController extends BaseController
         $form = $this->createForm(MessageType::class, $message);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            /** @var UploadedFile $mediaFile */
-            $mediaFile = $form->get('mediaFile')->getData();
-            
-            if ($mediaFile) {
-                $uploadDir = $this->getParameter('kernel.project_dir').'/public/uploads';
-                $newFilename = uniqid().'.'.$mediaFile->guessExtension();
-                
-                try {
-                    $mediaFile->move($uploadDir, $newFilename);
-                    $message->setMedia($newFilename);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'File upload failed');
-                }
-            }
-
-            if (!$message->getChannel() || !$message->getSender()) {
-                $this->addFlash('error', 'Missing required message data');
-                return $this->redirectToRoute('app_message_index', ['id_channel' => $id_channel]);
-            }
-
-            $entityManager->persist($message);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_message_index', [
-                'id_channel' => $id_channel
-            ]);
+       // In your form submission handler, replace this section:
+if ($form->isSubmitted() && $form->isValid()) {
+    /** @var UploadedFile $mediaFile */
+    $mediaFile = $form->get('mediaFile')->getData();
+    
+    if ($mediaFile) {
+        $uploadDir = $this->getParameter('kernel.project_dir').'/public/uploads';
+        $newFilename = uniqid().'.'.$mediaFile->guessExtension();
+        
+        try {
+            $mediaFile->move($uploadDir, $newFilename);
+            $message->setMedia($newFilename);
+        } catch (FileException $e) {
+            $this->addFlash('error', 'File upload failed');
         }
+    }
+    
+    $content = $message->getContent();
+    if (str_starts_with($content, '/pathfinderAI')) {
+        $prompt = trim(substr($content, strlen('/pathfinderAI')));
+        
+        $entityManager->persist($message);
+        $entityManager->flush();
+        
+        $aiResponse = $deepseekAI->generateResponse($prompt);
+        
+        $aiMessage = new Message();
+        $aiMessage->setChannel($channel);
+        $aiMessage->setSender($this->getCurrentUser());
+        $aiMessage->setTimeSent(new \DateTime());
+        $aiMessage->setContent($aiResponse);
+        
+        $entityManager->persist($aiMessage);
+        $entityManager->flush();
+    } else {
+        // Regular message handling
+        $entityManager->persist($message);
+        $entityManager->flush();
+        
+        // Send via WebSocket
+        $this->forward('App\Controller\WebSocketController::sendMessage', [
+            'message' => $message,
+            'channelId' => $id_channel,
+            'userId' => $user->getId_user()
+        ]);
+    }
+
+    return $this->redirectToRoute('app_message_index', [
+        'id_channel' => $id_channel
+    ]);
+}
 
         return $this->render('message/index.html.twig', [
             'messages' => $messages,
