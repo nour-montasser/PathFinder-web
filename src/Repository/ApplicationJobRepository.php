@@ -7,6 +7,9 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\Job_offer;
 use App\Entity\App_user;
+use Doctrine\DBAL\Query;
+use Doctrine\Migrations\Query\Query as QueryQuery;
+use Doctrine\ORM\Query as ORMQuery;
 
 class ApplicationJobRepository extends ServiceEntityRepository
 {
@@ -29,12 +32,28 @@ class ApplicationJobRepository extends ServiceEntityRepository
         return $count > 0;
     }
 
-    public function findFilteredApplications(
+    public function countUserApplicationsForCompany(int $userId, int $companyId): int
+    {
+        return $this->createQueryBuilder('a')
+            ->select('COUNT(a.application_id)')
+            ->join('a.jobOffer', 'j') // Corrected property name
+            ->join('j.user', 'c')      // Join with company (user with role=1)
+            ->where('a.user = :userId')
+            ->andWhere('c.id_user = :companyId')
+            ->setParameter('userId', $userId)
+            ->setParameter('companyId', $companyId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    
+
+    public function findFilteredApplicationsQuery(
         App_user $user,
         ?string $searchTerm = null,
         ?array $statuses = null,
         string $sort = 'date'
-    ): array {
+    ):ORMQuery{
         $queryBuilder = $this->createQueryBuilder('a')
             ->leftJoin('a.jobOffer', 'j')
             ->leftJoin('j.user', 'u')
@@ -57,7 +76,7 @@ class ApplicationJobRepository extends ServiceEntityRepository
             $queryBuilder->orderBy('a.date_application', 'DESC');
         }
 
-        return $queryBuilder->getQuery()->getResult();
+        return $queryBuilder->getQuery();
     }
 
     public function findUserApplicationForJob(int $userId, int $jobOfferId): ?ApplicationJob

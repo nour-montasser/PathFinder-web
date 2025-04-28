@@ -1,560 +1,720 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Job Offers{% endblock %}
+{% block title %}Job Offers
+{% endblock %}
 
 {% block body %}
 	<section class="section">
 		<div class="container">
-		    {% if not is_ajax %}
-			<div class="row">
-				<!-- Main Content Column -->
-				<div class="col-lg-8">
-			{% endif %}
-				<h1 class="h4 mb-3">Job Offers</h1>
+			{% if not is_ajax %}
+				<div
+					class="row">
+					<!-- Main Content Column -->
+					<div class="col-lg-8">
+					{% endif %}
+					<h1 class="h4 mb-3">Job Offers</h1>
 					<div class="card mb-4">
 						<div class="card-header d-flex justify-content-between align-items-center">
 							<h4 class="card-title h4 mb-50">Browse job offers</h4>
 							{% if not is_ajax and current_user.role == 1 %}
-    <a href="{{ path('app_job_offer_new') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i>
-        Create New
-    </a>
-{% endif %}
+								<a href="{{ path('app_job_offer_new') }}" class="btn btn-primary">
+									<i class="bi bi-plus-circle"></i>
+									Create New
+								</a>
+							{% endif %}
 						</div>
 						<div class="card-body" id="job-offers-container">
 							{% if job_offers is empty %}
 								<div class="alert alert-info">No job offers found</div>
 							{% else %}
-								<div class="row">
-									{% for job_offer in job_offers %}
-										<div class="col-md-6 col-lg-6 mb-4">
-											<div class="card h-100 job-card">
-												<a href="{{ path('app_job_offer_show', {'id_offer': job_offer.getIdOffer()}) }}" class="stretched-link card-clickable-overlay"></a>
-												<div class="card-header bg-light-primary d-flex justify-content-between align-items-center">
-													<div class="d-flex align-items-center">
-														<img src="{{ asset(job_offer.user.image ?: 'images/default-profile.png') }}" class="rounded-circle me-3" width="60" height="60" alt="Company logo">
-														<div>
-															<h5 class="card-title mb-0">{{ job_offer.title }}</h5>
-															<small class="text-muted">{{ job_offer.user.name }}</small>
-														</div>
-													</div>
-													<div class="d-flex flex-column align-items-end">
-														{% if job_offer.getDatePosted > date('-2days') %}
-															<span class="badge bg-danger mb-1">New</span>
-														{% endif %}
-														<span class="badge bg-{{ job_offer.getNumberOfSpots() > 0 ? 'success' : 'danger' }}">
-    {{ job_offer.getNumberOfSpots }} spot{{ job_offer.getNumberOfSpots() != 1 ? 's' : '' }}
-    {{ job_offer.getNumberOfSpots() <= 0 ? 'left' : '' }}
-</span>
-													</div>
-												</div>
-												<div class="card-body">
-													<div class="mb-3 mt-3 relative" style="display: -webkit-box;-webkit-line-clamp: 2;-webkit-box-orient: vertical;overflow: hidden;text-overflow: ellipsis;line-height: 1.5em; max-height: 3em; position: relative;">
-														{{ job_offer.description }}
-														<span class="show-more-indicator" style="position: absolute; right: 0; bottom: 0;background: white; padding-left: 4px;color: #007bff;font-weight: 500;display: none;">...show more</span>
-													</div>
-													<div class="d-flex flex-wrap gap-2 mb-3">
-														<span class="badge bg-primary">{{ job_offer.type }}</span>
-														<span class="badge bg-secondary">{{ job_offer.field }}</span>
-													</div>
-													<div class="job-meta mb-3">
-														<div class="d-flex align-items-center mb-1">
-															<i class="bi bi-mortarboard me-2 text-primary"></i>
-															<span>{{ job_offer.getRequiredEducation }}</span>
-														</div>
-														<div class="d-flex align-items-center mb-1">
-															<i class="bi bi-briefcase me-2 text-primary"></i>
-															<span>{{ job_offer.getRequiredExperience }}</span>
-														</div>
-														<div class="d-flex align-items-center mb-1">
-															<i class="bi bi-pin-map me-2 text-primary"></i>
-															<span>{{ job_offer.getAddress }}</span>
-														</div>
-													</div>
-													<div class="skills mb-3">
-														<h6 class="small text-muted mb-1">
-															<i class="bi bi-tools me-1"></i>
-															Required Skills:</h6>
-														<div class="d-flex flex-wrap gap-1">
-															{% for skill in job_offer.skills|split(',') %}
-																{% if skill|trim %}
-																	<span class="badge bg-light text-dark border">
-																		<i class="bi bi-check-circle me-1 text-primary"></i>
-																		{{ skill|trim }}
+								<!-- Recommended Jobs Section -->
+{% if suggestions is defined and suggestions|length > 0 and current_user.role == 2 %}
+    <div class="mb-5 position-relative">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-success mb-0">
+                <i class="bi bi-lightbulb me-2"></i>Recommended For You
+            </h5>
+        </div>
+
+        <!-- Scrollable container with arrows -->
+        <div class="position-relative">
+            <button class="btn btn-sm btn-outline-success scroll-left" style="position: absolute; left: -15px; top: 50%; transform: translateY(-50%); z-index: 1;">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+            <div class="recommended-scroller" style="overflow-x: hidden; white-space: nowrap; scroll-behavior: smooth; padding: 10px 0;">
+                <div class="d-flex" style="gap: 15px;">
+                    {% for suggestion in suggestions|sort((a, b) => b.confidence <=> a.confidence) %}
+                        <div class="flex-shrink-0" style="width: calc(50% - 7.5px); min-width: 300px;">
+                            <div class="card h-100 job-card border border-2 border-success" style="overflow: hidden;">
+                                <a href="{{ path('app_job_offer_show', {'id_offer': suggestion.job.getIdOffer}) }}" class="stretched-link card-clickable-overlay"></a>
+                                <div class="card-header bg-light-success d-flex justify-content-between align-items-center" style="flex-wrap: wrap; gap: 0.5rem;">
+                                    <div class="d-flex align-items-center" style="flex: 1; min-width: 0;">
+                                        <img src="{{ asset(suggestion.job.user.image ?: 'images/default-profile.png') }}" class="rounded-circle me-3" width="60" height="60" alt="Company logo">
+                                        <div style="min-width: 0;">
+                                            <h5 class="card-title mb-0 text-truncate">{{ suggestion.job.title }}</h5>
+                                            <small class="text-muted text-truncate d-block">{{ suggestion.job.user.name }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end" style="flex-shrink: 0;">
+                                        {% if suggestion.job.getDatePosted > date('-2days') %}
+                                            <span class="badge bg-danger mb-1">New</span>
+                                        {% endif %}
+                                        <span class="badge bg-success">
+                                            {{ suggestion.confidence|round(1) }}% Match
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3 mt-3 relative" style="display: -webkit-box;-webkit-line-clamp: 2;-webkit-box-orient: vertical;overflow: hidden;text-overflow: ellipsis;line-height: 1.5em; max-height: 3em; position: relative;">
+                                        {{ suggestion.job.description }}
+                                        <span class="show-more-indicator" style="position: absolute; right: 0; bottom: 0;background: white; padding-left: 4px;color: #007bff;font-weight: 500;display: none;">...show more</span>
+                                    </div>
+
+                                    <!-- Match Indicators -->
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between small mb-2">
+                                            <span>
+                                                <strong>Skills Match:</strong>
+                                            </span>
+                                            <span>{{ (suggestion.skillsMatch * 100)|round(1) }}%</span>
+                                        </div>
+                                        <div class="progress mb-3" style="height: 6px;">
+                                            <div class="progress-bar bg-success" style="width: {{ suggestion.skillsMatch * 100 }}%"></div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between small mb-2">
+                                            <span>
+                                                <strong>Title Relevance:</strong>
+                                            </span>
+                                            <span>{{ (suggestion.titleSimilarity * 100)|default(0)|round(1) }}%</span>
+                                        </div>
+                                        <div class="progress mb-3" style="height: 6px;">
+                                            <div class="progress-bar bg-success" style="width: {{ suggestion.titleSimilarity * 100 }}%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        <span class="badge bg-success">{{ suggestion.job.type }}</span>
+                                        <span class="badge bg-secondary">{{ suggestion.job.field }}</span>
+                                    </div>
+                                    <div class="job-meta mb-3">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <i class="bi bi-mortarboard me-2 text-success"></i>
+                                            <span>{{ suggestion.job.getRequiredEducation }}</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-1">
+                                            <i class="bi bi-briefcase me-2 text-success"></i>
+                                            <span>{{ suggestion.job.getRequiredExperience }}</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-1">
+                                            <i class="bi bi-pin-map me-2 text-success"></i>
+                                            <span>{{ suggestion.job.getAddress }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="skills mb-3">
+                                        <h6 class="small text-muted mb-1">
+                                            <i class="bi bi-tools me-1"></i>
+                                            Required Skills:</h6>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% for skill in suggestion.job.skills|split(',') %}
+                                                {% if skill|trim %}
+                                                    <span class="badge bg-light text-dark border">
+                                                        <i class="bi bi-check-circle me-1 text-success"></i>
+                                                        {{ skill|trim }}
+                                                    </span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i>
+                                            {{ suggestion.job.getDatePosted|date('M d, Y') }}
+                                        </small>
+                                        <div class="btn-group" role="group">
+                                            {% if suggestion.job.getNumberOfSpots <= 0 %}
+                                                <button class="btn btn-sm btn-danger position-relative" disabled data-bs-toggle="tooltip" data-bs-placement="top" title="All positions for this job have been filled. Check back later for new openings.">
+                                                    <i class="bi bi-slash-circle"></i>
+                                                    No Spots Available
+                                                </button>
+                                            {% else %}
+                                                <a href="{{ path('app_job_offer_show', {'id_offer': suggestion.job.getIdOffer}) }}" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-eye me-1"></i>
+                                                    View Details
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button class="btn btn-sm btn-outline-success scroll-right" style="position: absolute; right: -15px; top: 50%; transform: translateY(-50%); z-index: 1;">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+{% endif %}    
+
+									<!-- Regular Job Listings -->
+									{% if not show_only_recommended %}
+										{% if job_offers is empty %}
+											<div class="alert alert-info">No job offers found</div>
+										{% else %}
+											<div class="row">
+												{% for job_offer in job_offers %}
+
+													<div class="col-md-6 col-lg-6 mb-4">
+														<div class="card h-100 job-card">
+															<a href="{{ path('app_job_offer_show', {'id_offer': job_offer.getIdOffer()}) }}" class="stretched-link card-clickable-overlay"></a>
+															<div class="card-header bg-light-primary d-flex justify-content-between align-items-center">
+																<div class="d-flex align-items-center">
+																	<img src="{{ asset(job_offer.user.image ?: 'images/default-profile.png') }}" class="rounded-circle me-3" width="60" height="60" alt="Company logo">
+																	<div>
+																		<h5 class="card-title mb-0">{{ job_offer.title }}</h5>
+																		<small class="text-muted">{{ job_offer.user.name }}</small>
+																	</div>
+																</div>
+																<div class="d-flex flex-column align-items-end">
+																	{% if job_offer.getDatePosted > date('-2days') %}
+																		<span class="badge bg-danger mb-1">New</span>
+																	{% endif %}
+																	<span class="badge bg-{{ job_offer.getNumberOfSpots() > 0 ? 'success' : 'danger' }}">
+																		{{ job_offer.getNumberOfSpots }}
+																		spot{{ job_offer.getNumberOfSpots() != 1 ? 's' : '' }}
+																		{{ job_offer.getNumberOfSpots() <= 0 ? 'left' : '' }}
 																	</span>
-																{% endif %}
-															{% endfor %}
+																</div>
+															</div>
+															<div class="card-body">
+																<div class="mb-3 mt-3 relative" style="display: -webkit-box;-webkit-line-clamp: 2;-webkit-box-orient: vertical;overflow: hidden;text-overflow: ellipsis;line-height: 1.5em; max-height: 3em; position: relative;">
+																	{{ job_offer.description }}
+																	<span class="show-more-indicator" style="position: absolute; right: 0; bottom: 0;background: white; padding-left: 4px;color: #007bff;font-weight: 500;display: none;">...show more</span>
+																</div>
+																<div class="d-flex flex-wrap gap-2 mb-3">
+																	<span class="badge bg-primary">{{ job_offer.type }}</span>
+																	<span class="badge bg-secondary">{{ job_offer.field }}</span>
+																</div>
+																<div class="job-meta mb-3">
+																	<div class="d-flex align-items-center mb-1">
+																		<i class="bi bi-mortarboard me-2 text-primary"></i>
+																		<span>{{ job_offer.getRequiredEducation }}</span>
+																	</div>
+																	<div class="d-flex align-items-center mb-1">
+																		<i class="bi bi-briefcase me-2 text-primary"></i>
+																		<span>{{ job_offer.getRequiredExperience }}</span>
+																	</div>
+																	<div class="d-flex align-items-center mb-1">
+																		<i class="bi bi-pin-map me-2 text-primary"></i>
+																		<span>{{ job_offer.getAddress }}</span>
+																	</div>
+																</div>
+																<div class="skills mb-3">
+																	<h6 class="small text-muted mb-1">
+																		<i class="bi bi-tools me-1"></i>
+																		Required Skills:</h6>
+																	<div class="d-flex flex-wrap gap-1">
+																		{% for skill in job_offer.skills|split(',') %}
+																			{% if skill|trim %}
+																				<span class="badge bg-light text-dark border">
+																					<i class="bi bi-check-circle me-1 text-primary"></i>
+																					{{ skill|trim }}
+																				</span>
+																			{% endif %}
+																		{% endfor %}
+																	</div>
+																</div>
+															</div>
+															<div class="card-footer bg-transparent">
+																<div class="d-flex justify-content-between align-items-center">
+																	<small class="text-muted">
+																		<i class="bi bi-calendar"></i>
+																		{{ job_offer.getDatePosted|date('M d, Y') }}
+																	</small>
+																	<div class="btn-group" role="group">
+																		{% if current_user.role == 1 and job_offer.user.id_user == current_user.id_user %}
+																			<a href="{{ path('app_job_offer_edit', {'id_offer': job_offer.getIdOffer()}) }}" class="btn btn-sm btn-outline-secondary " title="Edit">
+																				<i class="bi bi-pencil "></i>
+																			</a>
+																			{{ include('job_offer/_delete_form.html.twig') }}
+
+
+																		{% elseif current_user.role == 2 %}
+																			{% if job_offer.getNumberOfSpots <= 0 %}
+
+																				<!-- No spots available - with working tooltip -->
+																				<button class="btn btn-sm btn-danger position-relative" disabled data-bs-toggle="tooltip" data-bs-placement="top" title="All positions for this job have been filled. Check back later for new openings.">
+																					<i class="bi bi-slash-circle"></i>
+																					No Spots Available
+																					<span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+																						<span class="visually-hidden">No spots</span>
+																					</span>
+																				</button>
+																			{% elseif has_applied[job_offer.getIdOffer()] is defined %}
+																				<!-- Existing application logic -->
+																				{% set application = has_applied[job_offer.getIdOffer()] %}
+																				{% if 'Applying-' in application.status %}
+																					<a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" class="btn btn-sm btn-primary" title="Continue Application">
+																						<i class="bi bi-pencil-square"></i>
+																						Continue (Step
+																						{{ application.status|split('-')[1] }}/4)
+																					</a>
+																				{% elseif application.status == 'Pending' %}
+																					<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#applicationModal-{{ application.application_id }}" data-application-id="{{ application.application_id }}">
+																						<i class="bi bi-eye"></i>
+																						View Application
+																					</button>
+																					{% include 'application_job/_applicationModal.html.twig' with {'application': application} %}
+																				{% elseif application.status == 'Accepted'%}
+																					<button class="btn btn-outline-secondary" disabled>
+																						<i class="bi bi-check-circle"></i>
+																						{{ application.status }}
+																					</button>
+																				{% else %}
+																					<button class="btn btn-outline-secondary" disabled>
+																						<i class="bi bi-x-circle"></i>
+																						{{ application.status }}
+																					</button>
+																				{% endif %}
+																			{% else %}
+																				<!-- New application -->
+																				<a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" class="btn btn-sm btn-primary" title="Apply">
+																					<i class="bi bi-send-check"></i>
+																					Apply
+																				</a>
+																			{% endif %}
+																		{% endif %}
+																	</div>
+																</div>
+															</div>
 														</div>
 													</div>
+												{% endfor %}
+											</div>
+										{% endif %}
+									{% endif %}
+								{% endif %}
+							</div>
+
+						</div>
+						{% if not is_ajax %}
+						</div>
+
+						<!-- Sidebar Column -->
+						<div
+							class="col-lg-4">
+							<!-- Search Card -->
+							<div class="card mb-4 shadow-sm">
+								<div class="card-header bg-light">
+									<h5>
+										<i class="bi bi-search me-2"></i>Search Jobs</h5>
+								</div>
+								<div class="card-body">
+									<form id="searchForm" autocomplete="off">
+										<div class="input-group mb-3">
+											<input type="text" class="form-control" id="searchInput" placeholder="Search by title, company..." value="{{ app.request.query.get('search', '') }}">
+											<button class="btn btn-primary" type="button" id="searchButton">
+												<i class="bi bi-search"></i>
+											</button>
+										</div>
+
+										<!-- Location Search -->
+										<div class="mb-3">
+											<label class="form-label">Location</label>
+											<div class="input-group mb-2">
+												<input type="text" class="form-control" id="locationInput" placeholder="Enter city name" value="{{ app.request.query.get('location', '') }}">
+												<button class="btn btn-outline-secondary" type="button" id="locationSearchBtn">
+													<i class="bi bi-geo-alt"></i>
+												</button>
+											</div>
+											<div id="locationSuggestions" class="list-group d-none" style="position: absolute; z-index: 1000; width: 100%;"></div>
+
+											<div id="locationOptions" class="mt-2 {% if not app.request.query.has('location') %}d-none{% endif %}">
+												<div class="form-check mb-2">
+													<input class="form-check-input" type="radio" name="locationType" id="exactLocation" value="exact" {% if app.request.query.get('locationType') != 'nearby' %} checked {% endif %}>
+													<label class="form-check-label" for="exactLocation">Exact match</label>
 												</div>
-												<div class="card-footer bg-transparent">
-													<div class="d-flex justify-content-between align-items-center">
-														<small class="text-muted">
-															<i class="bi bi-calendar"></i>
-															{{ job_offer.getDatePosted|date('M d, Y') }}
-														</small>
-														<div class="btn-group" role="group">
-															{% if current_user.role == 1 and job_offer.user.id_user == current_user.id_user %}
-																<a href="{{ path('app_job_offer_edit', {'id_offer': job_offer.getIdOffer()}) }}" class="btn btn-sm btn-outline-secondary " title="Edit">
-																	<i class="bi bi-pencil "></i>
-																</a>
-																{{ include('job_offer/_delete_form.html.twig') }}
-															
-																	
-															{% elseif current_user.role == 2 %}
-  {% if job_offer.getNumberOfSpots <= 0 %}
-  
-        <!-- No spots available - with working tooltip -->
-        <button class="btn btn-sm btn-danger position-relative" 
-                disabled
-                data-bs-toggle="tooltip" 
-                data-bs-placement="top"
-                title="All positions for this job have been filled. Check back later for new openings.">
-            <i class="bi bi-slash-circle"></i>
-            No Spots Available
-            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                <span class="visually-hidden">No spots</span>
-            </span>
-        </button>
-    {% elseif has_applied[job_offer.getIdOffer()] is defined %}
-        <!-- Existing application logic -->
-        {% set application = has_applied[job_offer.getIdOffer()] %}
-        {% if 'Applying-' in application.status %}
-            <a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" 
-               class="btn btn-sm btn-primary" title="Continue Application">
-                <i class="bi bi-pencil-square"></i>
-                Continue (Step {{ application.status|split('-')[1] }}/4)
-            </a>
-        {% elseif application.status == 'Pending' %}
-            <button class="btn btn-sm btn-outline-primary" 
-                    data-bs-toggle="modal" 
-                    data-bs-target="#applicationModal-{{ application.application_id }}" 
-                    data-application-id="{{ application.application_id }}">
-                <i class="bi bi-eye"></i>
-                View Application
-            </button>
-            {% include 'application_job/_applicationModal.html.twig' with {'application': application} %}
-        {% elseif application.status == 'Accepted'%}
-            <button class="btn btn-outline-secondary" disabled>
-                <i class="bi bi-check-circle"></i> 
-                {{ application.status }}
-            </button>
-        {% else %}
-            <button class="btn btn-outline-secondary" disabled>
-                <i class="bi bi-x-circle"></i> 
-                {{ application.status }}
-            </button>
-        {% endif %}
-    {% else %}
-        <!-- New application -->
-        <a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" 
-           class="btn btn-sm btn-primary" title="Apply">
-            <i class="bi bi-send-check"></i>
-            Apply
-        </a>
-    {% endif %}
-{% endif %}
-														</div>
-													</div>
+												<div class="form-check mb-2">
+													<input class="form-check-input" type="radio" name="locationType" id="nearbyLocation" value="nearby" {% if app.request.query.get('locationType') == 'nearby' %} checked {% endif %}>
+													<label class="form-check-label" for="nearbyLocation">Nearby</label>
 												</div>
+
+												<!-- Distance Slider (only visible when nearby is selected) -->
+												<div id="distanceSliderContainer" class="mt-2 {% if app.request.query.get('locationType') != 'nearby' %}d-none{% endif %}">
+													<label for="distanceSlider" class="form-label">
+														Distance:
+														<span id="distanceValue">{{ app.request.query.get('distance', 50) }}</span>
+														km
+													</label>
+													<input type="range" class="form-range" min="1" max="200" step="1" id="distanceSlider" value="{{ app.request.query.get('distance', 50) }}">
+												</div>
+
+												<button type="button" class="btn btn-sm btn-danger mt-2" id="clearLocationBtn">
+													<i class="bi bi-x"></i>
+													Clear location
+												</button>
 											</div>
 										</div>
-									{% endfor %}
+									</form>
 								</div>
-							{% endif %}
-						</div>
-					</div>
-			{% if not is_ajax %}
-				</div>
+							</div>
 
-				<!-- Sidebar Column -->
-				<div class="col-lg-4">
-					<!-- Add this to your search card -->
-<div class="card mb-4 shadow-sm">
-    <div class="card-header bg-light">
-        <h5><i class="bi bi-search me-2"></i>Search Jobs</h5>
-    </div>
-    <div class="card-body">
-        <form id="searchForm" autocomplete="off">
-            <div class="input-group mb-3">
-                <input type="text" class="form-control" id="searchInput" placeholder="Search by title, company..." value="{{ app.request.query.get('search', '') }}">
-                <button class="btn btn-primary" type="button" id="searchButton">
-                    <i class="bi bi-search"></i>
-                </button>
-            </div>
-            
-             <!-- Location Search -->
-    <div class="mb-3">
-        <label class="form-label">Location</label>
-        <div class="input-group mb-2">
-            <input type="text" class="form-control" id="locationInput" placeholder="Enter city name" value="{{ app.request.query.get('location', '') }}">
-            <button class="btn btn-outline-secondary" type="button" id="locationSearchBtn">
-                <i class="bi bi-geo-alt"></i>
-            </button>
-        </div>
-        <div id="locationSuggestions" class="list-group d-none" style="position: absolute; z-index: 1000; width: 100%;"></div>
-        
-        <div id="locationOptions" class="mt-2 {% if not app.request.query.has('location') %}d-none{% endif %}">
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="radio" name="locationType" id="exactLocation" value="exact" {% if app.request.query.get('locationType') != 'nearby' %}checked{% endif %}>
-                <label class="form-check-label" for="exactLocation">Exact match</label>
-            </div>
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="radio" name="locationType" id="nearbyLocation" value="nearby" {% if app.request.query.get('locationType') == 'nearby' %}checked{% endif %}>
-                <label class="form-check-label" for="nearbyLocation">Nearby</label>
-            </div>
-            
-            <!-- Distance Slider (only visible when nearby is selected) -->
-            <div id="distanceSliderContainer" class="mt-2 {% if app.request.query.get('locationType') != 'nearby' %}d-none{% endif %}">
-                <label for="distanceSlider" class="form-label">
-                    Distance: <span id="distanceValue">{{ app.request.query.get('distance', 50) }}</span> km
-                </label>
-                <input type="range" class="form-range" min="1" max="200" step="1" 
-                       id="distanceSlider" value="{{ app.request.query.get('distance', 50) }}">
-            </div>
-            
-            <button type="button" class="btn btn-sm btn-danger mt-2" id="clearLocationBtn">
-                <i class="bi bi-x"></i> Clear location
-            </button>
-        </div>
-    </div>
-        </form>
-    </div>
-</div>
-
-					<!-- Filters Card -->
-					<div class="card mb-4 shadow-sm">
-						<div class="card-header bg-light">
-							<h5><i class="bi bi-funnel me-2"></i>Filters</h5>
-						</div>
-						<div class="card-body">
-							<form method="get" id="filtersForm" action="{{ path('app_job_offer_index') }}">
-								<input type="hidden" name="search" id="searchParam" value="{{ app.request.query.get('search', '') }}">
-
-								
-
-								<!-- Job Type Filter -->
-								<div class="mb-3">
-									<h6 class="mb-2">Job Type</h6>
-									{% for type in constant('App\\Entity\\Job_offer::JOB_TYPES') %}
-										<div class="form-check">
-											<input class="form-check-input" type="checkbox" id="type_{{ loop.index }}" name="types[]" value="{{ type }}" {{ type in app.request.query.all('types') ? 'checked' : '' }}>
-											<label class="form-check-label" for="type_{{ loop.index }}">{{ type }}</label>
-										</div>
-									{% endfor %}
+							<!-- Filters Card -->
+							<div class="card mb-4 shadow-sm">
+								<div class="card-header bg-light">
+									<h5>
+										<i class="bi bi-funnel me-2"></i>Filters</h5>
 								</div>
+								<div class="card-body">
+									<form method="get" id="filtersForm" action="{{ path('app_job_offer_index') }}">
+										<input
+										type="hidden" name="search" id="searchParam" value="{{ app.request.query.get('search', '') }}">
 
-								<!-- Field Filter -->
-								<div class="mb-3">
-									<h6 class="mb-2">Field</h6>
-									{% for field in constant('App\\Entity\\Job_offer::FIELDS') %}
-										<div class="form-check">
-											<input class="form-check-input" type="checkbox" id="field_{{ loop.index }}" name="fields[]" value="{{ field }}" {{ field in app.request.query.all('fields') ? 'checked' : '' }}>
-											<label class="form-check-label" for="field_{{ loop.index }}">{{ field }}</label>
+
+										<!-- Job Type Filter -->
+										<div class="mb-3">
+											<h6 class="mb-2">Job Type</h6>
+											{% for type in constant('App\\Entity\\Job_offer::JOB_TYPES') %}
+												<div class="form-check">
+													<input class="form-check-input" type="checkbox" id="type_{{ loop.index }}" name="types[]" value="{{ type }}" {{ type in app.request.query.all('types') ? 'checked' : '' }}>
+													<label class="form-check-label" for="type_{{ loop.index }}">{{ type }}</label>
+												</div>
+											{% endfor %}
 										</div>
-									{% endfor %}
+
+										<!-- Field Filter -->
+										<div class="mb-3">
+											<h6 class="mb-2">Field</h6>
+											{% for field in constant('App\\Entity\\Job_offer::FIELDS') %}
+												<div class="form-check">
+													<input class="form-check-input" type="checkbox" id="field_{{ loop.index }}" name="fields[]" value="{{ field }}" {{ field in app.request.query.all('fields') ? 'checked' : '' }}>
+													<label class="form-check-label" for="field_{{ loop.index }}">{{ field }}</label>
+												</div>
+											{% endfor %}
+										</div>
+
+										<!-- Education Level Filter -->
+										<div class="mb-3">
+											<h6 class="mb-2">Education Level</h6>
+											{% for education in constant('App\\Entity\\Job_offer::EDUCATION_LEVELS') %}
+												<div class="form-check">
+													<input class="form-check-input" type="checkbox" id="edu_{{ loop.index }}" name="education[]" value="{{ education }}" {{ education in app.request.query.all('education') ? 'checked' : '' }}>
+													<label class="form-check-label" for="edu_{{ loop.index }}">{{ education }}</label>
+												</div>
+											{% endfor %}
+										</div>
+
+										<button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+										<a href="{{ path('app_job_offer_index') }}" class="btn btn-outline-secondary w-100 mt-2">
+											Reset Filters
+										</a>
+									</form>
 								</div>
+							</div>
 
-								<!-- Education Level Filter -->
-								<div class="mb-3">
-									<h6 class="mb-2">Education Level</h6>
-									{% for education in constant('App\\Entity\\Job_offer::EDUCATION_LEVELS') %}
-										<div class="form-check">
-											<input class="form-check-input" type="checkbox" id="edu_{{ loop.index }}" name="education[]" value="{{ education }}" {{ education in app.request.query.all('education') ? 'checked' : '' }}>
-											<label class="form-check-label" for="edu_{{ loop.index }}">{{ education }}</label>
-										</div>
-									{% endfor %}
+							<!-- Recommendation Tips Card -->
+							<div class="card mb-4 shadow-sm">
+								<div class="card-header bg-light">
+									<h5>
+										<i class="bi bi-lightbulb me-2"></i>Improve Your Matches</h5>
 								</div>
-
-								<button type="submit" class="btn btn-primary w-100">Apply Filters</button>
-								<a href="{{ path('app_job_offer_index') }}" class="btn btn-outline-secondary w-100 mt-2">
-									Reset Filters
-								</a>
-							</form>
-						</div>
-					</div>
-
-					<!-- Recent Jobs Card -->
-					<div class="card shadow-sm">
-						<div class="card-header bg-light">
-							<h5><i class="bi bi-clock-history me-2"></i>Recent Jobs</h5>
-						</div>
-						<div class="card-body">
-							<div class="list-group list-group-flush">
-								{% for recent_offer in recent_jobs %}
-									<a href="{{ path('app_job_offer_show', {'id_offer': recent_offer.getIdOffer()}) }}" class="list-group-item list-group-item-action">
-										<div class="d-flex w-100 justify-content-between">
-											<h6 class="mb-1">{{ recent_offer.title }}</h6>
-											<small>{{ recent_offer.getDatePosted|date('M d') }}</small>
+								<div class="card-body">
+									<div class="alert alert-info">
+										<i class="bi bi-info-circle me-2"></i>
+										Adding more skills to your CV can increase your match rate.
+									</div>
+									<div class="mb-3">
+										<h6 class="small font-weight-bold">Top Skills in Demand:</h6>
+										<div class="d-flex flex-wrap gap-1 mt-2">
+											<span class="badge bg-light text-dark border">JavaScript</span>
+											<span class="badge bg-light text-dark border">React</span>
+											<span class="badge bg-light text-dark border">SQL</span>
+											<span class="badge bg-light text-dark border">Python</span>
 										</div>
-										<small class="text-muted">{{ recent_offer.user.name ?? 'Unknown' }}</small>
+									</div>
+									<a href="#" class="btn btn-primary btn-sm w-100">
+										<i class="bi bi-file-earmark-plus me-1"></i>
+										Update Your CV
 									</a>
-								{% endfor %}
+								</div>
+							</div>
+
+							<!-- Recent Jobs Card -->
+							<div class="card shadow-sm">
+								<div class="card-header bg-light">
+									<h5>
+										<i class="bi bi-clock-history me-2"></i>Recent Jobs</h5>
+								</div>
+								<div class="card-body">
+									<div class="list-group list-group-flush">
+										{% for recent_offer in recent_jobs %}
+											<a href="{{ path('app_job_offer_show', {'id_offer': recent_offer.getIdOffer()}) }}" class="list-group-item list-group-item-action">
+												<div class="d-flex w-100 justify-content-between">
+													<h6 class="mb-1">{{ recent_offer.title }}</h6>
+													<small>{{ recent_offer.getDatePosted|date('M d') }}</small>
+												</div>
+												<small class="text-muted">{{ recent_offer.user.name ?? 'Unknown' }}</small>
+											</a>
+										{% endfor %}
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
+				{% endif %}
 			</div>
-			{% endif %}
-		</div>
-	</section>
+		</section>
 
-	<style>
-		.job-card {
-			transition: transform 0.2s, box-shadow 0.2s;
-			border: 1px solid rgba(0, 0, 0, 0.1);
-		}
-		.job-card:hover {
-			transform: translateY(-5px);
-			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-		}
-		.job-meta i {
-			min-width: 20px;
-			text-align: center;
-		}
-		.bg-light-primary {
-			background-color: $secondary !important;
-		}
-		.btn-group .btn {
-			padding: 0.25rem 0.5rem;
-		}
-		.list-group-item {
-			border-left: 0;
-			border-right: 0;
-		}
-		.list-group-item:first-child {
-			border-top: 0;
-		}
-		.list-group-item:last-child {
-			border-bottom: 0;
-		}
-		.loading {
-			position: relative;
-			opacity: 0.7;
-		}
-		.loading::after {
-			content: '';
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			background: rgba(255, 255, 255, 0.7);
-			z-index: 10;
-		}
-		.btn-group .btn-sm {
-			padding: 0.25rem 0.5rem;
-			font-size: 0.875rem;
-		}
-		.btn-success {
-			background-color: #28a745;
-			border-color: #28a745;
-		}
-		.card-clickable-overlay {
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			opacity: 0;
-			z-index: 0;
-		}
-		.job-card {
-			transition: all 0.2s ease;
-			cursor: pointer;
-		}
-		.job-card:hover {
-			transform: translateY(-3px);
-			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-		}
-		.btn-group a,
-		.btn-group button {
-			position: relative;
-			z-index: 1;
-		}
-
-		/* Add this to your existing <style> block */
-.modal {
-    pointer-events: auto !important; /* Fixes mouse interaction glitches */
-    transform: none !important; /* Prevents any transform interference */
+		<style>
+			.job-card {
+				transition: transform 0.2s, box-shadow 0.2s;
+				border: 1px solid rgba(0, 0, 0, 0.1);
+			}
+			.job-card:hover {
+				transform: translateY(-5px);
+				box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+			}
+			.job-meta i {
+				min-width: 20px;
+				text-align: center;
+			}
+			.bg-light-primary {
+				background-color: $secondary !important;
+			}
+			.btn-group .btn {
+				padding: 0.25rem 0.5rem;
+			}
+			.list-group-item {
+				border-left: 0;
+				border-right: 0;
+			}
+			.list-group-item:first-child {
+				border-top: 0;
+			}
+			.list-group-item:last-child {
+				border-bottom: 0;
+			}
+			.loading {
+				position: relative;
+				opacity: 0.7;
+			}
+			.loading::after {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background: rgba(255, 255, 255, 0.7);
+				z-index: 10;
+			}
+			.btn-group .btn-sm {
+				padding: 0.25rem 0.5rem;
+				font-size: 0.875rem;
+			}
+			.btn-success {
+				background-color: #28a745;
+				border-color: #28a745;
+			}
+			.card-clickable-overlay {
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				opacity: 0;
+				z-index: 0;
+			}
+			.job-card {
+				transition: all 0.2s ease;
+				cursor: pointer;
+			}
+			.job-card:hover {
+				transform: translateY(-3px);
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+			}
+			.btn-group a,
+			.btn-group button {
+				position: relative;
+				z-index: 1;
+			}
+			.bg-light-success {
+				background-color: rgba(40, 167, 69, 0.15) !important;
+			}
+			.border-success {
+				border-color: #28a745 !important;
+			}
+			.progress {
+				background-color: #e9ecef;
+				border-radius: 0.25rem;
+			}
+			/* Add this to your style section */
+			/* Add this to your style section */
+.recommended-scroller::-webkit-scrollbar {
+    display: none;
 }
 
-/* Temporary disable hover effects when modal is open */
-body.modal-open .job-card:hover {
-    transform: none !important;
-    box-shadow: none !important;
+.recommended-scroller {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
-/* Add to your style block */
-#locationSuggestions {
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #dee2e6;
-    border-radius: 0.25rem;
+.scroll-left, .scroll-right {
+    background-color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-#locationSuggestions button {
-    border: none;
-    background: none;
-    text-align: left;
-    width: 100%;
-}
-
-#locationSuggestions button:hover {
+.scroll-left:hover, .scroll-right:hover {
     background-color: #f8f9fa;
-}	
-#distanceSlider {
+}
+.recommended-scroller {
+    scroll-snap-type: x mandatory;
+}
+
+/* Hide arrows when at scroll extremes */
+.position-relative:has(.recommended-scroller[scrollLeft="0"]) .scroll-left {
+    display: none;
+}
+
+.position-relative:has(.recommended-scroller[scrollLeft>=scrollWidth-offsetWidth]) .scroll-right {
+    display: none;
+}
+
+.recommended-scroller {
+    overflow-x: hidden !important;
+    white-space: nowrap !important;
+    scroll-behavior: smooth !important;
+    padding: 10px 0 !important;
     width: 100%;
-    height: 8px;
-    border-radius: 5px;
 }
 
-#distanceSlider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--bs-primary);
-    cursor: pointer;
+.flex-shrink-0 {
+    width: calc(50% - 7.5px) !important;
+    min-width: 300px !important;
+    flex-shrink: 0 !important;
 }
+		</style>
+	{% endblock %}
 
-#distanceSlider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--bs-primary);
-    cursor: pointer;
-}
+	{% block javascripts %}
+		<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize everything on first load
+    initializePage();
+    
+    function initializePage() {
+        setupScrollButtons();
+        setupSearchAndFilters();
+        setupLocationHandlers();
+    }
 
-#distanceValue {
-    font-weight: bold;
-    color: var(--bs-primary);
-}	
-		
-	</style>
-{% endblock %}
+    function setupScrollButtons() {
+        // Remove existing listeners first to prevent duplicates
+        document.querySelectorAll('.scroll-left').forEach(btn => {
+            btn.replaceWith(btn.cloneNode(true));
+        });
+        document.querySelectorAll('.scroll-right').forEach(btn => {
+            btn.replaceWith(btn.cloneNode(true));
+        });
 
-{% block javascripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const searchButton = document.getElementById('searchButton');
-    const container = document.getElementById('job-offers-container');
-    const filtersForm = document.getElementById('filtersForm');
-    const locationInput = document.getElementById('locationInput');
-    const locationSearchBtn = document.getElementById('locationSearchBtn');
-    const locationSuggestions = document.getElementById('locationSuggestions');
-    const locationOptions = document.getElementById('locationOptions');
-    const clearLocationBtn = document.getElementById('clearLocationBtn');
-	const distanceSlider = document.getElementById('distanceSlider');
+        // Attach new listeners
+        document.querySelectorAll('.scroll-left').forEach(button => {
+            button.addEventListener('click', function() {
+                const scroller = this.closest('.position-relative').querySelector('.recommended-scroller');
+                if (scroller) {
+                    const cardWidth = scroller.querySelector('.flex-shrink-0')?.offsetWidth + 15 || 315; // 15px gap
+                    scroller.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+                }
+            });
+        });
+
+        document.querySelectorAll('.scroll-right').forEach(button => {
+            button.addEventListener('click', function() {
+                const scroller = this.closest('.position-relative').querySelector('.recommended-scroller');
+                if (scroller) {
+                    const cardWidth = scroller.querySelector('.flex-shrink-0')?.offsetWidth + 15 || 315; // 15px gap
+                    scroller.scrollBy({ left: cardWidth, behavior: 'smooth' });
+                }
+            });
+        });
+    }
+
+    function setupSearchAndFilters() {
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const container = document.getElementById('job-offers-container');
+        const filtersForm = document.getElementById('filtersForm');
+        
+        let searchTimer;
+        
+        searchButton?.addEventListener('click', loadJobOffers);
+        searchInput?.addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(loadJobOffers, 500);
+        });
+        
+        filtersForm?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            loadJobOffers();
+        });
+    }
+
+    function setupLocationHandlers() {
+        const locationInput = document.getElementById('locationInput');
+        const locationSearchBtn = document.getElementById('locationSearchBtn');
+        const locationSuggestions = document.getElementById('locationSuggestions');
+        const locationOptions = document.getElementById('locationOptions');
+        const clearLocationBtn = document.getElementById('clearLocationBtn');
+        const distanceSlider = document.getElementById('distanceSlider');
         const distanceValue = document.getElementById('distanceValue');
         const distanceSliderContainer = document.getElementById('distanceSliderContainer');
-
-
-        // Update distance value display
+        
         if (distanceSlider) {
             distanceSlider.addEventListener('input', function() {
-                distanceValue.textContent = this.value;
+                if (distanceValue) distanceValue.textContent = this.value;
             });
         }
 
-        // Show/hide distance slider based on location type
         document.querySelectorAll('input[name="locationType"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 if (this.value === 'nearby') {
-                    distanceSliderContainer.classList.remove('d-none');
+                    distanceSliderContainer?.classList.remove('d-none');
                 } else {
-                    distanceSliderContainer.classList.add('d-none');
+                    distanceSliderContainer?.classList.add('d-none');
                 }
                 loadJobOffers();
             });
         });
-    
-    let searchTimer;
-    let selectedLocation = null;
-    let isInitialLoad = true;
 
-    // Debounce function
-    const debounce = (func, delay) => {
-        let timeoutId;
-        return (...args) => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => func.apply(this, args), delay);
-        };
-    };
+        clearLocationBtn?.addEventListener('click', function() {
+            locationInput.value = '';
+            locationOptions?.classList.add('d-none');
+            loadJobOffers();
+        });
 
-     // Fetch city suggestions
-    const fetchCitySuggestions = debounce(async (query) => {
-        if (!query || query.length < 2) {
-            locationSuggestions.classList.add('d-none');
-            return;
-        }
-
-        try {
-            // Add countryCode if you have it, or remove if you want global search
-            const response = await fetch(`{{ path('app_job_offer_search_cities') }}?query=${encodeURIComponent(query)}`);	
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        locationSearchBtn?.addEventListener('click', function() {
+            if (locationInput.value.trim()) {
+                loadJobOffers();
             }
-            
-            const data = await response.json();
-            
-            // Handle both success and error responses
-            if (data.error) {
-                console.error('API Error:', data.error);
-                locationSuggestions.classList.add('d-none');
-                return;
-            }
-
-            if (data.length > 0) {
-                locationSuggestions.innerHTML = '';
-                data.forEach(city => {
-                    const item = document.createElement('button');
-                    item.type = 'button';
-                    item.className = 'list-group-item list-group-item-action';
-                    item.textContent = city;
-                    item.addEventListener('click', () => {
-                        selectCity(city);
-                    });
-                    locationSuggestions.appendChild(item);
-                });
-                locationSuggestions.classList.remove('d-none');
-            } else {
-                locationSuggestions.classList.add('d-none');
-            }
-        } catch (error) {
-            console.error('Error fetching cities:', error);
-            locationSuggestions.classList.add('d-none');
-        }
-    }, 300);
-
-    // Select a city
-    const selectCity = (city) => {
-        selectedLocation = city;
-        locationInput.value = city;
-        locationSuggestions.classList.add('d-none');
-        locationOptions.classList.remove('d-none');
-        loadJobOffers();
-    };
-
-    // Clear location
-    clearLocationBtn.addEventListener('click', () => {
-        selectedLocation = null;
-        locationInput.value = '';
-        locationOptions.classList.add('d-none');
-        loadJobOffers();
-    });
+        });
+    }
 
     async function loadJobOffers() {
-        // Don't make AJAX call on initial page load
-        if (isInitialLoad) {
-            isInitialLoad = false;
-            return;
-        }
+        const container = document.getElementById('job-offers-container');
+        if (!container) return;
 
-        // Show loading indicator
         const previousContent = container.innerHTML;
         container.innerHTML = `
             <div class="text-center py-4">
@@ -566,12 +726,13 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const params = new URLSearchParams();
             params.append('ajax', '1');
-            
+
             // Add search term if exists
-            if (searchInput.value.trim()) {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput?.value.trim()) {
                 params.append('search', searchInput.value.trim());
             }
-            
+
             // Add all active filters
             document.querySelectorAll('input[name="types[]"]:checked').forEach(checkbox => {
                 params.append('types[]', checkbox.value);
@@ -583,30 +744,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 params.append('education[]', checkbox.value);
             });
 
-           // Add location filter if selected
-            if (selectedLocation) {
-                const locationType = document.querySelector('input[name="locationType"]:checked').value;
-                params.append('location', selectedLocation);
+            // Add location filter if selected
+            const locationInput = document.getElementById('locationInput');
+            if (locationInput?.value.trim()) {
+                const locationType = document.querySelector('input[name="locationType"]:checked')?.value || 'exact';
+                params.append('location', locationInput.value.trim());
                 params.append('locationType', locationType);
-                
+
                 if (locationType === 'nearby') {
-                    params.append('distance', distanceSlider.value);
+                    const distanceSlider = document.getElementById('distanceSlider');
+                    params.append('distance', distanceSlider?.value || 50);
                 }
             }
 
             const response = await fetch(`{{ path('app_job_offer_index') }}?${params.toString()}`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
 
             if (!response.ok) throw new Error('Network response was not ok');
-            
+
             const html = await response.text();
-            
-            // Extract just the job listings
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
             const jobContainer = tempDiv.querySelector('#job-offers-container');
-            
+
             if (!jobContainer || jobContainer.innerHTML.includes('No job offers found')) {
                 container.innerHTML = `
                     <div class="card border-0 shadow-sm">
@@ -618,57 +781,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>`;
             } else {
                 container.innerHTML = jobContainer.innerHTML;
+                // Reinitialize scroll buttons after content loads
+                setupScrollButtons();
             }
-
         } catch (error) {
             console.error('Error:', error);
-            container.innerHTML = previousContent; // Revert to previous content
+            container.innerHTML = previousContent;
             alert('Error loading job offers. Please try again.');
         }
     }
-
-    // Event listeners for search
-    searchButton.addEventListener('click', loadJobOffers);
-    
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(loadJobOffers, 500);
-    });
-
-    // Clear search when 'X' is clicked
-    searchInput.addEventListener('search', function() {
-        if (this.value === '') {
-            loadJobOffers();
-        }
-    });
-
-    // Filter form submission handler
-    if (filtersForm) {
-        filtersForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            loadJobOffers();
-        });
-    }
-
-    // Event listeners for location search
-    locationInput.addEventListener('input', (e) => {
-        fetchCitySuggestions(e.target.value);
-    });
-
-    locationSearchBtn.addEventListener('click', () => {
-        if (locationInput.value.trim()) {
-            selectCity(locationInput.value.trim());
-        }
-    });
-
-    // Close suggestions when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!locationInput.contains(e.target) && !locationSuggestions.contains(e.target)) {
-            locationSuggestions.classList.add('d-none');
-        }
-    });
-
-    // Remove the initial load call - let server render the initial content
 });
-</script>
-{% endblock %}
+		</script>
+	{% endblock %}

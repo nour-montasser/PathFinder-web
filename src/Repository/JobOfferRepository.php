@@ -158,6 +158,15 @@ class JobOfferRepository extends ServiceEntityRepository
         ];
     }
 
+    public function findActiveOffers()
+    {
+        return $this->createQueryBuilder('j')
+            ->where('j.number_of_spots > 0')
+            ->orderBy('j.date_posted', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findMostPopularJobs(int $userId, int $limit = 5): array
     {
         return $this->createQueryBuilder('j')

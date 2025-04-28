@@ -24,67 +24,71 @@ final class JobOfferController extends BaseController
     public function index(
         JobOfferRepository $repository,
         Request $request,
-        ApplicationJobRepository $applicationJobRepository
+        ApplicationJobRepository $applicationJobRepository,
+        JobSuggestionController $suggestionController
     ): Response {
         $this->ensureUserSession();
         $user = $this->getCurrentUser();
-    
-        $searchTerm = trim($request->query->get('search', ''));
-        $filters = [
-            'types' => $request->query->all('types') ?? [],
-            'fields' => $request->query->all('fields') ?? [],
-            'education' => $request->query->all('education') ?? []
-        ];
-    
-        // Automatically filter by user if role is 1 (employer)
-        $filterUser = ($user->getRole() === 1) ? $user : null;
-
-        $locationFilter = null;
-        if ($request->query->has('location')) {
-            $locationFilter = [
-                'city' => $request->query->get('location'),
-                'radius' => $request->query->get('locationType') === 'nearby' 
-                    ? (int)$request->query->get('distance', 50) 
-                    : 0
-            ];
+        
+        
+        // Get suggestions (always get all recommendations)
+        $suggestions = [];
+        if ($user->getRole() === 2) {
+            $suggestions = $suggestionController->getSuggestionsForUser($user);
         }
     
-        $jobOffers = $repository->findWithLocationFilter(
-            $searchTerm,
-            $filters,
-            $filterUser,
-            $locationFilter
-        );
-    
+        // Only fetch regular job offers if not in recommendations-only view
+        $jobOffers = [];
         $hasApplied = [];
-        if ($user->getRole() === 2) {
-            foreach ($jobOffers as $jobOffer) {
-                $application = $applicationJobRepository->findUserApplicationForJob(
-                    $user->getId_user(),
-                    $jobOffer->getIdOffer()
-                );
+        $recentJobs = [];
+        $searchTerm = '';
+        $filters = ['types' => [], 'fields' => [], 'education' => []];
         
-                if ($application) {
-                    $hasApplied[$jobOffer->getIdOffer()] = $application;
+            $searchTerm = trim($request->query->get('search', ''));
+            $filters = [
+                'types' => $request->query->all('types') ?? [],
+                'fields' => $request->query->all('fields') ?? [],
+                'education' => $request->query->all('education') ?? []
+            ];
+            
+            $filterUser = ($user->getRole() === 1) ? $user : null;
+            $locationFilter = null;
+            
+            if ($request->query->has('location')) {
+                $locationFilter = [
+                    'city' => $request->query->get('location'),
+                    'radius' => $request->query->get('locationType') === 'nearby' 
+                        ? (int)$request->query->get('distance', 50) 
+                        : 0
+                ];
+            }
+            
+            $jobOffers = $repository->findWithLocationFilter(
+                $searchTerm,
+                $filters,
+                $filterUser,
+                $locationFilter
+            );
+            
+            if ($user->getRole() === 2) {
+                foreach ($jobOffers as $jobOffer) {
+                    $application = $applicationJobRepository->findUserApplicationForJob(
+                        $user->getId_user(),
+                        $jobOffer->getIdOffer()
+                    );
+                    if ($application) {
+                        $hasApplied[$jobOffer->getIdOffer()] = $application;
+                    }
                 }
             }
-        }
     
-        if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
-            return $this->render('job_offer/index.html.twig', [
-                'job_offers' => $jobOffers,
-                'has_applied' => $hasApplied,
-                'current_user' => $user,
-                'is_ajax' => true
-            ]);
-        }
-    
-        $recentJobs = $repository->findBy(
-            $filterUser ? ['user' => $filterUser] : [],
-            ['date_posted' => 'DESC'],
-            5
-        );
-    
+            $recentJobs = $repository->findBy(
+                $filterUser ? ['user' => $filterUser] : [],
+                ['date_posted' => 'DESC'],
+                5
+            );
+        
+        
         return $this->render('job_offer/index.html.twig', [
             'job_offers' => $jobOffers,
             'search_term' => $searchTerm,
@@ -94,7 +98,9 @@ final class JobOfferController extends BaseController
             'selected_education' => $filters['education'],
             'current_user' => $user,
             'has_applied' => $hasApplied,
-            'is_ajax' => false
+            'is_ajax' => $request->isXmlHttpRequest() || $request->query->get('ajax'),
+            'suggestions' => $suggestions,
+            'show_only_recommended' => false
         ]);
     }
 

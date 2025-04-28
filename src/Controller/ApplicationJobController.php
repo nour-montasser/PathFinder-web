@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Base;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Form\FormInterface;
@@ -31,34 +32,41 @@ use App\Service\AiCoverLetterGenerator;
 
 
 
+
 #[Route('/application/job')]
 final class ApplicationJobController extends BaseController
 {
     #[Route('/', name: 'app_application_job_index', methods: ['GET'])]
-    public function index(Request $request, ApplicationJobRepository $applicationJobRepository): Response
-    {
-        $this->ensureUserSession();
-        $user = $this->getCurrentUser();
-    
-        $application_jobs = $applicationJobRepository->findFilteredApplications(
-            $user,
-            $request->query->get('search'),
-            $request->query->all('status') ?: null,
-            $request->query->get('sort', 'date')
-        );
-    
-        if ($request->query->get('ajax')) {
-            return $this->render('application_job/index.html.twig', [
-                'application_jobs' => $application_jobs,
-                'is_ajax' => true
-            ]);
-        }
-    
-        return $this->render('application_job/index.html.twig', [
-            'application_jobs' => $application_jobs,
-            'is_ajax' => false
+public function index(Request $request, ApplicationJobRepository $applicationJobRepository, PaginatorInterface $paginator): Response
+{
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
+
+    $query = $applicationJobRepository->findFilteredApplicationsQuery(
+        $user,
+        $request->query->get('search'),
+        $request->query->all('status') ?: null,
+        $request->query->get('sort', 'date')
+    );
+
+    $pagination = $paginator->paginate(
+        $query,
+        $request->query->getInt('page', 1),
+        5 // items per page
+    );
+
+    if ($request->query->get('ajax')) {
+        return $this->render('application_job/_list.html.twig', [
+            'application_jobs' => $pagination,
+            'is_ajax' => true
         ]);
     }
+
+    return $this->render('application_job/index.html.twig', [
+        'application_jobs' => $pagination,
+        'is_ajax' => false
+    ]);
+}
 
     #[Route('/new', name: 'app_application_job_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response

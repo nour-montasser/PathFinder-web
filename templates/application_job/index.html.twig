@@ -165,6 +165,10 @@
 						{% endfor %}
 					</div>
 				{% endif %}
+               <div class="mt-4 text-center pagination-container">
+    {{ knp_pagination_render(application_jobs) }}
+</div>
+
 			</div>
 
 			<!-- Filters Column -->
@@ -279,33 +283,53 @@
 				padding: 0.25em 0.4em;
 				font-weight: 500;
 			}
+           .pagination .page-item {
+    margin: 0 2px;
+}
+
+.pagination .page-item .page-link {
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    color: rgb(59, 38, 29);
+}
+
+.pagination .page-item .page-link:hover {
+    background-color: #f8f9fa;
+}
+
+.pagination .page-item.active .page-link {
+    background-color:  rgb(59, 38, 29);
+    border-color:  rgb(59, 38, 29);
+    color: white;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+}
+
+
 		</style>
 
 {% endblock %}
 
 {% block javascripts %}
 <script>
+    const BASE_URL = '{{ path("app_application_job_index") }}';
+</script>
+
+<script>
 document.addEventListener('DOMContentLoaded', function() {
     // View toggle functionality
     const viewToggles = document.querySelectorAll('.view-toggle');
     const container = document.getElementById('applications-container');
     
-    viewToggles.forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            viewToggles.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            container.className = this.dataset.view === 'grid' ? 'app-grid-view' : 'app-list-view';
-        });
-    });
-
-    // AJAX Search Functionality
+    // AJAX Search and Pagination Functionality
     const searchInput = document.getElementById('searchInput');
     const searchButton = document.getElementById('searchButton');
     let searchTimer;
 
-    async function performSearch() {
-        const searchTerm = searchInput.value.trim();
-        
+    // Main function to load content via AJAX
+    async function loadContent(url = null) {
         // Show loading indicator
         const originalContent = container.innerHTML;
         container.innerHTML = `
@@ -316,27 +340,33 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>`;
 
         try {
-            // Get current status filters
-            const statusFilters = [];
-            document.querySelectorAll('input[name="status[]"]:checked').forEach(checkbox => {
-                statusFilters.push(checkbox.value);
-            });
+            // If no URL provided, build from current form state
+            if (!url) {
+                // Get current status filters
+                const statusFilters = [];
+                document.querySelectorAll('input[name="status[]"]:checked').forEach(checkbox => {
+                    statusFilters.push(checkbox.value);
+                });
 
-            // Get current sort value
-            const sortValue = document.querySelector('select[name="sort"]').value;
+                // Get current sort value
+                const sortValue = document.querySelector('select[name="sort"]').value;
+                const searchTerm = searchInput.value.trim();
 
-            // Build URL with parameters
-            const params = new URLSearchParams();
-            params.append('search', searchTerm);
-            statusFilters.forEach(status => params.append('status[]', status));
-            params.append('sort', sortValue);
-            params.append('ajax', '1');
+                // Build URL with parameters
+                const params = new URLSearchParams();
+                params.append('search', searchTerm);
+                statusFilters.forEach(status => params.append('status[]', status));
+                params.append('sort', sortValue);
+                params.append('ajax', '1');
 
-            const response = await fetch('{{ path("app_application_job_index") }}?' + params.toString(), {
+url = BASE_URL + '?' + params.toString();
+            }
+
+            const response = await fetch(url, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
-            });//gets response from the server from url + parametres de recherche
+            });
 
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -345,25 +375,31 @@ document.addEventListener('DOMContentLoaded', function() {
             const html = await response.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            const newContent = doc.getElementById('applications-container').innerHTML;
             
-            // Check if the response has applications or shows empty state
-            if (newContent.includes('No applications found') || 
-                newContent.includes('No applications yet')) {
-                container.innerHTML = `
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body text-center py-4">
-                            <i class="bi bi-file-earmark-text fs-1 text-muted mb-2"></i>
-                            <h3 class="h5">No applications found</h3>
-                            <p class="text-muted mb-3">No results for "${searchTerm}"</p>
-                        </div>
-                    </div>`;
-            } else {
-                container.innerHTML = newContent;
+            // Update applications container
+            const newContent = doc.getElementById('applications-container').innerHTML;
+            container.innerHTML = newContent;
+            
+            // Update pagination
+            const paginationContainer = document.querySelector('.pagination-container');
+            const newPagination = doc.querySelector('.pagination');
+            
+            if (paginationContainer && newPagination) {
+                paginationContainer.innerHTML = newPagination.outerHTML;
+            } else if (newPagination) {
+                // Create pagination container if it doesn't exist
+                const newPaginationContainer = document.createElement('div');
+                newPaginationContainer.className = 'pagination-container mt-4';
+                newPaginationContainer.innerHTML = newPagination.outerHTML;
+                container.parentNode.insertBefore(newPaginationContainer, container.nextSibling);
+            } else if (paginationContainer) {
+                // Remove pagination container if no pagination in response
+                paginationContainer.remove();
             }
             
-            // Reinitialize view toggles for the new content
+            // Reinitialize all interactive elements
             initViewToggles();
+            initPaginationLinks();
             
         } catch (error) {
             console.error('Error:', error);
@@ -371,13 +407,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="card border-0 shadow-sm">
                     <div class="card-body text-center py-4">
                         <i class="bi bi-file-earmark-text fs-1 text-muted mb-2"></i>
-                        <h3 class="h5">No applications found</h3>
-                        <p class="text-muted mb-3">Try adjusting your search or filters</p>
+                        <h3 class="h5">Error loading content</h3>
+                        <p class="text-muted mb-3">Please try again later</p>
                     </div>
                 </div>`;
         }
     }
 
+    // Initialize view toggles
     function initViewToggles() {
         document.querySelectorAll('.view-toggle').forEach(toggle => {
             toggle.addEventListener('click', function() {
@@ -388,75 +425,112 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Event listeners
-    searchButton.addEventListener('click', performSearch);
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(performSearch, 500);//wait for 500ms after the last input
-    });
-
-    // Initial load with search term
-    if (searchInput.value.trim() !== '') {
-        performSearch();
+    // Initialize pagination links
+    function initPaginationLinks() {
+        document.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                loadContent(url + (url.includes('?') ? '&' : '?') + 'ajax=1');
+                
+                // Scroll to top of applications container
+                container.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
     }
-});
 
-// Timer functionality for pending applications
-function updateTimers() {
-    document.querySelectorAll('[id^="timer-"]').forEach(timerElement => {
-        const deadline = new Date(timerElement.dataset.deadline);
-        const now = new Date();
-        const diff = deadline - now;
+    // Initialize filter form submission
+    function initFilterForm() {
+        const filtersForm = document.getElementById('filtersForm');
+        if (filtersForm) {
+            filtersForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                loadContent();
+            });
+        }
+    }
 
-        if (diff <= 0) {
-    location.reload(); // Reloads the page when time is up
-    return;
-}
+    // Event listeners
+    if (searchButton) {
+        searchButton.addEventListener('click', loadContent);
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(loadContent, 500);
+        });
+    }
 
-if (diff <= 5 * 60 * 1000) { // 5 minutes left
-    timerElement.style.color = 'red';
-}
+    // Initialization
+    initViewToggles();
+    initPaginationLinks();
+    initFilterForm();
 
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    // Initial load with search term if present
+    if (searchInput && searchInput.value.trim() !== '') {
+        loadContent();
+    }
 
-        let timeString = '';
-        if (hours > 0) timeString += `${hours}h `;
-        timeString += `${minutes}m ${seconds}s`;
-        
-        timerElement.innerHTML = timeString;
-    });
-}
+    // Timer functionality for pending applications
+    function updateTimers() {
+        document.querySelectorAll('[id^="timer-"]').forEach(timerElement => {
+            const deadline = new Date(timerElement.dataset.deadline);
+            const now = new Date();
+            const diff = deadline - now;
 
-// Initialize timers on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Set deadline data attribute for each timer
-    document.querySelectorAll('[id^="timer-"]').forEach(timerElement => {
-        const initialText = timerElement.textContent.trim();
-        const parts = initialText.split(/\s+/);
-        let hours = 0, minutes = 0, seconds = 0;
+            if (diff <= 0) {
+                location.reload();
+                return;
+            }
 
-        parts.forEach(part => {
-            if (part.includes('h')) hours = parseInt(part);
-            else if (part.includes('m')) minutes = parseInt(part);
-            else if (part.includes('s')) seconds = parseInt(part);
+            if (diff <= 5 * 60 * 1000) { // 5 minutes left
+                timerElement.style.color = 'red';
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            let timeString = '';
+            if (hours > 0) timeString += `${hours}h `;
+            timeString += `${minutes}m ${seconds}s`;
+            
+            timerElement.innerHTML = timeString;
+        });
+    }
+
+    // Initialize timers on page load
+    function initTimers() {
+        // Set deadline data attribute for each timer
+        document.querySelectorAll('[id^="timer-"]').forEach(timerElement => {
+            const initialText = timerElement.textContent.trim();
+            const parts = initialText.split(/\s+/);
+            let hours = 0, minutes = 0, seconds = 0;
+
+            parts.forEach(part => {
+                if (part.includes('h')) hours = parseInt(part);
+                else if (part.includes('m')) minutes = parseInt(part);
+                else if (part.includes('s')) seconds = parseInt(part);
+            });
+
+            const now = new Date();
+            const deadline = new Date(
+                now.getTime() + 
+                (hours * 60 * 60 * 1000) + 
+                (minutes * 60 * 1000) + 
+                (seconds * 1000)
+            );
+
+            timerElement.dataset.deadline = deadline.toISOString();
         });
 
-        const now = new Date();
-        const deadline = new Date(
-            now.getTime() + 
-            (hours * 60 * 60 * 1000) + 
-            (minutes * 60 * 1000) + 
-            (seconds * 1000)
-        );
+        // Start countdown
+        updateTimers();
+        setInterval(updateTimers, 1000);
+    }
 
-        timerElement.dataset.deadline = deadline.toISOString();
-    });
-
-    // Start countdown
-    updateTimers();
-    setInterval(updateTimers, 1000);
+    initTimers();
 });
 </script>
 	{% endblock %}
