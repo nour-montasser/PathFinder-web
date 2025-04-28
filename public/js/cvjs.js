@@ -671,6 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
       startDate: document.getElementById("startDatePicker").value,
       endDate: document.getElementById("endDatePicker").value
     };
+    console.log()
     window.currentExperiences.push(data);
     // Append to the left-hand experience container
     // Store the current index (experienceCount) for this entry.
@@ -929,10 +930,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function addLanguageBox(language, level) {
+   
     const preview = document.getElementById('languageContainer');
     const hidden = document.getElementById('hiddenLanguages');
     const index = preview.children.length;
-    const data = { name: language, level: levelName(level) };
+    const label = (typeof level === 'number' || !isNaN(parseInt(level, 10)))
+    ? levelName(parseInt(level, 10))
+    : level;
+    const data = { name: language, level: label };
+    console.log(label);
+   
 
     // Track in data model
     window.currentLanguages.push(data);
@@ -956,7 +963,7 @@ document.addEventListener('DOMContentLoaded', () => {
     box.innerHTML = `
       <div>
         <strong>${language}</strong>
-        <span class="ms-2">${levelName(level)}</span>
+        <span class="ms-2">${label}</span>
       </div>
       <button type="button" class="btn p-1 ms-2" aria-label="Remove">
         <span class="text-danger fs-3">&times;</span>  <!-- larger × -->
@@ -969,11 +976,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add hidden inputs for form submit
     ['name', 'level'].forEach(key => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = `languages[${index}][${key}]`;
-      input.value = key === 'name' ? language : levelName(level);
-      hidden.appendChild(input);
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = `languages[${index}][${key}]`;
+            input.value = key === 'name'
+              ? language
+              : level;      // ← now passes “3”, “4”, “5”, etc.
+           hidden.appendChild(input);
     });
 
     // Remove handler
@@ -1008,9 +1017,130 @@ document.addEventListener('DOMContentLoaded', () => {
     options.sort((a, b) => a.textContent.localeCompare(b.textContent));
     options.forEach(option => dropdown.appendChild(option));
   }
+  /**
+ * Seed an experience card + hidden inputs from a data object,
+ * instead of reading from the form.
+ */
+function addExperienceEntry(data) {
+  window.currentExperiences.push(data);
+  // Append to the left-hand experience container
+  // Store the current index (experienceCount) for this entry.
+  const experienceIndex = experienceCount;
+  // Create a container for the entry with a data-index attribute.
+  const entry = document.createElement('div');
+  entry.dataset.index = experienceIndex;
+  entry.className = [
+    "d-flex",
+    "flex-column",
+    "bg-secondary", "bg-opacity-75",
+    "text-white",
+    "rounded",
+    "px-3", "py-2", "mb-2",
+    "shadow-sm"
+  ].join(" ");
+
+  entry.innerHTML = `
+  <div class="d-flex justify-content-between align-items-start w-100">
+    <div class="flex-grow-1">
+      <div class="edu-main">
+        <div>
+          <h5 class="edu-degree">${data.position}</h5>
+          <div class="edu-institution">${data.location}</div>
+        </div>
+        <div class="edu-meta">
+          ${data.description ? `<div class="edu-honor">${data.description}</div>` : ""}
+          <div class="edu-year">${data.startDate} — ${data.endDate}</div>
+        </div>
+      </div>
+    </div>
+ <button 
+type="button" 
+class="btn p-1 ms-2 remove-experience" 
+data-index="${experienceIndex}" 
+aria-label="Remove"
+>
+<span class="text-danger fs-3">&times;</span>
+</button>
+  </div>
+`;
+
+  document.getElementById('experienceContainer').appendChild(entry);
+  experienceCount++;
+  window.updateExperienceSection();
+  window.updateEducationSection();
+}
+function addCertificateEntry(data) {
+  // 1) push into your in-memory array
+  window.currentCertificates.push(data);
+
+  // 2) grab a fresh index
+  const idx = certificateCount;
+
+  // 3) build the “card”
+  const box = document.createElement('div');
+  box.dataset.index = idx;
+  box.className = [
+    'd-flex', 'flex-column',
+    'bg-secondary','bg-opacity-75',
+    'text-white','rounded',
+    'px-3','py-2','mb-2',
+    'shadow-sm'
+  ].join(' ');
+
+  box.innerHTML = `
+    <div class="d-flex justify-content-between align-items-start w-100">
+      <div class="flex-grow-1">
+        <div class="cert-main">
+          <div>
+            <div class="cert-title">${data.name}</div>
+            <div class="cert-issuer">Issued by: ${data.association}</div>
+          </div>
+          <div class="cert-meta">
+            <div class="cert-date">${data.date}</div>
+          </div>
+        </div>
+        ${data.description
+          ? `<ul class="cert-bullets"><li>${data.description}</li></ul>` 
+          : ''}
+      </div>
+      <button
+        type="button"
+        class="btn p-1 ms-2 remove-certificate text-danger fs-3"
+        data-index="${idx}"
+        aria-label="Remove"
+      >
+        <span class="text-danger fs-3">&times;</span>
+      </button>
+    </div>
+  `;
+
+  // 4) append to the visual container
+  document.getElementById('certificateContainer').appendChild(box);
+
+  // 5) mirror into hidden inputs for form submission
+  const hidden = document.getElementById('hiddenCertificates');
+  ['name','association','description','date','media'].forEach(key => {
+    const i = document.createElement('input');
+    i.type  = 'hidden';
+    i.name  = `certificates[${idx}][${key}]`;
+    i.value = data[key];
+    hidden.appendChild(i);
+  });
+
+  // 6) bump counter & refresh preview panels
+  certificateCount++;
+  window.updateCertificatesSection();
+}
+
+// expose it globally so your Twig‐inline script can call it:
+window.addExperienceEntry = addExperienceEntry;
+
   // Global helper for inline onchange (if used inline in HTML)
   window.addSkillTag = addSkillTag;
   window.updateHiddenSkills = updateHiddenSkills;
+  window.addLanguageBox       = addLanguageBox;
+window.addExperienceEntry   = addExperienceEntry;      // re-uses your existing addExperience()
+window.addCertificateEntry  = addCertificateEntry;     // re-uses addCertificate()
 
 });
 

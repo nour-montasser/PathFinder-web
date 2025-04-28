@@ -34,23 +34,23 @@
 		.modal.show {
 			display: flex !important;
 		}
-		 .col-md-8 .card {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-  }
-   /* 3) Elevate the right form pane with white background + shadow */
-  .col-md-4 .card {
-    background: #fff;
-    border-radius: .5rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
+		.col-md-8 .card {
+			background: transparent;
+			border: none;
+			box-shadow: none;
+		}
+		/* 3) Elevate the right form pane with white background + shadow */
+		.col-md-4 .card {
+			background: #fff;
+			border-radius: 0.5rem;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		}
 		body {
 			background-color: #f8f9fa; /* Bootstrap’s $gray-100 */
 		}
 		.create-cv-header {
-  border-bottom: 3px solid #64261D; /* or whatever brown you prefer */
-}
+			border-bottom: 3px solid #64261D; /* or whatever brown you prefer */
+		}
 
 		/* White box with rounded corners, padding & shadow */
 		.modal-content {
@@ -211,13 +211,13 @@
 			0 1px 3px rgba(0, 0, 0, 0.08); /* lift effect underneath */
 			padding: 2rem; /* bump up inner padding for your content */
 		}
-	/* 2) Only the CV Preview header gets the “floating” look */
-.col-md-8 .card-header {
-  background: #fff;                  /* keep it white */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  border-bottom: none;               /* remove the default bottom border if present */
-  z-index: 1;                        /* so it sits above the body content */
-}
+		/* 2) Only the CV Preview header gets the “floating” look */
+		.col-md-8 .card-header {
+			background: #fff; /* keep it white */
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+			border-bottom: none; /* remove the default bottom border if present */
+			z-index: 1; /* so it sits above the body content */
+		}
 	</style>
 {% endblock %}
 
@@ -251,11 +251,11 @@
 
 		<div class="col-md-4 ">
 			<div class="card mb-4">
-			<div class="card-header create-cv-header d-flex justify-content-between align-items-center">
-    <h3 class="m-0">Create CV</h3>
-    <a href="{{ path('cv_show') }}" class="btn btn-primary">CV Manager</a>
-  </div>
-				
+				<div class="card-header create-cv-header d-flex justify-content-between align-items-center">
+					<h3 class="m-0">Create CV</h3>
+					<a href="{{ path('cv_show') }}" class="btn btn-primary">CV Manager</a>
+				</div>
+
 				<div class="card-body">
 					{{ form_start(cvForm, {'action': path('cv_create'), 'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
 

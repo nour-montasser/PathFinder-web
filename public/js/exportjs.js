@@ -492,10 +492,12 @@ window.updateLanguagesSection = updateLanguagesSection;
 window.updateCertificatesSection = updateCertificatesSection;
 // --- exportjs.js (append at the bottom) ---
 (function () {
-    const dropdown = document.getElementById('fileTypeDropdown');
-    if (!dropdown) return;
+    const dropdown   = document.getElementById('fileTypeDropdown');
+    const confirmBtn = document.getElementById('confirmDownloadBtn');
+    if (!dropdown || !confirmBtn) retun
+   
 
-    dropdown.addEventListener('change', () => {
+    confirmBtn.addEventListener('click', () => {
         // Only proceed when the user explicitly picks "PDF" (you can adjust the exact value)
         if (dropdown.value !== 'pdf') return;
 
