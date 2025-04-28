@@ -480,6 +480,7 @@
 
 {% include 'includes/footer.html.twig' %}{% endblock %}{% block javascripts %}
 {{ parent() }}
+<script src="{{ asset('js/exportjs.js') }}"></script>
 <script src="{{ asset('js/cvjs.js') }}"></script>
 
 <script></script>{% endblock %}

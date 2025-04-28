@@ -1,4 +1,8 @@
-
+// at top of cvjs.js
+window.selectedSkills     = window.selectedSkills     || [];
+window.currentExperiences = window.currentExperiences || [];
+window.currentCertificates= window.currentCertificates|| [];
+window.currentLanguages   = window.currentLanguages   || [];
 function sentenceCase(str) {
   // Capitalize first char of the string, and any char after . ! or ?
   return str.replace(
@@ -351,7 +355,7 @@ function sentenceCase(str) {
       let experienceCount  = expContainer  ? expContainer.children.length  : 0;
       let certificateCount = certContainer ? certContainer.children.length : 0;
   // Select all input or textarea fields with ids ending in "Field"
-    let selectedSkills = [];
+  
     let debounceTimeout;
     const sentenceFields = document.querySelectorAll(
       'input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=button]):not([type=submit]), textarea'
@@ -509,10 +513,10 @@ function sentenceCase(str) {
    
 function addSkillTag(skill) {
   if (selectedSkills.includes(skill)) return;     // no duplicates
-  selectedSkills.push(skill);                    // track
+  window.selectedSkills.push(skill);               // track
 
   // re‐sync hidden input
-  hiddenInput.value = selectedSkills.join(',');
+  hiddenInput.value = window.selectedSkills.join(',');
 
   // build the badge+×
   const badge = document.createElement('span');
@@ -525,15 +529,17 @@ function addSkillTag(skill) {
   btn.setAttribute('aria-label','Remove');
   btn.addEventListener('click', () => {
     // remove from array
-    selectedSkills = selectedSkills.filter(s => s !== skill);
+    window.selectedSkills = window.selectedSkills.filter(s=>s!==skill);
     // update hidden
     hiddenInput.value = selectedSkills.join(',');
     // remove badge
     badge.remove();
+    window.updateSkillsSection();
   });
 
   badge.appendChild(btn);
   selectedSkillsFlow.appendChild(badge);
+  window.updateSkillsSection();
 }
 
   // Add event listeners for search input and clearing the search
@@ -602,6 +608,10 @@ function addSkillTag(skill) {
     inputs.forEach(input => {
       hiddenContainer.removeChild(input);
     });
+    window.currentExperiences.splice(index,1);
+    window.updateExperienceSection();
+    window.updateEducationSection();
+    
   }
     function addExperience() {
       const data = {
@@ -612,7 +622,7 @@ function addSkillTag(skill) {
         startDate: document.getElementById("startDatePicker").value,
         endDate: document.getElementById("endDatePicker").value
       };
-
+      window.currentExperiences.push(data);
       // Append to the left-hand experience container
         // Store the current index (experienceCount) for this entry.
     const experienceIndex = experienceCount;
@@ -632,8 +642,7 @@ function addSkillTag(skill) {
     `;
       document.getElementById('experienceContainer').appendChild(entry);
 
-      // Add preview card
-      addExperiencePreview(data);
+     
 
       const container = document.getElementById('hiddenExperiences');
       ['type', 'position', 'location', 'description', 'startDate', 'endDate'].forEach(key => {
@@ -647,25 +656,11 @@ function addSkillTag(skill) {
 
       hide('experienceModal');
       document.getElementById('experienceForm').reset();
+      window.updateExperienceSection();
+    window.updateEducationSection();
     }
 
-    function addExperiencePreview(data) {
-      const container = document.getElementById('experiencePreviewContainer');
-      if (!container) return;
-      const card = document.createElement('div');
-      card.className = 'card mb-3 shadow-sm';
-      card.innerHTML = `
-        <div class="card-body">
-          <h5 class="card-title">${data.position}</h5>
-          <h6 class="card-subtitle mb-2 text-muted">${data.location}</h6>
-          <dl class="row mb-0">
-            <dt class="col-sm-4">Type</dt><dd class="col-sm-8">${data.type}</dd>
-            <dt class="col-sm-4">Duration</dt><dd class="col-sm-8">${data.startDate} → ${data.endDate}</dd>
-            <dt class="col-sm-4">Description</dt><dd class="col-sm-8">${data.description}</dd>
-          </dl>
-        </div>`;
-      container.appendChild(card);
-    }
+  
 
     // ─── CERTIFICATE SECTION ───────────────────────────
     const addCertBtn   = document.getElementById('addCertificateBtn');
@@ -691,6 +686,7 @@ function addSkillTag(skill) {
         date: document.getElementById("certificateDatePicker").value,
         media: document.getElementById("certificateMediaLabel").textContent
       };
+      window.currentCertificates.push(data);
       const certIndex = certificateCount;
       // Append to left-hand certificate container
       const entry = document.createElement('div');
@@ -707,7 +703,7 @@ function addSkillTag(skill) {
   // Append the entry to the visible certificate container.
   document.getElementById('certificateContainer').appendChild(entry);
       // Add preview card
-      addCertificatePreview(data);
+     
 
       // Append hidden inputs for form submission
       const container = document.getElementById('hiddenCertificates');
@@ -724,27 +720,10 @@ function addSkillTag(skill) {
       hide('certificateModal');
       document.getElementById('certificateForm').reset();
       document.getElementById('certificateMediaLabel').textContent = 'No file selected';
+      window.updateCertificatesSection();
     }
 
-    function addCertificatePreview({ name, association, description, date, media }) {
-      const container = document.getElementById('certificatesPreviewContainer');
-      if (!container) return;
-      const card = document.createElement('div');
-      card.className = 'card mb-3 shadow-sm';
-      card.innerHTML = `
-        <div class="card-body">
-          <h5 class="card-title">${name}</h5>
-          <h6 class="card-subtitle mb-2 text-muted">Issued by: ${association}</h6>
-          <dl class="row mb-0">
-            <dt class="col-sm-4">Date</dt><dd class="col-sm-8">${date}</dd>
-            <dt class="col-sm-4">Description</dt><dd class="col-sm-8">${description}</dd>
-            ${ media ? `<dt class="col-sm-4">File</dt>
-                      <dd class="col-sm-8"><a href="/uploads/${media}" target="_blank">${media}</a></dd>` : '' }
-          </dl>
-        </div>`;
-      container.appendChild(card);
-    }
-
+   
     // ─── DOWNLOAD SECTION ──────────────────────────────
     const downloadBtn     = document.getElementById('downloadBtn');
     const closeDownload   = document.getElementById('closeDownloadBtn');
@@ -768,6 +747,7 @@ function addSkillTag(skill) {
       const hiddenContainer = document.getElementById('hiddenCertificates');
       const inputs = hiddenContainer.querySelectorAll(`input[name^="certificates[${index}]"]`);
       inputs.forEach(input => hiddenContainer.removeChild(input));
+      window.updateCertificatesSection();
     }
     document.getElementById('certificateContainer').addEventListener('click', (event) => {
       if (event.target.classList.contains('remove-certificate')) {
@@ -821,6 +801,7 @@ function addSkillTag(skill) {
         return;
       }
       addLanguageBox(lang, selectedLevelLang);
+    
       // Reset controls
       languageDropdown.value = '';
       langLevelContainer.classList.add('d-none');
@@ -835,7 +816,8 @@ function addSkillTag(skill) {
       const preview = document.getElementById('languageContainer');
       const hidden = document.getElementById('hiddenLanguages');
       const index = preview.children.length;
-    
+      const data = { name: language, level: levelName(level) };
+      window.currentLanguages.push(data);
       const box = document.createElement('div');
       box.className = 'alert alert-secondary d-flex align-items-center justify-content-between';
       box.innerHTML = `
@@ -863,6 +845,8 @@ function addSkillTag(skill) {
         preview.removeChild(box);
         Array.from(hidden.querySelectorAll(`input[name^="languages[${index}]"]`))
           .forEach(input => hidden.removeChild(input));
+          window.currentLanguages = window.currentLanguages.filter((l,i)=> i!==index);
+          window.updateLanguagesSection();
     
         // Re-add the language back to the dropdown
         const option = document.createElement('option');
@@ -875,6 +859,7 @@ function addSkillTag(skill) {
       });
     
       preview.appendChild(box);
+      window.updateLanguagesSection();
     }
   // Sort dropdown options alphabetically
   function sortDropdownOptions() {

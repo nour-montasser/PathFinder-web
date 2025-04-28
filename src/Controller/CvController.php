@@ -3,12 +3,15 @@
 namespace App\Controller;
 
 use App\Entity\Cv;
-use App\Entity\App_user;
+use Knp\Snappy\Pdf;
 use App\Form\CvType;
+use App\Entity\App_user;
 use App\Entity\Experience;
 use App\Entity\Certificates;
+use Symfony\Component\Form\FormError;
 use App\Service\LightcastTokenService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\VarDumper\VarDumper;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,20 +19,23 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Intl\Languages as IntlLanguages;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Form\FormError;
 // Alias for Symfony's Languages
 
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Entity\Languages as EntityLanguages; // Alias for your custom Languages entity
+
 
 final class CvController extends AbstractController
 {
     private HttpClientInterface $httpClient;
+    private Pdf $snappyPdf;
+    
 
-    public function __construct(HttpClientInterface $httpClient)
+    public function __construct(HttpClientInterface $httpClient,Pdf $snappyPdf)
     {
         $this->httpClient = $httpClient;
+        $this->snappyPdf = $snappyPdf;
     }
     #[Route('/cv', name: 'app_cv')]
     public function index(Request $request, EntityManagerInterface $em): Response
@@ -623,7 +629,42 @@ final class CvController extends AbstractController
             return $this->json(['error' => 'Failed to check grammar. Please try again later.'], 500);
         }
     }
+    #[Route('/cv/export-pdf', name: 'cv_export_pdf', methods: ['POST'])]
+    public function exportPdf(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $html = $data['html'] ?? '';
+        $raw = $request->getContent();
+        VarDumper::dump([
+            'raw_body'      => $raw,
+            'raw_type'      => gettype($raw),
+            'decoded_json'  => json_decode($raw, true),
+            'decoded_type'  => gettype(json_decode($raw, true)),
+        ]);
+    
+        if (!trim($html)) {
+            return $this->json(['error' => 'No HTML received'], 400);
+        }
 
+        // Optional: tweak PDF options
+      // in your controller, before getOutputFromHtml():
+$this->snappyPdf
+->setOption('disable-smart-shrinking', true)
+->setOption('zoom', 1)
+->setOption('page-size', 'A4')
+->setOption('margin-top', '0mm')
+->setOption('margin-bottom', '0mm')
+->setOption('margin-left', '0mm')
+->setOption('margin-right', '0mm');
+
+
+        $pdf = $this->snappyPdf->getOutputFromHtml($html);
+
+        return new Response($pdf, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="cv.pdf"',
+        ]);
+    }
 
 
 
