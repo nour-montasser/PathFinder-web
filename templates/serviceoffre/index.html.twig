@@ -13,6 +13,25 @@
   </div>
 </div>
 
+<div class="currency-converter-box p-3 bg-white rounded shadow-sm" style="max-width: 430px;">
+  
+    <h2>Currency Converter</h2>
+    <div class="input-group">
+      <select id="currencySelector" class="form-select">
+        {% for code, name in currencies %}
+          <option value="{{ code }}">{{ name }} ({{ code }})</option>
+        {% endfor %}
+      </select>
+      <button type="button" class="btn btn-primary" onclick="convertCurrency()">Convert</button>
+    </div>
+
+    <div id="conversionResult" class="mt-3">
+  
+      <p><strong>Converted:</strong> <span id="convertedPrice">Select a currency</span></p>
+    </div>
+  
+</div>
+
 
 
     <div class="row">
@@ -312,9 +331,10 @@ body {
   border-radius: 20px;
   padding: 25px 20px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-  min-height: 300px;
-  width: 100%;
+  min-height: 200px;
+  width: 110%;
   transition: all 0.3s ease-in-out;
+  margin-left: -20px;
 }
 
 .nav-link {
@@ -362,6 +382,16 @@ body {
 /* Sidebar overall feel when hovering */
 .sidebar:hover {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.currency-converter-box {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 10px;
+     margin-left: -200px;
+    
+   
 }
 </style>
 
@@ -1010,6 +1040,9 @@ setTimeout(() => {
         }
     });
 });
+
+
+
 </script>
 
 

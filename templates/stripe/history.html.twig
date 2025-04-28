@@ -40,9 +40,8 @@
                 {{ payment.paidAt|date('M d, Y') }}
               </td>
               <td>
-                <a href="{{ payment.receiptUrl }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                  View Receipt
-                </a>
+               <a href="{{ path('payment_receipt', {'id': payment.id}) }}" class="btn btn-sm brown-button">
+    View Receipt </a>
               </td>
             </tr>
           {% else %}

@@ -56,19 +56,20 @@
                                             <h5 class="modal-title" id="rateModalLabel{{ application.idApp }}">⭐ Rate this Freelancer</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
-                                        <form action="{{ path('rate_freelancer', {'id': application.idApp}) }}" method="post">
-                                            <div class="modal-body text-center">
-                                                <div class="rating-stars mb-4">
-                                                    {% for i in 5..1 %}
-                                                        <input class="form-check-input d-none" type="radio" name="rating" value="{{ i }}" id="star{{ i }}-{{ application.idApp }}">
-                                                        <label for="star{{ i }}-{{ application.idApp }}" class="star">&#9733;</label>
-                                                    {% endfor %}
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer border-0">
-                                                <button type="submit" class="btn btn-primary w-100 rounded-pill">Submit Rating</button>
-                                            </div>
-                                        </form>
+                                        <form class="rate-form" data-application-id="{{ application.idApp }}">
+    <div class="modal-body text-center">
+        <div class="rating-stars mb-4">
+            {% for i in 5..1 %}
+                <input class="form-check-input d-none" type="radio" name="rating" value="{{ i }}" id="star{{ i }}-{{ application.idApp }}">
+                <label for="star{{ i }}-{{ application.idApp }}" class="star">&#9733;</label>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="modal-footer border-0">
+        <button type="submit" class="btn btn-primary w-100 rounded-pill">Submit Rating</button>
+    </div>
+</form>
+
                                     </div>
                                 </div>
                             </div>
@@ -153,3 +154,54 @@ body {
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
 {% endblock %}
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const rateForms = document.querySelectorAll('.rate-form');
+
+    rateForms.forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const applicationId = form.dataset.applicationId;
+            const selectedRating = form.querySelector('input[name="rating"]:checked');
+
+            if (!selectedRating) {
+                alert('Please select a rating!');
+                return;
+            }
+
+            const ratingValue = selectedRating.value;
+
+            try {
+                const response = await fetch('/serviceoffre/dashboard/rate-freelancer/' + applicationId, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'rating=' + ratingValue
+                });
+
+                if (response.ok) {
+                    const modal = bootstrap.Modal.getInstance(form.closest('.modal'));
+                    modal.hide(); // close modal
+                    
+                    // Optional: Show success message
+                    alert('⭐ Freelancer rated successfully!');
+
+                    // Optional: Refresh part of page, or disable rating again
+
+                } else {
+                    alert('Error rating freelancer!');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Network error!');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+

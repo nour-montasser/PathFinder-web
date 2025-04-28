@@ -152,4 +152,19 @@ class StripeController extends AbstractController
             'payments' => $payments
         ]);
     }
+
+    #[Route('/payment/receipt/{id}', name: 'payment_receipt')]
+public function viewReceipt(EntityManagerInterface $em, int $id): Response
+{
+    $payment = $em->getRepository(Payment::class)->find($id);
+
+    if (!$payment) {
+        throw $this->createNotFoundException('Payment not found.');
+    }
+
+    return $this->render('stripe/receipt.html.twig', [
+        'payment' => $payment
+    ]);
+}
+
 }

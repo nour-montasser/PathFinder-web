@@ -26,10 +26,17 @@
         </p>
 
         <div class="d-flex gap-3 small text-muted mb-2">
-          <span><strong>Budget:</strong> {{ service.price|format_currency('USD') }}</span>
-          <span><strong>Duration:</strong> {{ service.duration }}</span>
-          <span><strong>Experience:</strong> {{ service.experienceLevel }}</span>
-        </div>
+  <span>
+    <strong>Budget:</strong> 
+    <span class="service-price" id="price-{{ service.idService }}" data-usd-price="{{ service.price }}">
+      ${{ service.price }}
+    </span>
+  </span>
+  
+  <span><strong>Duration:</strong> {{ service.duration }}</span>
+  <span><strong>Experience:</strong> {{ service.experienceLevel }}</span>
+</div>
+
 
         {% for skill in service.skills|split(',') %}
           <span class="badge bg-light text-muted border px-2 py-1 rounded-pill me-2">
@@ -138,4 +145,35 @@
       new bootstrap.Modal(document.getElementById('applyModal')).show();
     });
   }
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const currencySelector = document.getElementById('currencySelector');
+    const servicePrices = document.querySelectorAll('.service-price');
+
+    currencySelector.addEventListener('change', function() {
+        const selectedCurrency = this.value;
+
+        fetch(`/convert-currency?to=${selectedCurrency}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.rate) {
+                    servicePrices.forEach(function(priceElement) {
+                        const usdPrice = parseFloat(priceElement.getAttribute('data-usd-price'));
+                        const convertedPrice = (usdPrice * data.rate).toFixed(2);
+
+                        priceElement.innerText = `${convertedPrice} ${selectedCurrency}`;
+                    });
+                } else {
+                    console.error('Conversion error:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error during conversion:', error);
+            });
+    });
+});
+
+
 </script>

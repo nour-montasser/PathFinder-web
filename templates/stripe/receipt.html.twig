@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Receipt</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: white;
+            color: black;
+            padding: 40px;
+        }
+        .receipt {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 2px solid #79501B;
+            padding: 30px;
+            border-radius: 12px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #79501B;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <h1>🧾 Payment Receipt</h1>
+
+        <div class="row"><strong>Service:</strong> 
+            <span>{{ payment.application.service.title ?? 'N/A' }}</span>
+        </div>
+
+        <div class="row"><strong>Freelancer:</strong> 
+            <span>{{ payment.application.user.name ?? 'N/A' }}</span>
+        </div>
+
+        <div class="row"><strong>Amount Paid:</strong> 
+            <span>${{ payment.amount|number_format(2, '.', ',') }}</span>
+        </div>
+
+        <div class="row"><strong>Paid On:</strong> 
+            <span>{{ payment.paidAt|date('F j, Y') }}</span>
+        </div>
+
+
+        <div class="row"><strong>Receipt Link:</strong> 
+            <span>
+                <a href="{{ payment.receiptUrl }}" target="_blank">View Receipt Online</a>
+            </span>
+        </div>
+
+        <div class="footer">
+            Thank you for your trust! 🚀<br>
+            Pathfinder © 2025
+        </div>
+    </div>
+</body>
+</html>

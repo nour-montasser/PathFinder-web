@@ -19,6 +19,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Form\FormError;
 use App\Service\AIDescriptionGenerator; // Ensure this is the correct namespace for the class
 use App\Repository\ApplicationserviceRepository; // Add the correct namespace for ApplicationserviceRepository
+use App\Service\CurrencyConverter; // Ensure this is the correct namespace for the CurrencyConverter class
 
 #[Route('/serviceoffre')]
 final class ServiceoffreController extends AbstractController
@@ -27,7 +28,8 @@ final class ServiceoffreController extends AbstractController
 public function index(
     Request $request, 
     EntityManagerInterface $entityManager,
-    AIDescriptionGenerator $aiGenerator
+    AIDescriptionGenerator $aiGenerator,
+    CurrencyConverter $currencyConverter
 ): Response {
     $sessionUser = $this->getSessionUser($request, $entityManager);
     $showOnlyMyJobs = $request->query->getBoolean('my_jobs');
@@ -196,7 +198,24 @@ public function index(
             }
         }
     }
-
+    $currencies = [
+        'USD' => 'United States Dollar',
+        'EUR' => 'Euro',
+        'GBP' => 'British Pound Sterling',
+        'JPY' => 'Japanese Yen',
+        'AUD' => 'Australian Dollar',
+        'CAD' => 'Canadian Dollar',
+        'CHF' => 'Swiss Franc',
+        'TND' => 'Tunisian Dinar',
+        'MAD' => 'Moroccan Dirham',
+        'AED' => 'United Arab Emirates Dirham',
+        'CNY' => 'Chinese Yuan',
+        'INR' => 'Indian Rupee',
+        'BRL' => 'Brazilian Real',
+        'ZAR' => 'South African Rand',
+        'SEK' => 'Swedish Krona',
+        'NOK' => 'Norwegian Krone',
+    ];
 
     return $this->render('serviceoffre/index.html.twig', [
         'serviceoffres' => $serviceoffres,
@@ -209,6 +228,8 @@ public function index(
         'isFormOpen' => $isFormOpen,
         'generatedDescription' => $serviceoffre->getDescription(),
         'generatedPrice' => $serviceoffre->getPriceEstimation(),
+        'currencies' => $currencies,
+        
     ]);
 }
 
@@ -540,29 +561,32 @@ public function pay(): Response
         'stripe_public_key' => $_ENV['STRIPE_PUBLIC_KEY']
     ]);
 }
-#[Route('/rate-freelancer/{id}', name: 'rate_freelancer', methods: ['POST'])]
-public function rateFreelancer(Request $request, ApplicationserviceRepository $appRepo, EntityManagerInterface $em, int $id): Response
+
+#[Route('/dashboard/rate-freelancer/{id}', name: 'rate_freelancer', methods: ['POST'])]
+
+public function rateFreelancer(Request $request, ApplicationserviceRepository $appRepo, EntityManagerInterface $em, int $id): JsonResponse
 {
     $application = $appRepo->find($id);
 
     if (!$application) {
-        throw $this->createNotFoundException('Application not found.');
+        return new JsonResponse(['error' => 'Application not found.'], 404);
     }
 
     $rating = (int) $request->request->get('rating');
 
     if ($rating < 1 || $rating > 5) {
-        $this->addFlash('error', 'Invalid rating! Please rate between 1 and 5 stars.');
-        return $this->redirectToRoute('app_serviceoffre_dashboard');
+        return new JsonResponse(['error' => 'Invalid rating!'], 400);
     }
 
     $application->setRating($rating);
-    $application->setStatus('completed'); // 🔥 Mark the service as completed after rating
+    $application->setStatus('completed');
     $em->flush();
 
-    $this->addFlash('success', 'Freelancer rated successfully and service completed!');
-    return $this->redirectToRoute('app_serviceoffre_dashboard');
+    return new JsonResponse(['success' => 'Freelancer rated successfully!']);
+    
 }
+
+
 
 
 }
