@@ -17,6 +17,7 @@ use App\Repository\App_userRepository;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use App\Service\DeepseekAIService;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 #[Route('/message')]
@@ -288,4 +289,40 @@ if ($form->isSubmitted() && $form->isValid()) {
             'id_channel' => $channel->getId_channel()
         ]);
     }
+
+    #[Route('/messages/search', name: 'app_messages_search')]
+public function searchMessages(Request $request, EntityManagerInterface $entityManager): JsonResponse
+{
+    $query = $request->query->get('q');
+    $channelId = $request->query->get('channelId');
+    
+    if (!$query || !$channelId) {
+        return new JsonResponse(['messages' => []]);
+    }
+
+    $messages = $entityManager->getRepository(Message::class)->createQueryBuilder('m')
+        ->where('m.channel = :channelId')
+        ->andWhere('m.content LIKE :query')
+        ->setParameter('channelId', $channelId)
+        ->setParameter('query', '%' . $query . '%')
+        ->orderBy('m.time_sent', 'DESC')
+        ->setMaxResults(10)
+        ->getQuery()
+        ->getResult();
+
+    $results = array_map(function($message) {
+        return [
+            'id' => $message->getIdMessage(),
+            'content' => $message->getContent(),
+            'sender' => [
+                'name' => $message->getSender()->getName(),
+                'image' => $message->getSender()->getImage()
+            ],
+            'timeSent' => $message->getTimeSent()->format('H:i d/m/Y')
+        ];
+    }, $messages);
+
+    return new JsonResponse(['messages' => $results]);
+}
+
 }

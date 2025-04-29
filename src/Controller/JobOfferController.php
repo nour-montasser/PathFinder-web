@@ -323,7 +323,6 @@ public function edit(
         return $this->redirectToRoute('app_job_offer_index', [], Response::HTTP_SEE_OTHER);
     }
 
-    // JobOfferController.php
 
     #[Route('/search-cities', name: 'app_job_offer_search_cities', methods: ['GET'])]
     public function searchCities(Request $request, GeonamesService $geonamesService): JsonResponse
