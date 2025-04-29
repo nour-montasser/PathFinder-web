@@ -60,10 +60,10 @@
         <!-- Profile Section - Improved layout -->
         <div class="d-flex align-items-center ms-auto" style="gap: 1rem;">
             {% if current_user %}
-                <a href="#" class="text-decoration-none text-white d-flex align-items-center">
+                <a href="{{ path('app_profile_view') }}" class="text-decoration-none text-white d-flex align-items-center">
                     <div class="avatar avatar-xl position-relative">
-                        {% if current_user.image %}
-                            <img src="{{ current_user.image }}" 
+                        {% if current_user.image and current_user.image != 'default.png' %}
+                            <img src="{{ asset('uploads/users/' ~ current_user.image) }}" 
                                  alt="Profile Picture" 
                                  class="rounded-circle profile-image"
                                  style="width: 50px; height: 50px; object-fit: cover;">
@@ -71,7 +71,7 @@
                             <img src="{{ asset('build/images/faces/default-profile.png') }}" 
                                  alt="Default Profile" 
                                  class="rounded-circle profile-image"
-                                 style="width: 0px; height: 50px; object-fit: cover;">
+                                 style="width: 50px; height: 50px; object-fit: cover;">
                         {% endif %}
                     </div>
                       <span class="ms-2 d-none d-lg-inline text-truncate" style="max-width: 80px;">
@@ -82,7 +82,7 @@
                     <i class="bi bi-box-arrow-left me-1"></i> Logout
                 </a>
             {% else %}
-                <a href="#" class="btn btn-sm btn-outline-light">
+                <a href="{{ path('app_login') }}" class="btn btn-sm btn-outline-light">
                     <i class="bi bi-box-arrow-in-right me-1"></i> Login
                 </a>
             {% endif %}

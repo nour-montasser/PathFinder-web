@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ asset('build/images/logo/pathfinder_logo_compass.png.png') }}" type="image/png">
+    <title>{% block title %}Admin - Pathfinder{% endblock %}</title>
+
+    {{ encore_entry_link_tags('app') }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --sidebar-bg: #1A1B25;
+            --sidebar-hover: #22222f;
+            --sidebar-active: #22222f;
+            --header-bg: #1A1B25;
+            --body-bg: #F1F3F6;
+            --card-bg: #ffffff;
+            --text-primary: #6e6b7b;
+            --text-light: #B4B7BD;
+            --accent-green: #28c76f;
+            --accent-blue: #3b82f6;
+        }
+        
+        body {
+            background-color: var(--body-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Sidebar Styles */
+        .admin-sidebar {
+            background-color: var(--sidebar-bg);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 220px;
+            height: 100%;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            padding-top: 70px;
+        }
+        
+        .admin-logo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 220px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 101;
+        }
+        
+        .admin-logo img {
+            width: 30px;
+            margin-right: 10px;
+        }
+        
+        .admin-sidebar .nav {
+            padding: 0 10px;
+        }
+        
+        .admin-sidebar .nav-link {
+            color: var(--text-light);
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        
+        .admin-sidebar .nav-link:hover {
+            background-color: var(--sidebar-hover);
+            color: white;
+        }
+        
+        .admin-sidebar .nav-link.active {
+            background-color: var(--sidebar-active);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+        
+        .admin-sidebar .nav-link i {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
+        
+        /* Header Styles */
+        .admin-header {
+            background-color: var(--header-bg);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 220px;
+            height: 70px;
+            z-index: 99;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        
+        .admin-header .user-info {
+            color: white;
+            display: flex;
+            align-items: center;
+        }
+        
+        .admin-header .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            margin-right: 10px;
+        }
+        
+        .admin-header .user-avatar-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            margin-right: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .admin-header .btn-logout {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 5px;
+            margin-left: 15px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .admin-header .btn-logout:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Content Styles */
+        .admin-content {
+            margin-left: 220px;
+            padding: 90px 25px 25px;
+        }
+        
+        .welcome-banner {
+            background-color: var(--accent-green);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .page-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .page-title h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        
+        .btn-outline-panel {
+            border: 1px solid #ddd;
+            background-color: white;
+            color: var(--text-primary);
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+        }
+        
+        /* Card Styles */
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* Stats Card Styles */
+        .stats-card {
+            color: white;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stats-card.blue {
+            background-color: var(--accent-blue);
+        }
+        
+        .stats-card.green {
+            background-color: var(--accent-green);
+        }
+        
+        .stats-card h6 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin: 0;
+            opacity: 0.85;
+            font-weight: 500;
+        }
+        
+        .stats-card .count {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        .stats-card .icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            opacity: 0.8;
+        }
+        
+        .stats-card .bg-icon {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            font-size: 6rem;
+            opacity: 0.1;
+        }
+        
+        /* Table Styles */
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table thead th {
+            background-color: #f9fafc;
+            border-top: none;
+            border-bottom: 1px solid #efefef;
+            color: var(--text-primary);
+            padding: 12px 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .table tbody td {
+            border-color: #efefef;
+            vertical-align: middle;
+            padding: 12px 15px;
+            color: #333;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .badge {
+            padding: 5px 8px;
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+        
+        .btn-group-sm > .btn, .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+    </style>
+    {% block styles %}{% endblock %}
+</head>
+
+<body>
+    {% if app.session.get('user_role') == 3 %}
+        <!-- Admin logo -->
+        <div class="admin-logo">
+            <img src="{{ asset('build/images/logo/pathfinder_logo_white.png') }}" alt="Pathfinder">
+            <span>Admin Panel</span>
+        </div>
+        
+        <!-- Admin sidebar -->
+        <div class="admin-sidebar">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if app.request.get('_route') == 'admin_dashboard' %}active{% endif %}" href="{{ path('admin_dashboard') }}">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if app.request.get('_route') == 'admin_users' %}active{% endif %}" href="{{ path('admin_users') }}">
+                        <i class="bi bi-people"></i> Users
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_logout') }}">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Admin header -->
+        <div class="admin-header">
+            <div class="user-info">
+                {% if current_user %}
+                    {% if current_user.image and current_user.image != 'default.png' %}
+                        <img src="{{ asset('uploads/users/' ~ current_user.image) }}" 
+                             alt="{{ current_user.name }}" class="user-avatar">
+                    {% else %}
+                        <div class="user-avatar-placeholder">
+                            <i class="bi bi-person"></i>
+                        </div>
+                    {% endif %}
+                    <span>{{ current_user.name }}</span>
+                    <a href="{{ path('app_logout') }}" class="btn-logout">
+                        <i class="bi bi-box-arrow-left"></i> Logout
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Admin content -->
+        <div class="admin-content">
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success mb-4">{{ message }}</div>
+            {% endfor %}
+            
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger mb-4">{{ message }}</div>
+            {% endfor %}
+            
+            {% block body %}{% endblock %}
+        </div>
+    {% else %}
+        <div class="container mt-5">
+            <div class="alert alert-danger">
+                <h4>Access Denied</h4>
+                <p>You do not have admin permissions.</p>
+                <a href="{{ path('app_login') }}" class="btn btn-primary">Return to Login</a>
+            </div>
+        </div>
+    {% endif %}
+
+    {{ encore_entry_script_tags('app') }}
+    {% block javascripts %}{% endblock %}
+</body>
+
+</html> 

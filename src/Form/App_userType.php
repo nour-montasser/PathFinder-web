@@ -40,7 +40,6 @@ class App_userType extends AbstractType
                     ]),
                 ],
             ]);
-          
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -3,81 +3,125 @@
 
 namespace App\Controller;
 
-use App\Entity\Profile;
 use App\Entity\App_user;
-use App\Form\ProfileType;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 final class ProfileController extends BaseController
 {
-    protected EntityManagerInterface $entityManager;
-    protected RequestStack $requestStack;
+    private $slugger;
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        SluggerInterface $slugger = null
     ) {
-        $this->entityManager = $entityManager;
-        $this->requestStack = $requestStack;
+        parent::__construct($entityManager, $requestStack);
+        $this->slugger = $slugger;
     }
 
     #[Route('/profile', name: 'app_profile')]
     public function index(Request $request): Response
     {
-        // Get user ID from session
-        $session = $this->requestStack->getSession();
-        $userId = $session->get('user_id');
+        // Get the current user
+        $user = $this->getCurrentUser();
         
-        if (!$userId) {
+        if (!$user) {
             $this->addFlash('error', 'You must be logged in to access this page');
             return $this->redirectToRoute('app_login');
         }
 
-        // Fetch user from database
-        $user = $this->entityManager->getRepository(App_user::class)->find($userId);
-        
-        if (!$user) {
-            $this->addFlash('error', 'User not found');
-            return $this->redirectToRoute('app_login');
-        }
+        $errors = [];
+        $formSubmitted = false;
 
-        // Get or create profile
-        $profile = $user->getProfile();
-        if (!$profile) {
-            $profile = new Profile();
-            $profile->setUser($user);
-            $user->setProfile($profile); // Maintain bidirectional relationship
-        }
-
-        $form = $this->createForm(ProfileType::class, $profile);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Handle file upload
-            $photoFile = $form->get('photo')->getData();
-            if ($photoFile) {
-                $newFilename = uniqid().'.'.$photoFile->guessExtension();
-                $photoFile->move(
-                    $this->getParameter('profile_photos_directory'),
-                    $newFilename
-                );
-                $profile->setPhoto($newFilename);
+        if ($request->isMethod('POST')) {
+            $formSubmitted = true;
+            // Get form data
+            $name = trim($request->request->get('name'));
+            
+            // Validate username
+            if (empty($name)) {
+                $errors['name'] = 'Username cannot be empty.';
+            } elseif (strlen($name) < 3) {
+                $errors['name'] = 'Username must be at least 3 characters long.';
+            } elseif (strlen($name) > 50) {
+                $errors['name'] = 'Username cannot exceed 50 characters.';
+            } elseif (!preg_match('/^[a-zA-Z0-9\-_\s]+$/', $name)) {
+                $errors['name'] = 'Username can only contain letters, numbers, spaces, hyphens and underscores.';
+            } else {
+                // Check if username already exists (except for current user)
+                $existingUser = $this->entityManager->getRepository(App_user::class)
+                    ->findOneBy(['name' => $name]);
+                
+                if ($existingUser && $existingUser->getId_user() !== $user->getId_user()) {
+                    $errors['name'] = 'This username is already taken. Please choose another one.';
+                }
             }
 
-            $this->entityManager->persist($profile);
-            $this->entityManager->flush();
-
-            $this->addFlash('success', 'Profile updated successfully!');
-            return $this->redirectToRoute('app_profile');
+            // If no errors, update the profile
+            if (empty($errors)) {
+                // Update user information
+                $user->setName($name);
+                
+                // Handle file upload
+                $profileImage = $request->files->get('image');
+                if ($profileImage) {
+                    // Validate file type
+                    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                    $originalExtension = strtolower(pathinfo($profileImage->getClientOriginalName(), PATHINFO_EXTENSION));
+                    
+                    if (!in_array($originalExtension, $allowedExtensions)) {
+                        $this->addFlash('error', 'The image must be a JPG, JPEG, PNG or GIF file.');
+                    } elseif ($profileImage->getSize() > 2000000) { // 2MB max size
+                        $this->addFlash('error', 'The image size cannot exceed 2MB.');
+                    } else {
+                        $originalFilename = pathinfo($profileImage->getClientOriginalName(), PATHINFO_FILENAME);
+                        $safeFilename = $this->slugger ? $this->slugger->slug($originalFilename) : strtolower(str_replace(' ', '_', $originalFilename));
+                        $newFilename = $safeFilename . '-' . uniqid() . '.' . $originalExtension;
+                        
+                        try {
+                            // Define your upload directory - ensure it exists and is writable
+                            $uploadDir = 'uploads/users';
+                            if (!is_dir($uploadDir)) {
+                                mkdir($uploadDir, 0777, true);
+                            }
+                            
+                            $profileImage->move(
+                                $uploadDir,
+                                $newFilename
+                            );
+                            $user->setImage($newFilename);
+                            
+                            // Update session with new image
+                            $session = $this->requestStack->getSession();
+                            $session->set('user_image', $user->getImage());
+                        } catch (FileException $e) {
+                            $this->addFlash('error', 'Failed to upload profile image: ' . $e->getMessage());
+                        }
+                    }
+                }
+                
+                // Save changes
+                $this->entityManager->flush();
+                $this->addFlash('success', 'Profile updated successfully!');
+                
+                // Update session with new name
+                $session = $this->requestStack->getSession();
+                $session->set('user_name', $user->getName());
+                
+                return $this->redirectToRoute('app_profile');
+            }
         }
 
         return $this->render('profile/index.html.twig', [
-            'form' => $form->createView(),
-            'profile' => $profile
+            'user' => $user,
+            'errors' => $errors,
+            'formSubmitted' => $formSubmitted
         ]);
     }
 }

@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Profile - PathFinder{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Edit Profile</h4>
+                    <a href="{{ path('app_profile_view') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Profile
+                    </a>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Flash messages -->
+                    {% for message in app.flashes('error') %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                    
+                    <form action="{{ path('app_profile_edit') }}" method="POST" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <div class="text-center mb-3">
+                                {% if user.image and user.image != 'default.png' %}
+                                    <img src="{{ asset('uploads/users/' ~ user.image) }}" alt="{{ user.name }}" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <div class="user-avatar-placeholder rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 150px; height: 150px; background-color: #e9ecef; font-size: 3rem; color: #adb5bd;">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="profile_image" class="form-label">Profile Image</label>
+                                <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                                <div class="form-text">Recommended size: 300x300 pixels. Max file size: 2MB.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" value="{{ user.email }}" disabled>
+                            <div class="form-text">Email address cannot be changed. Contact support if you need to update your email.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="account_type" class="form-label">Account Type</label>
+                            <input type="text" class="form-control" id="account_type" value="{% if user.role == 1 %}Job Seeker{% elseif user.role == 2 %}Enterprise{% elseif user.role == 3 %}Administrator{% endif %}" disabled>
+                        </div>
+                        
+                        <hr class="my-4" id="password">
+                        
+                        <h5 class="mb-3">Change Password</h5>
+                        
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                            <div class="form-text">Leave password fields empty if you don't want to change your password.</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ path('app_profile_view') }}" class="btn btn-light">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

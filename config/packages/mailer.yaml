@@ -1,3 +1,7 @@
 framework:
     mailer:
-        dsn: '%env(MAILER_DSN)%'
+        dsn: 'gmail+smtp://azizowski10@gmail.com:hklrkkxcywctrmdp@default'
+        envelope:
+            sender: 'azizowski10@gmail.com'
+        headers:
+            From: 'PathFinder <azizowski10@gmail.com>'

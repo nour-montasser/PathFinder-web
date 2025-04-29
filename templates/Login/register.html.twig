@@ -1,15 +1,14 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}Sign Up{% endblock %}
+
 {% block body %}
-<div id="auth">
-    <div class="row h-100">
-        <div class="col-lg-5 col-12">
-            <div id="auth-left">
-                <div class="auth-logo">
-                    <a href="{{ path('app_home') }}"><img src="{{ asset('assets/images/logo/logo.png') }}" alt="Logo"></a>
-                </div>
-                <h1 class="auth-title">Sign Up</h1>
-                <p class="auth-subtitle mb-5">Create your account to get started.</p>
+<div class="container">
+    <div class="row vh-100 justify-content-center align-items-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="register-container p-4 shadow-lg rounded-3 bg-white">
+                <h2 class="text-center mb-4">Sign Up</h2>
+                <p class="text-center text-muted mb-4">Create your account to get started.</p>
 
                 {# Display flash messages #}
                 {% for message in app.flashes('error') %}
@@ -44,18 +43,31 @@
                             <i class="bi bi-shield-lock"></i>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Sign Up</button>
+                    
+                    <div class="form-group mb-4">
+                        <label class="form-label">I am a:</label>
+                        <div class="d-flex gap-4 mt-2">
+                            <div class="form-check">
+                                <input type="radio" name="role" value="1" id="role_jobseeker" class="form-check-input" checked>
+                                <label for="role_jobseeker" class="form-check-label">Job Seeker</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" name="role" value="2" id="role_enterprise" class="form-check-input">
+                                <label for="role_enterprise" class="form-check-label">Enterprise</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block btn-lg shadow-sm w-100 mt-4">Sign Up</button>
                 </form>
 
-                <div class="text-center mt-5 text-lg fs-4">
-                    <p class='text-gray-600'>Already have an account? 
-                        <a href="{{ path('app_login') }}" class="font-bold">Log in</a>
-                    </p>
+                <div class="text-center mt-4">
+                    <p class="text-muted">Already have an account?</p>
+                    <a href="{{ path('app_login') }}" class="btn btn-outline-primary btn-lg w-100">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Log In
+                    </a>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-7 d-none d-lg-block">
-            <div id="auth-right"></div>
         </div>
     </div>
 </div>
