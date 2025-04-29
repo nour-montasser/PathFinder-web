@@ -380,7 +380,7 @@
 							{% if experienceError is defined and experienceError %}
 								<small id="experienceErrorLabel" class="text-danger {{ experienceError ? '' : 'd-none' }}">{{ experienceError }}</small>
 							{% endif %}
-			
+
 						</div>
 						<small id="experienceErrorLabel" class="text-danger d-none">At least one experience is required!</small>
 						<button id="addExperienceBtn" type="button" class="btn btn-secondary mt-2">
@@ -391,9 +391,7 @@
 					<!-- Certificate Section -->
 					<div class="mb-3">
 						<h5>Certificates</h5>
-						<div id="certificateContainer">
-	
-						</div>
+						<div id="certificateContainer"></div>
 						<button id="addCertificateBtn" type="button" class="btn btn-secondary mt-2">
 							Add Certificate
 						</button>
@@ -419,9 +417,7 @@
 							<input type="hidden" name="certificates[{{ loop.index0 }}][media]" value="{{ cert.media }}">
 						{% endfor %}
 					</div>
-					<div id="hiddenLanguages">
-					
-					</div>
+					<div id="hiddenLanguages"></div>
 
 					<button type="submit" class="btn btn-primary" id="submit-cv">Submit CV</button>
 					{{ form_rest(cvForm) }}
@@ -558,13 +554,14 @@
 						<select id="fileTypeDropdown" class="form-select">
 							<option value="">Select file type</option>
 							<option value="pdf">PDF</option>
-							<option value="doc">DOC</option>
+							 <option value="doc">DOC</option>
+  <option value="png">PNG (image)</option> 
 						</select>
 					</div>
-					<div class="mb-3 form-check">
-						<input type="checkbox" class="form-check-input" id="addCertficatesCheckbox">
-						<label class="form-check-label" for="addCertficatesCheckbox">Add certificates</label>
-					</div>
+					<a href="{{ path('cv_export_doc', { id: cv.id }) }}" download="cv-{{ cv.id }}.docx" class="btn btn-primary">
+						Download Word
+					</a>
+
 				</form>
 			</div>
 			<div class="modal-footer">
@@ -573,83 +570,90 @@
 			</div>
 		</div>
 	</div>
+</div>
 
 
-	{% include 'includes/footer.html.twig' %}
-{% endblock %}
-{% block javascripts %}
-	{{ parent() }}
-	<script src="{{ asset('js/exportjs.js') }}"></script>
-	<script src="{{ asset('js/cvjs.js') }}"></script>
-	  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // ─── 1. Seed Skills as before ───────────────────────
-      const rawSkills = "{{ cv.getSkills()|e('js') }}";
-      if (rawSkills) {
-        rawSkills.split(',')
-          .map(s => s.trim())
-          .filter(s => s)
-          .forEach(window.addSkillTag);
-      }
+{% include 'includes/footer.html.twig' %}{% endblock %}{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset('js/exportjs.js') }}"></script>
+<script src="{{ asset('js/cvjs.js') }}"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', () => { // ─── 1. Seed Skills as before ───────────────────────
+const rawSkills = "{{ cv.getSkills()|e('js') }}";
+if (rawSkills) {
+rawSkills.split(',').map(s => s.trim()).filter(s => s).forEach(window.addSkillTag);
+}
 
-      // ─── 2. Seed Languages & render their boxes ─────────
-      const existingLanguages = [
-    {% for lang in cvLanguages %}
-    {
-      name:  "{{ lang.languagename|e('js') }}",
-      level: "{{ lang.level     |e('js') }}"
-    }{{ not loop.last ? ',' : '' }}
-    {% endfor %}
-  ];
-	  console.log(existingLanguages);
-      window.currentLanguages = [];  // clear any previous
-      existingLanguages.forEach(({ name, level }) => {
-        // This will add the box *and* the hidden inputs internally
-		console.log(level);
-      addLanguageBox(name, level);
-      });
+// ─── 2. Seed Languages & render their boxes ─────────
+const existingLanguages = [{% for lang in cvLanguages %}{
+name: "{{ lang.languagename|e('js') }}",
+level: "{{ lang.level     |e('js') }}"
+}
+{{ not loop.last ? ',' : '' }}
+{% endfor %}];
+console.log(existingLanguages);
+window.currentLanguages = []; // clear any previous
+existingLanguages.forEach(({name, level}) => { // This will add the box *and* the hidden inputs internally
+console.log(level);
+addLanguageBox(name, level);
+});
 
-      // ─── 3. Seed Experiences & render their boxes ───────
-       const existingExperiences = [
-      {% for exp in experiences %}
-      {
-        type: "{{ exp.type }}",
-        position: "{{ exp.position|e('js') }}",
-        location: "{{ exp.locationName|e('js') }}",
-        description: "{{ exp.description|e('js') }}",
-        // <-- correct PHP date format:
-        startDate: "{{ exp.startDate|date('Y-m-d') }}",
-        endDate:   "{{ exp.endDate|date('Y-m-d') }}"
-      }{{ not loop.last ? ',' : '' }}
-      {% endfor %}
-    ];
-      window.currentExperiences = [];
-      existingExperiences.forEach(exp => {
-        // We'll call the same function that "Add Experience" button uses internally,
-        // but passing our data object directly.
-        window.addExperienceEntry(exp);
-      });
+// ─── 3. Seed Experiences & render their boxes ───────
+const existingExperiences = [{% for exp in experiences %}{
+type: "{{ exp.type }}",
+position: "{{ exp.position|e('js') }}",
+location: "{{ exp.locationName|e('js') }}",
+description: "{{ exp.description|e('js') }}",
+// <-- correct PHP date format:
+startDate: "{{ exp.startDate|date('Y-m-d') }}",
+endDate: "{{ exp.endDate|date('Y-m-d') }}"
+}
+{{ not loop.last ? ',' : '' }}
+{% endfor %}];
+window.currentExperiences = [];
+existingExperiences.forEach(exp => {
+// We'll call the same function that "Add Experience" button uses internally,
+// but passing our data object directly.
+window.addExperienceEntry(exp);
+});
 
-      // ─── 4. Seed Certificates & render their boxes ─────
-      const existingCertificates = [
-      {% for cert in certificates %}
-      {
-        name:        "{{ cert.title|e('js') }}",
-        association: "{{ cert.issuedBy|e('js') }}",
-        description: "{{ cert.description|e('js') }}",
-        // correct PHP date format:
-        date:        "{{ cert.issueDate|date('Y-m-d') }}",
-        media:       "{{ cert.media|e('js') }}"
-      }{{ not loop.last ? ',' : '' }}
-      {% endfor %}
-    ];
-      window.currentCertificates = [];
-      existingCertificates.forEach(cert => {
-        window.addCertificateEntry(cert);
-      });
+// ─── 4. Seed Certificates & render their boxes ─────
+const existingCertificates = [{% for cert in certificates %}{
+name: "{{ cert.title|e('js') }}",
+association: "{{ cert.issuedBy|e('js') }}",
+description: "{{ cert.description|e('js') }}",
+// correct PHP date format:
+date: "{{ cert.issueDate|date('Y-m-d') }}",
+media: "{{ cert.media|e('js') }}"
+}
+{{ not loop.last ? ',' : '' }}
+{% endfor %}];
+window.currentCertificates = [];
+existingCertificates.forEach(cert => {
+window.addCertificateEntry(cert);
+});
 
-      // ─── 5. Finally, rebuild the live preview ───────────
-      window.refreshCVPreview();
-    });
-  </script>
-{% endblock %}
+// ─── 5. Finally, rebuild the live preview ───────────
+window.refreshCVPreview();
+document.getElementById('downloadDocBtn').addEventListener('click', () => {
+const cvId = downloadDocBtn.getAttribute('data-cv-id');
+fetch (`/cv/${cvId}/export-doc`).then(res => {
+if (!res.ok) 
+throw new Error('Download failed');
+
+
+
+return res.blob();
+}).then(blob => {
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `cv-${cvId}.docx`;
+document.body.appendChild(a);
+a.click();
+a.remove();
+URL.revokeObjectURL(url);
+}).catch(err => alert(err.message));
+});
+});
+</script>{% endblock %}

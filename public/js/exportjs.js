@@ -340,16 +340,16 @@ function createEducationCard(ed) {
 function createCertificateCard(cert) {
     const card = document.createElement('div');
     card.className = 'cert-entry';
-  
+
     // break description into bullets
     const bullets = (cert.description || '')
-      .split('\n')
-      .filter(line => line.trim())
-      .map(line => line.replace(/^[•\-\*]\s*/, '').trim());
-  
+        .split('\n')
+        .filter(line => line.trim())
+        .map(line => line.replace(/^[•\-\*]\s*/, '').trim());
+
     // format issue date
     const issue = formatDate(cert.date);
-  
+
     card.innerHTML = `
       <div class="cert-main">
         <div>
@@ -360,17 +360,17 @@ function createCertificateCard(cert) {
           <div class="cert-date">${issue}</div>
         </div>
       </div>
-      ${ bullets.length
-         ? `<ul class="cert-bullets">
+      ${bullets.length
+            ? `<ul class="cert-bullets">
               ${bullets.map(item => `<li>${item}</li>`).join('')}
             </ul>`
-         : ''
-      }
+            : ''
+        }
     `;
-  
+
     return card;
-  }
-  
+}
+
 // ─── Section Updaters ─────────────────────────────
 function updateHeaderSection() {
     const out = document.getElementById('headerContainer');
@@ -492,21 +492,77 @@ window.updateLanguagesSection = updateLanguagesSection;
 window.updateCertificatesSection = updateCertificatesSection;
 // --- exportjs.js (append at the bottom) ---
 (function () {
-    const dropdown   = document.getElementById('fileTypeDropdown');
-    const confirmBtn = document.getElementById('confirmDownloadBtn');
-    if (!dropdown || !confirmBtn) retun
-   
+// ─── 2) Button handler ────────────────────────
+const dropdown   = document.getElementById('fileTypeDropdown');
+const confirmBtn = document.getElementById('confirmDownloadBtn');
+if (!dropdown || !confirmBtn) return;
 
-    confirmBtn.addEventListener('click', () => {
-        // Only proceed when the user explicitly picks "PDF" (you can adjust the exact value)
-        if (dropdown.value !== 'pdf') return;
-
-        // Grab the preview container’s HTML
-        const previewEl = document.getElementById('cvPreviewContainer');
-        if (!previewEl) return;
-
-        const previewHtml = `
-        <!DOCTYPE html>
+confirmBtn.addEventListener('click', () => {
+    const type = dropdown.value;
+    if (!type) return;
+  
+    const previewEl = document.getElementById('cvPreviewContainer');
+    if (!previewEl) return;
+  
+    const fragment = previewEl.outerHTML;
+    let url, downloadName, fetchOpts;
+  
+    if (type === 'pdf') {
+      url          = '/cv/export-pdf';
+      downloadName = 'cv.pdf';
+      fetchOpts    = {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ html: fullHtmlForPdf(fragment) })
+      };
+  
+    } else if (type === 'doc') {
+      url          = '/cv/export-doc';
+      downloadName = 'cv.docx';
+      fetchOpts    = {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ html: fragment })
+      };
+  
+    } else if (type === 'png') {
+      url          = '/cv/export-image';
+      downloadName = 'cv.png';
+      fetchOpts    = {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ html: fullHtmlForPdf(fragment) })
+      };
+  
+    } else {
+      return;
+    }
+  
+    fetch(url, fetchOpts)
+      .then(resp => {
+        if (!resp.ok) throw new Error(`${type.toUpperCase()} export failed`);
+        return resp.blob();
+      })
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href     = blobUrl;
+        a.download = downloadName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(blobUrl);
+      })
+      .catch(err => {
+        console.error(err);
+        alert(`Could not generate ${type.toUpperCase()}. Please try again.`);
+      });
+  });
+  
+      // helper: wrap only for PDF
+  function fullHtmlForPdf(bodyHtml) {
+    return `
+     <!DOCTYPE html>
         <html lang="en">
         <head>
           <meta charset="utf-8"/>
@@ -757,35 +813,10 @@ window.updateCertificatesSection = updateCertificatesSection;
        
           </style>
         </head>
-        <body>${previewEl.outerHTML}</body>
+        <body>${bodyHtml}</body>
         </html>
-      `;
-        console.log(previewHtml);
-
-        // Send to Symfony route that returns a PDF
-        fetch('/cv/export-pdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ html: previewHtml })
-        })
-            .then(resp => {
-                if (!resp.ok) throw new Error('PDF export failed');
-                return resp.blob();
-            })
-            .then(blob => {
-                // Download the PDF
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'cv.pdf';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
-            })
-            .catch(err => {
-                console.error(err);
-                alert('Could not generate PDF. Please try again.');
-            });
-    });
+      
+    `;
+  }
+    
 })();

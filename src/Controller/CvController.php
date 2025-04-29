@@ -8,22 +8,29 @@ use App\Form\CvType;
 use App\Entity\App_user;
 use App\Entity\Experience;
 use App\Entity\Certificates;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\IOFactory;
 use Symfony\Component\Form\FormError;
 use App\Service\LightcastTokenService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\VarDumper\VarDumper;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\Request;
+use PhpOffice\PhpWord\Shared\Html as WordHtml;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Component\Intl\Languages as IntlLanguages;
+use Knp\Snappy\Image;
 // Alias for Symfony's Languages
 
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Intl\Languages as IntlLanguages;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Entity\Languages as EntityLanguages; // Alias for your custom Languages entity
+
 
 
 final class CvController extends AbstractController
@@ -31,12 +38,15 @@ final class CvController extends AbstractController
     private HttpClientInterface $httpClient;
     private Pdf $snappyPdf;
     
-
-    public function __construct(HttpClientInterface $httpClient,Pdf $snappyPdf)
+    private Image $snappyImage;
+    public function __construct(HttpClientInterface $httpClient,Pdf $snappyPdf,Image $snappyImage)
     {
         $this->httpClient = $httpClient;
         $this->snappyPdf = $snappyPdf;
+        $this->snappyImage = $snappyImage;
+    
     }
+
     #[Route('/cv', name: 'app_cv')]
     public function index(Request $request, EntityManagerInterface $em): Response
     {
@@ -238,6 +248,7 @@ final class CvController extends AbstractController
             $em->flush();
 
             // Redirect to the home page with a success message
+            $this->generateCvPreviewImage($cv);
             $this->addFlash('success', 'CV created successfully!');
             return $this->redirectToRoute('cv_show');
 
@@ -523,6 +534,7 @@ final class CvController extends AbstractController
     
             //–– 3f) Flush & redirect
             $em->flush();
+            $this->generateCvPreviewImage($cv);
             $this->addFlash('success', 'CV updated successfully!');
             return $this->redirectToRoute('cv_show');
         }
@@ -634,13 +646,8 @@ final class CvController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $html = $data['html'] ?? '';
-        $raw = $request->getContent();
-        VarDumper::dump([
-            'raw_body'      => $raw,
-            'raw_type'      => gettype($raw),
-            'decoded_json'  => json_decode($raw, true),
-            'decoded_type'  => gettype(json_decode($raw, true)),
-        ]);
+        
+       
     
         if (!trim($html)) {
             return $this->json(['error' => 'No HTML received'], 400);
@@ -666,8 +673,145 @@ $this->snappyPdf
         ]);
     }
 
+    #[Route('/cv/{id}/export-doc', name: 'cv_export_doc', methods: ['GET'])]
+public function exportDoc(Cv $cv): StreamedResponse
+{
+    // ── 1) Turn off Symfony’s debug toolbar for this response ──
+    if ($this->container->has('web_profiler.debug_toolbar')) {
+        $this->container
+             ->get('web_profiler.debug_toolbar')
+             ->disable();
+    }
+
+    // ── 2) Build the simple Word doc ──
+    $phpWord = new PhpWord();
+    $section = $phpWord->addSection();
+
+    // Title
+    $section->addTitle($cv->getTitle(), 1);
+
+    // Introduction
+    if ($intro = $cv->getIntroduction()) {
+        $section->addTextBreak(1);
+        $section->addText('Introduction:', ['bold' => true]);
+        $section->addText($intro);
+    }
+
+    // Skills
+    if ($skills = $cv->getSkills()) {
+        $section->addTextBreak(1);
+        $section->addText('Skills:', ['bold' => true]);
+        $section->addText($skills);
+    }
+
+    // Languages
+    if ($langs = $cv->getLanguages()) {
+        $section->addTextBreak(1);
+        $section->addText('Languages:', ['bold' => true]);
+        foreach ($langs as $lang) {
+            $section->addListItem(
+                $lang->getLanguagename() . ' – ' . $lang->getLevel(),
+                0,
+                null,
+                \PhpOffice\PhpWord\Style\ListItem::TYPE_BULLET_FILLED
+            );
+        }
+    }
+
+    // Experience
+    if ($exps = $cv->getExperiences()) {
+        $section->addTextBreak(1);
+        $section->addText('Experience:', ['bold' => true]);
+        foreach ($exps as $exp) {
+            $section->addText(
+                sprintf(
+                    '%s | %s (%s – %s)',
+                    $exp->getPosition(),
+                    $exp->getLocationname(),
+                    $exp->getStartdate()->format('Y-m'),
+                    $exp->getEnddate()->format('Y-m')
+                ),
+                ['italic' => true]
+            );
+            $section->addText($exp->getDescription());
+            $section->addTextBreak(1);
+        }
+    }
+
+    // Certificates
+    if ($certs = $cv->getCertificates()) {
+        $section->addTextBreak(1);
+        $section->addText('Certificates:', ['bold' => true]);
+        foreach ($certs as $cert) {
+            $section->addText(
+                sprintf(
+                    '%s — %s (%s)',
+                    $cert->getTitle(),
+                    $cert->getIssuedBy(),
+                    $cert->getIssueDate()->format('Y-m')
+                )
+            );
+        }
+    }
+
+    // ── 3) Stream it back as a download ──
+    $writer   = IOFactory::createWriter($phpWord, 'Word2007');
+    $fileName = sprintf('cv-%d-%s.docx', $cv->getId(), (new \DateTime())->format('Ymd-His'));
+    $response = new StreamedResponse(function() use ($writer) {
+        $writer->save('php://output');
+    });
+
+    $response->headers->set(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    );
+    $response->headers->set(
+        'Content-Disposition',
+        'attachment; filename="'.$fileName.'"'
+    );
+    $response->headers->set('Cache-Control', 'max-age=0');
+
+    return $response;
+}
+
+#[Route('/cv/export-image', name: 'cv_export_image', methods: ['POST'])]
+public function exportImage(Request $request, Image $snappyImage): Response
+{
 
 
+    // 1) Grab the HTML payload just like PDF/DOC
+    $data = json_decode($request->getContent(), true);
+    $html = trim($data['html'] ?? '');
+    if (!$html) {
+        return $this->json(['error' => 'No HTML provided'], 400);
+    }
+
+    // 2) Generate the PNG
+    //    You can tweak options here if you like (e.g. viewport width/height)
+    $png = $snappyImage
+        ->setOption('width', 800)
+        ->getOutputFromHtml($html);
+
+    // 3) Return as a download
+    $filename = 'cv-' . date('Ymd-His') . '.png';
+    return new Response($png, 200, [
+        'Content-Type'        => 'image/png',
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        'Cache-Control'       => 'max-age=0',
+    ]);
+} 
+private function generateCvPreviewImage(Cv $cv): void
+{
+    $html = $this->renderView('cv/preview.html.twig', [
+        'cv' => $cv,
+    ]);
+
+    $this->snappyImage->setOption('width', 800); // for A4-like preview
+    $imageData = $this->snappyImage->getOutputFromHtml($html);
+
+    $filename = sprintf('%s/public/images/previews/cv-%d.png', $this->getParameter('kernel.project_dir'), $cv->getId());
+    file_put_contents($filename, $imageData);
+}
 
 
 }
