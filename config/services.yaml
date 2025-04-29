@@ -5,6 +5,8 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
+        bind:
+            Gos\Bundle\WebSocketBundle\Pusher\PusherInterface: '@gos_web_socket.pusher.wamp'
 
     App\:
         resource: '../src/'

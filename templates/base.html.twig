@@ -26,7 +26,12 @@
     </div>
 
     {{ encore_entry_script_tags('app') }}
+    {{ stimulus_controller('@symfony/ux-chartjs') }}
+
     {% block javascripts %}{% endblock %}
+
 </body>
+
+
 
 </html>

@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-
 use App\Service\AiAssistantService;
 use App\Repository\SkilltestRepository;
 use App\Entity\Test_result;
@@ -19,10 +18,21 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Knp\Snappy\Pdf;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Gos\Bundle\WebSocketBundle\Pusher\PusherInterface;
+use Knp\Component\Pager\PaginatorInterface;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
 
 #[Route('/skilltest')]
 final class SkilltestController extends AbstractController
 {
+ //   private PusherInterface $pusher;
+
+ ////   public function __construct(PusherInterface $pusher)
+  ///  {
+   ////     $this->pusher = $pusher;
+  ///  }
+
     #[Route('/', name: 'app_skilltest_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
@@ -37,19 +47,21 @@ final class SkilltestController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $skilltest = new Skilltest();
-
         $form = $this->createForm(SkilltestType::class, $skilltest);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             foreach ($skilltest->getQuestions() as $question) {
                 $question->setSkillTest($skilltest);
                 $entityManager->persist($question);
             }
-
             $entityManager->persist($skilltest);
             $entityManager->flush();
+            $this->pusher->push([
+                'message' => 'A new SkillTest has been created!',
+                'title' => $skilltest->getTitle(),
+                'id' => $skilltest->getId(),
+            ], 'skilltest_channel');
 
             return $this->redirectToRoute('app_skilltest_index');
         }
@@ -58,7 +70,6 @@ final class SkilltestController extends AbstractController
             'skilltestForm' => $form->createView()
         ]);
     }
-
 
     #[Route('/{id}', name: 'app_skilltest_show')]
     public function show(SkilltestRepository $repo, $id): Response
@@ -74,8 +85,6 @@ final class SkilltestController extends AbstractController
         ]);
     }
 
-
-
     #[Route('/skilltest/{id}/edit', name: 'app_skilltest_edit')]
     public function edit(Request $request, Skilltest $skilltest, EntityManagerInterface $em): Response
     {
@@ -83,9 +92,7 @@ final class SkilltestController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // The form handles adding/removing/updating Questions via the CollectionType
             $em->flush();
-
             $this->addFlash('success', '✅ SkillTest updated successfully!');
             return $this->redirectToRoute('app_skilltest_show', ['id' => $skilltest->getId()]);
         }
@@ -96,7 +103,6 @@ final class SkilltestController extends AbstractController
         ]);
     }
 
-
     #[Route('/skilltest/{id}', name: 'app_skilltest_delete', methods: ['POST'])]
     public function delete(Skilltest $skilltest, EntityManagerInterface $em, Request $request): Response
     {
@@ -106,6 +112,7 @@ final class SkilltestController extends AbstractController
         }
         return $this->redirectToRoute('app_skilltest_index');
     }
+
     #[Route('/questions/{id}', name: 'app_questions_delete', methods: ['POST'])]
     public function deleteQuestion($id, EntityManagerInterface $em, Request $request): Response
     {
@@ -124,10 +131,19 @@ final class SkilltestController extends AbstractController
             'id' => $question->getSkillTest()->getId()
         ]);
     }
+
     #[Route('/skilltest/{id}/take', name: 'app_skilltest_take')]
-    public function take(Skilltest $skilltest, Request $request, EntityManagerInterface $em): Response
+    public function take(
+        Skilltest $skilltest,
+        Request $request,
+        EntityManagerInterface $em,
+        PaginatorInterface $paginator
+    ): Response
     {
-        $user = $em->getRepository(\App\Entity\AppUser::class)->find(3);
+        $user = $em->getRepository(AppUser::class)->find(1);
+        if (!$user) {
+            throw $this->createNotFoundException('User not found.');
+        }
 
         $testResult = $em->getRepository(Test_result::class)->findOneBy([
             'user' => $user,
@@ -136,8 +152,19 @@ final class SkilltestController extends AbstractController
 
         $form = null;
 
+        // Always calculate passed/failed
+        $allResults = $em->getRepository(Test_result::class)->findBy(['test' => $skilltest]);
+        $passed = 0;
+        $failed = 0;
+        foreach ($allResults as $result) {
+            if ($result->getStatus()) {
+                $passed++;
+            } else {
+                $failed++;
+            }
+        }
+
         if ($testResult) {
-            // 👇 Allow rating if not done yet
             if ($testResult->getRating() === null) {
                 $form = $this->createForm(TestresultType::class, $testResult);
                 $form->handleRequest($request);
@@ -151,21 +178,35 @@ final class SkilltestController extends AbstractController
 
             return $this->render('skilltest/result.html.twig', [
                 'score' => $testResult->getResult(),
-                'total' => count($skilltest->getQuestions()),
+                'total' => max(1, count($skilltest->getQuestions())),
                 'percentage' => $testResult->getResult(),
-                'passed' => $testResult->getStatus(),
+                'passed' => $passed,
+                'failed' => $failed,
+                'passedBoolean' => $testResult->getStatus(), // for color logic
                 'skilltest' => $skilltest,
                 'alreadyRated' => $testResult->getRating() !== null,
-                'form' => $form?->createView()
+                'form' => $form?->createView(),
+                'testResult' => $testResult,
             ]);
         }
 
-        // ✨ If POST, handle test submission
-        if ($request->isMethod('POST')) {
-            $score = 0;
-            $total = count($skilltest->getQuestions());
+        $questions = $skilltest->getQuestions();
+        $pagination = $paginator->paginate(
+            $questions,
+            $request->query->getInt('page', 1),
+            1
+        );
 
-            foreach ($skilltest->getQuestions() as $question) {
+        if ($request->isMethod('POST')) {
+            if (count($questions) === 0) {
+                $this->addFlash('error', 'This test has no questions.');
+                return $this->redirectToRoute('app_skilltest_index');
+            }
+
+            $score = 0;
+            $total = count($questions);
+
+            foreach ($questions as $question) {
                 $submittedAnswer = $request->request->get('question_' . $question->getId());
                 if (trim($submittedAnswer) === trim($question->getCorrectResponse())) {
                     $score++;
@@ -175,32 +216,35 @@ final class SkilltestController extends AbstractController
             $percentage = ($score / max(1, $total)) * 100;
             $status = $score >= $skilltest->getScoreRequired();
 
-            $testResult = new Test_result();
-            $testResult->setUser($user);
-            $testResult->setTest($skilltest);
-            $testResult->setDate(new \DateTime());
-            $testResult->setResult($percentage);
-            $testResult->setStatus($status);
+            $newResult = new Test_result();
+            $newResult->setUser($user);
+            $newResult->setTest($skilltest);
+            $newResult->setDate(new \DateTime());
+            $newResult->setResult($percentage);
+            $newResult->setStatus($status);
 
-            $em->persist($testResult);
+            $em->persist($newResult);
             $em->flush();
 
-            // Form will be shown for rating
-            $form = $this->createForm(TestresultType::class, $testResult);
+            $form = $this->createForm(TestresultType::class, $newResult);
 
             return $this->render('skilltest/result.html.twig', [
                 'score' => $score,
                 'total' => $total,
                 'percentage' => $percentage,
-                'passed' => $status,
+                'passed' => $passed,
+                'failed' => $failed,
+                'passedBoolean' => $status,
                 'skilltest' => $skilltest,
                 'alreadyRated' => false,
-                'form' => $form->createView()
+                'form' => $form->createView(),
+                'testResult' => $newResult,
             ]);
         }
 
         return $this->render('skilltest/take.html.twig', [
             'skilltest' => $skilltest,
+            'pagination' => $pagination,
         ]);
     }
 
@@ -211,9 +255,9 @@ final class SkilltestController extends AbstractController
     {
         return $this->render('skilltest/advanced_search.html.twig');
     }
-    #[Route('/skilltest/search', name: 'app_skilltest_search', methods: ['GET'])]
 
-    public function ajaxSearch(Request $request, SkillTestRepository $repo): Response
+    #[Route('/skilltest/search', name: 'app_skilltest_search', methods: ['GET'])]
+    public function ajaxSearch(Request $request, SkilltestRepository $repo): Response
     {
         $title = trim($request->query->get('title', ''));
         $duration = trim($request->query->get('duration', ''));
@@ -225,12 +269,10 @@ final class SkilltestController extends AbstractController
             $qb->andWhere('s.title LIKE :title')
                 ->setParameter('title', '%' . $title . '%');
         }
-
         if ($duration !== '') {
             $qb->andWhere('s.duration <= :duration')
                 ->setParameter('duration', $duration);
         }
-
         if ($score !== '') {
             $qb->andWhere('s.scoreRequired >= :score')
                 ->setParameter('score', $score);
@@ -243,36 +285,30 @@ final class SkilltestController extends AbstractController
         ]);
     }
 
-
     #[Route('/skilltest/{id}/pdf', name: 'app_skilltest_pdf')]
     public function downloadPdf(Skilltest $skilltest, EntityManagerInterface $em, Pdf $knpSnappy): Response
     {
-        // 🔧 Simulated logged-in user (replace with real logic later)
-        $user = $em->getRepository(AppUser::class)->find(3);
+        $user = $em->getRepository(AppUser::class)->find(1);
 
         if (!$user) {
-            throw $this->createNotFoundException("Utilisateur non trouvé.");
+            throw $this->createNotFoundException("User not found.");
         }
 
-        // ✅ Fetch latest test result for this user & test
         $result = $em->getRepository(Test_result::class)->findOneBy(
             ['user' => $user, 'test' => $skilltest],
             ['date' => 'DESC']
         );
 
-        // ❌ If no result found, don't proceed
         if (!$result) {
-            throw $this->createNotFoundException('Résultat non trouvé pour ce test.');
+            throw $this->createNotFoundException('Result not found.');
         }
 
-        // 🧾 Render the HTML version of the PDF
         $html = $this->renderView('skilltest/pdf_template.html.twig', [
             'user' => $user,
             'skilltest' => $skilltest,
             'result' => $result
         ]);
 
-        // 📄 Generate PDF content from HTML
         $pdfContent = $knpSnappy->getOutputFromHtml($html);
 
         return new Response($pdfContent, 200, [
@@ -280,10 +316,11 @@ final class SkilltestController extends AbstractController
             'Content-Disposition' => 'attachment; filename="resultat_skilltest.pdf"',
         ]);
     }
+
     #[Route('/ai/ask', name: 'ai_ask', methods: ['POST'])]
     public function askAi(Request $request, AiAssistantService $aiService): JsonResponse
     {
-        $question = $request->request->get('question'); // 🔥 FIXED!
+        $question = $request->request->get('question');
 
         if (!$question) {
             return new JsonResponse(['error' => 'No question provided.'], 400);
@@ -294,13 +331,58 @@ final class SkilltestController extends AbstractController
         return new JsonResponse(['response' => $answer]);
     }
 
+    #[Route('/skilltest/{id}/statistics', name: 'app_skilltest_statistics')]
+    public function statistics(Skilltest $skilltest, EntityManagerInterface $em, ChartBuilderInterface $chartBuilder): Response
+    {
+        $testResults = $em->getRepository(Test_result::class)->findBy(['test' => $skilltest]);
+        $passed = 0;
+        $failed = 0;
 
+        foreach ($testResults as $result) {
+            if ($result->getStatus()) {
+                $passed++;
+            } else {
+                $failed++;
+            }
+        }
 
+        $total = $passed + $failed;
 
+        $difficulty = null;
+        if ($total > 0) {
+            $successRate = ($passed / $total) * 100;
+            if ($successRate >= 80) {
+                $difficulty = 'Easy';
+            } elseif ($successRate >= 50) {
+                $difficulty = 'Medium';
+            } else {
+                $difficulty = 'Hard';
+            }
+        }
 
+        $chart = $chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+        $chart->setData([
+            'labels' => ['Passed', 'Failed'],
+            'datasets' => [[
+                'label' => 'Test Results',
+                'backgroundColor' => ['#28a745', '#dc3545'],
+                'data' => [$passed, $failed],
+            ]],
+        ]);
+        $chart->setOptions([
+            'responsive' => true,
+            'plugins' => [
+                'legend' => ['position' => 'top'],
+            ],
+        ]);
 
-
-
-
-
+        return $this->render('skilltest/statistics.html.twig', [
+            'skilltest' => $skilltest,
+            'passed' => $passed,
+            'failed' => $failed,
+            'total' => $total,
+            'difficulty' => $difficulty,
+            'chart' => $chart,
+        ]);
+    }
 }

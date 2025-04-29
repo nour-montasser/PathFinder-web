@@ -33,6 +33,7 @@
   "author": "",
   "description": "",
   "dependencies": {
-    "bootstrap-icons": "^1.11.3"
+    "bootstrap-icons": "^1.11.3",
+    "chart.js": "^4.4.9"
   }
 }

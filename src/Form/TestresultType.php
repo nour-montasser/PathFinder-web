@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Form;
 
 use Symfony\Component\Form\AbstractType;
@@ -9,28 +10,28 @@ use App\Entity\Test_result;
 
 class TestresultType extends AbstractType
 {
-public function buildForm(FormBuilderInterface $builder, array $options): void
-{
-$builder
-->add('rating', ChoiceType::class, [
-'choices' => [
-'⭐' => 1,
-'⭐⭐' => 2,
-'⭐⭐⭐' => 3,
-'⭐⭐⭐⭐' => 4,
-'⭐⭐⭐⭐⭐' => 5,
-],
-'expanded' => true,
-'multiple' => false,
-'label' => 'Rate this SkillTest',
-'required' => false,
-]);
-}
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder
+            ->add('rating', ChoiceType::class, [
+                'choices' => [
+                    '⭐⭐⭐⭐⭐' => 5,
+                    '⭐⭐⭐⭐' => 4,
+                    '⭐⭐⭐' => 3,
+                    '⭐⭐' => 2,
+                    '⭐' => 1,
+                ],
+                'expanded' => true,
+                'multiple' => false,
+                'label' => false,
+                'required' => false,
+            ]);
+    }
 
-public function configureOptions(OptionsResolver $resolver): void
-{
-$resolver->setDefaults([
-'data_class' => Test_result::class,
-]);
-}
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'data_class' => Test_result::class,
+        ]);
+    }
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Controller;
 
 use App\Entity\App_user;
@@ -13,10 +12,8 @@ abstract class BaseController extends AbstractController
 {
     public function __construct(
         protected EntityManagerInterface $entityManager,
-        protected RequestStack           $requestStack
-    )
-    {
-    }
+        protected RequestStack $requestStack
+    ) {}
 
     protected function getCurrentUser(): ?App_user
     {
@@ -38,25 +35,13 @@ abstract class BaseController extends AbstractController
     {
         if (!$this->getCurrentUser()) {
             // Auto-set a default user (e.g., ID=1 for guest/anonymous)
-            $defaultUser = $this->entityManager->getRepository(App_user::class)->find(2);
+            $defaultUser = $this->entityManager->getRepository(App_user::class)->find(1);
             if ($defaultUser) {
                 $this->setCurrentUser($defaultUser);
             }
         }
     }
 
-    protected function render(string $view, array $parameters = [], Response $response = null): Response
-    {
-        // Automatically add current user to all templates
-        $parameters['current_user'] = $this->getCurrentUser();
-        return parent::render($view, $parameters, $response);
-    }
 
-    protected function renderView(string $view, array $parameters = []): string
-    {
-        // Automatically add current user to all templates
-        $parameters['current_user'] = $this->getCurrentUser();
-        return parent::renderView($view, $parameters);
-    }
 
 }

@@ -3,6 +3,7 @@
 
 {% block body %}
     <style>
+        /* Same CSS you gave - no change */
         #timer {
             font-size: 1.2rem;
             color: #dc3545;
@@ -116,7 +117,7 @@
         </div>
 
         <form method="POST">
-            {% for question in skilltest.questions %}
+            {% for question in pagination %}
                 <div class="question-block">
                     <p>{{ loop.index }}. {{ question.question }}</p>
                     {% set responses = question.responses|split(',') %}
@@ -129,7 +130,12 @@
                 </div>
             {% endfor %}
 
-            <button type="submit" class="btn-submit mt-3">✅ Submit Test</button>
+            {{ knp_pagination_render(pagination) }}
+
+            {% if pagination.currentPageNumber == pagination.pageCount %}
+                <!-- Only show the submit button on the last page -->
+                <button type="submit" class="btn-submit mt-3">✅ Submit Test</button>
+            {% endif %}
         </form>
     </div>
 
@@ -157,18 +163,12 @@
 
             // Progress Bar
             const totalQuestions = {{ skilltest.questions|length }};
+            const currentPage = {{ pagination.currentPageNumber }};
             const progressBar = document.getElementById('progressBar');
-            const allRadios = document.querySelectorAll('input[type="radio"]');
-            const answered = new Set();
 
-            allRadios.forEach(radio => {
-                radio.addEventListener('change', () => {
-                    answered.add(radio.name);
-                    const percentage = Math.floor((answered.size / totalQuestions) * 100);
-                    progressBar.style.width = percentage + '%';
-                    progressBar.textContent = percentage + '%';
-                });
-            });
+            const percentage = Math.floor((currentPage / totalQuestions) * 100);
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
         });
     </script>
 {% endblock %}
