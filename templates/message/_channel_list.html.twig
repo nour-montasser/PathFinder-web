@@ -13,6 +13,25 @@
     </form>
 </div>
 
+{# Add this at the top of the file, after the user selection form #}
+<style>
+.user-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.user-status.online {
+    background-color: #28a745;
+}
+
+.user-status.offline {
+    background-color: #dc3545;
+}
+</style>
+
 <!-- Channel list with profile pictures -->
 <div class="flex-grow-1 overflow-auto">
     <div class="list-group list-group-flush">
@@ -22,16 +41,18 @@
             {% set otherUser = channel.initiator.getId_user == currentUser.getId_user ? channel.receiver : channel.initiator %}
             
             {% if channel is defined and channel %}
-                <div class="list-group-item list-group-item-action {% if selectedChannelId is defined and selectedChannelId == channel.id_channel %}active{% endif %}">
+                <div class="list-group-item list-group-item-action {% if selectedChannelId is defined and selectedChannelId == channel.id_channel %}active{% endif %}"
+                     data-user-id="{{ otherUser.getId_user }}">
                     <div class="d-flex justify-content-between align-items-center">
                         <a href="{{ path('app_message_index', {'id_channel': channel.id_channel}) }}" class="flex-grow-1 text-decoration-none text-reset d-flex align-items-center">
                             <!-- Profile picture -->
-                            <div class="me-3">
+                            <div class="me-3 position-relative">
                                 {% if otherUser.image %}
                                     <img src="{{ otherUser.image }}" alt="{{ otherUser.name }}" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
                                 {% else %}
                                     <img src="{{ asset('build/images/faces/default-profile.png') }}" alt="Default profile" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
                                 {% endif %}
+                                <span class="user-status offline position-absolute" style="bottom: 0; right: 0;"></span>
                             </div>
                             
                             <!-- User info and last message -->

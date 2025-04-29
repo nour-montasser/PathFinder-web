@@ -29,6 +29,7 @@ use Dompdf\Dompdf;
 use App\Service\PdfGenerator;
 use App\Service\ApplicationMailer;
 use App\Service\AiCoverLetterGenerator;
+use App\Service\CsvExporter;
 
 
 
@@ -49,22 +50,27 @@ public function index(Request $request, ApplicationJobRepository $applicationJob
         $request->query->get('sort', 'date')
     );
 
-    $pagination = $paginator->paginate(
-        $query,
-        $request->query->getInt('page', 1),
-        5 // items per page
-    );
-
+    // For AJAX requests, return all results without pagination
     if ($request->query->get('ajax')) {
-        return $this->render('application_job/_list.html.twig', [
-            'application_jobs' => $pagination,
-            'is_ajax' => true
+        $applications = $query->getResult();
+        return $this->render('application_job/index.html.twig', [
+            'application_jobs' => $applications,
+            'is_ajax' => true,
+            'show_pagination' => false
         ]);
     }
 
+    // For normal requests, use pagination
+    $pagination = $paginator->paginate(
+        $query,
+        $request->query->getInt('page', 1),
+        6 // items per page
+    );
+
     return $this->render('application_job/index.html.twig', [
         'application_jobs' => $pagination,
-        'is_ajax' => false
+        'is_ajax' => false,
+        'show_pagination' => true
     ]);
 }
 
@@ -625,7 +631,66 @@ private function prepareJobApplicationsChartData(array $jobOffers): array
 
 
 
+#[Route('/dashboard/export-excel', name: 'dashboard_export_excel', methods: ['GET'])]
+public function exportExcel(
+    JobOfferRepository $jobOfferRepository,
+    ApplicationJobRepository $applicationJobRepository,
+    CsvExporter $csvExporter
+): Response {
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
 
+    // Get all job offers for this company
+    $jobOffers = $jobOfferRepository->findBy(['user' => $user], ['date_posted' => 'DESC']);
+
+    // Get statistics
+    $totalApplications = $applicationJobRepository->countApplicationsForCompany($user->getId_user());
+    $totalJobs = count($jobOffers);
+    
+    $previousPeriodJobs = $jobOfferRepository->countJobsFromPreviousPeriod();
+    $currentPeriodJobs = $jobOfferRepository->countJobsFromCurrentPeriod();
+    $jobsChangePercentage = $previousPeriodJobs > 0 
+        ? (($currentPeriodJobs - $previousPeriodJobs) / $previousPeriodJobs) * 100 
+        : 0;
+
+    $conversionRate = $applicationJobRepository->calculateConversionRate();
+    $popularJobs = $jobOfferRepository->findMostPopularJobs($user->getId_user(), 5);
+    $recentApplications = $applicationJobRepository->findRecentApplicationsForCompany($user->getId_user(), 5);
+    $applicationStatuses = $applicationJobRepository->getApplicationStatusStats($user->getId_user());
+
+    $stats = [
+        'total_jobs' => $totalJobs,
+        'active_jobs' => $jobOfferRepository->count(['user' => $user]),
+        'total_applications' => $totalApplications,
+        'application_statuses' => $applicationStatuses,
+        'popular_jobs' => $popularJobs,
+        'recent_applications' => $recentApplications,
+        'jobs_change' => $jobsChangePercentage,
+        'avg_applications_per_job' => $totalApplications / max(1, $totalJobs),
+        'conversion_rate' => $conversionRate,
+        'popular_job' => $popularJobs[0] ?? null,
+        'conversion_change' => $applicationJobRepository->calculateConversionRateChange(),
+    ];
+
+    $chartData = [
+        'application_status' => [
+            'labels' => array_keys($stats['application_statuses']),
+            'data' => array_values($stats['application_statuses']),
+            'colors' => ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b','#6f42c1']
+        ],
+        'job_applications' => $this->prepareJobApplicationsChartData($jobOffers),
+    ];
+
+    
+    return $csvExporter->exportDashboardData([
+        'stats' => $stats,
+        'job_offers' => $jobOffers,
+        'chart_data' => $chartData,
+        'current_user' => $user,
+
+
+    ]);
+}
 
 
 
@@ -656,7 +721,6 @@ public function exportPdf(
     $popularJobs = $jobOfferRepository->findMostPopularJobs($user->getId_user(), 5);
     $recentApplications = $applicationJobRepository->findRecentApplicationsForCompany($user->getId_user(), 5);
     $applicationStatuses = $applicationJobRepository->getApplicationStatusStats($user->getId_user());
-    $weeklyTrends = $applicationJobRepository->getWeeklyApplicationTrends($user->getId_user(), 8);
 
     $stats = [
         'total_jobs' => $totalJobs,
@@ -672,9 +736,6 @@ public function exportPdf(
         'conversion_change' => $applicationJobRepository->calculateConversionRateChange(),
     ];
 
-    $trends = $applicationJobRepository->getApplicationTrends($user->getId_user(), 4);
-    $timelineData = $this->prepareTimelineData($trends);
-
     $chartData = [
         'application_status' => [
             'labels' => array_keys($stats['application_statuses']),
@@ -684,12 +745,12 @@ public function exportPdf(
         'job_applications' => $this->prepareJobApplicationsChartData($jobOffers),
     ];
 
+    // Use the PDF generator service to create and return the response
     return $pdfGenerator->generateDashboardPdf([
         'stats' => $stats,
         'chart_data' => $chartData,
         'job_offers' => $jobOffers,
-        'timeline_data' => $timelineData,
-        'current_user' => $user, // Add this line
+        'current_user' => $user,
     ], $request);
 }
 

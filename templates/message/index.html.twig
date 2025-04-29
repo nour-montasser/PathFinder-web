@@ -147,12 +147,16 @@ function scrollToBottom(force = false) {
         const scrollHeight = container.scrollHeight;
         const scrollTop = container.scrollTop;
         const clientHeight = container.clientHeight;
-        const isAtBottom = scrollHeight - scrollTop <= clientHeight + 100;
+        const inputHeight = 70; // Match the height from CSS
+        
+        // Calculate if we're near the bottom (within 100px)
+        const isAtBottom = (scrollHeight - scrollTop - inputHeight) <= (clientHeight + 100);
 
         if (force || isAtBottom) {
-            container.scrollTop = scrollHeight;
+            // Scroll to bottom while accounting for the input area
+            container.scrollTop = scrollHeight - clientHeight + inputHeight;
         }
-    }, 50);
+    }, 100); // Increased delay for better reliability
 }
 
 // Scroll on page load
@@ -349,7 +353,9 @@ class WebSocketClient {
         `;
         
          messagesContainer.appendChild(messageDiv);
-   		 this.scrollToBottom();
+   		 setTimeout(() => {
+        scrollToBottom(true);
+    }, 50);
     }
 
     scrollToBottom() {
@@ -601,12 +607,12 @@ document.addEventListener('DOMContentLoaded', () => {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     height: calc(100vh - 160px); /* Adjust height to account for header and input */
-    padding-bottom: 80px; /* Increase padding at bottom */
+    padding-bottom: 100px; /* Increase padding at bottom */
     position: relative;
 }
 		 .chat-content {
     min-height: min-content;
-    padding-bottom: 120px;
+    padding-bottom: 10px;
 }
 	
 		.bg-white {

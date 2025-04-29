@@ -672,44 +672,72 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function setupLocationHandlers() {
-        const locationInput = document.getElementById('locationInput');
-        const locationSearchBtn = document.getElementById('locationSearchBtn');
-        const locationSuggestions = document.getElementById('locationSuggestions');
-        const locationOptions = document.getElementById('locationOptions');
-        const clearLocationBtn = document.getElementById('clearLocationBtn');
-        const distanceSlider = document.getElementById('distanceSlider');
-        const distanceValue = document.getElementById('distanceValue');
-        const distanceSliderContainer = document.getElementById('distanceSliderContainer');
-        
-        if (distanceSlider) {
-            distanceSlider.addEventListener('input', function() {
-                if (distanceValue) distanceValue.textContent = this.value;
-            });
-        }
-
-        document.querySelectorAll('input[name="locationType"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'nearby') {
-                    distanceSliderContainer?.classList.remove('d-none');
-                } else {
-                    distanceSliderContainer?.classList.add('d-none');
-                }
-                loadJobOffers();
-            });
+    const locationInput = document.getElementById('locationInput');
+    const locationSearchBtn = document.getElementById('locationSearchBtn');
+    const locationOptions = document.getElementById('locationOptions');
+    const clearLocationBtn = document.getElementById('clearLocationBtn');
+    const distanceSlider = document.getElementById('distanceSlider');
+    const distanceValue = document.getElementById('distanceValue');
+    const distanceSliderContainer = document.getElementById('distanceSliderContainer');
+    
+    if (distanceSlider) {
+        distanceSlider.addEventListener('input', function() {
+            if (distanceValue) distanceValue.textContent = this.value;
         });
 
-        clearLocationBtn?.addEventListener('click', function() {
-            locationInput.value = '';
-            locationOptions?.classList.add('d-none');
-            loadJobOffers();
-        });
-
-        locationSearchBtn?.addEventListener('click', function() {
-            if (locationInput.value.trim()) {
+        // Add change listener for the slider
+        distanceSlider.addEventListener('change', function() {
+            // Only trigger search if "nearby" is selected and location has value
+            const nearbySelected = document.getElementById('nearbyLocation')?.checked;
+            if (nearbySelected && locationInput.value.trim()) {
                 loadJobOffers();
             }
         });
     }
+
+    // Handle location search button click
+    locationSearchBtn?.addEventListener('click', function() {
+        if (locationInput.value.trim()) {
+            // Show the location options instead of immediately searching
+            locationOptions?.classList.remove('d-none');
+            
+            // Uncheck both radio buttons when options first appear
+            document.getElementById('exactLocation').checked = false;
+            document.getElementById('nearbyLocation').checked = false;
+            
+            // Hide distance slider initially
+            distanceSliderContainer?.classList.add('d-none');
+        }
+    });
+
+    // Handle radio button changes
+    document.querySelectorAll('input[name="locationType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'nearby') {
+                distanceSliderContainer?.classList.remove('d-none');
+                // If switching to nearby and location has value, trigger search
+                if (locationInput.value.trim()) {
+                    loadJobOffers();
+                }
+            } else {
+                distanceSliderContainer?.classList.add('d-none');
+                // If switching to exact and location has value, trigger search
+                if (locationInput.value.trim()) {
+                    loadJobOffers();
+                }
+            }
+        });
+    });
+
+    clearLocationBtn?.addEventListener('click', function() {
+        locationInput.value = '';
+        locationOptions?.classList.add('d-none');
+        // Uncheck both radios when clearing
+        document.getElementById('exactLocation').checked = false;
+        document.getElementById('nearbyLocation').checked = false;
+        loadJobOffers();
+    });
+}
 
     async function loadJobOffers() {
         const container = document.getElementById('job-offers-container');
@@ -791,5 +819,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 });
+
+
 		</script>
 	{% endblock %}

@@ -12,6 +12,11 @@ use App\Repository\JobOfferRepository;
 use App\Entity\Channel;
 use App\Repository\ChannelRepository;
 use App\Entity\Message;
+use App\Repository\FeedbackRepository;
+use App\Entity\Feedback;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 
 #[Route('/admin')]
@@ -130,4 +135,50 @@ class AdminController extends BaseController
         $this->addFlash('success', 'Application deleted successfully');
         return $this->redirectToRoute('admin_job_offers');
     }
+
+
+    #[Route('/feedbacks', name: 'admin_feedback')]
+    public function list(FeedbackRepository $feedbackRepository): Response
+    {
+        $feedbacks = $feedbackRepository->findAll();
+
+        return $this->render('admin/feedback.html.twig', [
+            'feedbacks' => $feedbacks,
+        ]);
+    }
+    #[Route('/{id}', name: 'admin_feedback_delete', methods: ['POST'])]
+public function delete(Request $request, Feedback $feedback, EntityManagerInterface $entityManager): Response
+{
+    if ($this->isCsrfTokenValid('delete'.$feedback->getId(), $request->request->get('_token'))) {
+        $entityManager->remove($feedback);
+        $entityManager->flush();
+    }
+
+    return $this->redirectToRoute('admin_feedback', [], Response::HTTP_SEE_OTHER);
+}
+
+#[Route('/feedbacks/search', name: 'admin_feedback_search', methods: ['GET'])]
+public function searchFeedbacks(Request $request, FeedbackRepository $feedbackRepository): JsonResponse
+{
+    $searchTerm = $request->query->get('q', '');
+
+    $feedbacks = $feedbackRepository->createQueryBuilder('f')
+        ->where('f.name LIKE :searchTerm')
+        ->orWhere('f.subject LIKE :searchTerm')
+        ->orWhere('f.message LIKE :searchTerm')
+        ->setParameter('searchTerm', '%'.$searchTerm.'%')
+        ->getQuery()
+        ->getResult();
+
+    $feedbacksArray = array_map(function($feedback) {
+        return [
+            'id' => $feedback->getId(),
+            'name' => $feedback->getName(),
+            'subject' => $feedback->getSubject(),
+            'message' => $feedback->getMessage(),
+        ];
+    }, $feedbacks);
+
+    return new JsonResponse($feedbacksArray);
+}
 }

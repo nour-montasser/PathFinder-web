@@ -38,3 +38,18 @@ services:
     App\Service\DeepseekAIService:
         arguments:
             $deepseekApiKey: '%env(DEEPSEEK_API_KEY)%'
+    knp_snappy.pdf:
+        class: Knp\Snappy\Pdf
+        arguments:
+            - '"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"' # Wrap path in quotes
+        calls:
+            - [setTemporaryFolder, ['%kernel.cache_dir%/snappy']]
+
+
+    
+    # Register the PDF generator service
+    App\Service\PdfGenerator:
+        arguments:
+            $pdf: '@knp_snappy.pdf'
+            $twig: '@twig'
+            $projectDir: '%kernel.project_dir%'

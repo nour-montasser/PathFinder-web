@@ -209,8 +209,8 @@
                     </button>
                    <ul class="dropdown-menu dropdown-menu-end shadow">
     <li><a class="dropdown-item" href="#" id="exportPdf"><i class="bi bi-file-earmark-pdf me-2"></i> PDF Report</a></li>
-    <li><a class="dropdown-item" href="#" id="exportExcel"><i class="bi bi-file-earmark-excel me-2"></i> Excel Export</a></li>
-    <li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item" href="#" id="exportExcel"><i class="bi bi-file-earmark-excel me-2"></i> Export as CSV</a></li> 
+   <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="#" id="printDashboard"><i class="bi bi-printer me-2"></i> Print</a></li>
 </ul>
                 </div>
@@ -494,6 +494,44 @@ const timelineData = {{ timeline_data|json_encode|raw }};
     // Initialize
     updateChart();
     });
+
+
+
+    // Add this script to dashboard.html.twig
+document.addEventListener('DOMContentLoaded', function() {
+    // PDF Export button
+    document.getElementById('exportPdf').addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = "{{ path('dashboard_export_pdf') }}";
+    });
+    
+    // Print button
+    document.getElementById('printDashboard').addEventListener('click', function(e) {
+        e.preventDefault();
+        window.print();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+    // PDF Export button
+    document.getElementById('exportPdf').addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = "{{ path('dashboard_export_pdf') }}";
+    });
+    
+   
+});
+ // Excel Export button
+    document.getElementById('exportExcel').addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = "{{ path('dashboard_export_excel') }}";
+    });
+    
+    // Print button
+    document.getElementById('printDashboard').addEventListener('click', function(e) {
+        e.preventDefault();
+        window.print();
+    });
+});
     </script>
 
 

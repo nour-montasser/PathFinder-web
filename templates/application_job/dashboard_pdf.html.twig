@@ -1,246 +1,207 @@
-{% extends 'base.html.twig' %}
-
-{% block title %}Dashboard PDF Export{% endblock %}
-
-{% block stylesheets %}
+{# templates/application_job/dashboard_pdf.html.twig #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Company Dashboard Report</title>
     <style>
-        /* Base reset for PDF */
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             font-size: 12px;
             line-height: 1.4;
             color: #333;
-            background-color: #fff !important;
-            padding: 20px;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
         }
-        
-        /* Header styles */
-        .pdf-header {
+        .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
         }
-        .pdf-header img {
-            height: 60px;
-            margin-bottom: 10px;
-        }
-        .pdf-header h1 {
-            font-size: 24px;
-            color: #2c3e50;
-            margin: 5px 0;
-        }
-        .pdf-header .meta {
-            color: #7f8c8d;
-            font-size: 11px;
-        }
-        
-        /* Card styles */
-        .card {
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
+        .section {
             margin-bottom: 20px;
             page-break-inside: avoid;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .card-header {
-            background-color: #f8f9fa;
-            padding: 10px 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        .card-body {
-            padding: 15px;
-        }
-        
-        /* Chart containers */
-        .chart-container {
-            height: 300px;
-            position: relative;
-            margin: 15px 0;
-        }
-        
-        /* Hide interactive elements */
-        .no-print, .btn, .dropdown, .action-buttons {
-            display: none !important;
-        }
-        
-        /* Stats grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
         }
         .stat-card {
             border-left: 4px solid;
+            background-color: #f8f9fc;
             padding: 15px;
-            background: #fff;
+            margin: 10px;
+            width: calc(33.333% - 20px);
+            box-sizing: border-box;
         }
-        .stat-card .value {
-            font-size: 24px;
-            font-weight: bold;
+        .stat-card.total { border-left-color: #4e73df; }
+        .stat-card.active { border-left-color: #1cc88a; }
+        .stat-card.applications { border-left-color: #36b9cc; }
+        .stat-card.popular { border-left-color: #f6c23e; }
+        .stat-card.ratio { border-left-color: #6f42c1; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        .stat-card .label {
-            font-size: 12px;
-            color: #7f8c8d;
-            text-transform: uppercase;
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .chart-img {
+            max-width: 100%;
+            height: auto;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .meta-info {
+            font-size: 10px;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
         }
     </style>
-{% endblock %}
-
-{% block body %}
-    <div class="pdf-header">
-        {% if logo_base64 is defined %}
-            <img src="{{ logo_base64 }}" alt="Company Logo">
-        {% endif %}
+</head>
+<body>
+    <div class="header">
         <h1>Company Dashboard Report</h1>
-        <div class="meta">
-            Generated on {{ "now"|date("F j, Y \\a\\t g:i a") }} | 
-            {{ stats.active_jobs }} Active Jobs | 
-            {{ stats.total_applications }} Total Applications
-        </div>
+        <p>Generated on: {{ "now"|date("F d, Y H:i") }}</p>
+        {% if current_user %}
+            <p>Company: {{ current_user.name }}</p>
+        {% endif %}
     </div>
-    
-    {# Stats Overview #}
-    <div class="stats-grid">
-        <div class="stat-card" style="border-color: #4e73df;">
-            <div class="value">{{ stats.total_jobs }}</div>
-            <div class="label">Total Jobs</div>
-        </div>
-        <div class="stat-card" style="border-color: #1cc88a;">
-            <div class="value">{{ stats.active_jobs }}</div>
-            <div class="label">Active Jobs</div>
-        </div>
-        <div class="stat-card" style="border-color: #36b9cc;">
-            <div class="value">{{ stats.total_applications }}</div>
-            <div class="label">Applications</div>
-        </div>
-        <div class="stat-card" style="border-color: #f6c23e;">
-            <div class="value">{{ stats.conversion_rate }}%</div>
-            <div class="label">Conversion Rate</div>
-        </div>
-    </div>
-    
-    {# Charts Section #}
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Application Status</h3>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Jobs by Applications</h3>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="jobsChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    {# Recent Applications #}
-    <div class="card mt-4">
-        <div class="card-header">
-            <h3>Recent Applications (Last 5)</h3>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Candidate</th>
-                            <th>Job Title</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for application in stats.recent_applications %}
-                        <tr>
-                            <td>{{ application.candidateName }}</td>
-                            <td>{{ application.jobTitle|slice(0, 30) }}{% if application.jobTitle|length > 30 %}...{% endif %}</td>
-                            <td>{{ application.applicationDate|date('M d, Y') }}</td>
-                            <td>
-                                <span class="badge 
-                                    {% if application.status == 'Pending' %}bg-warning
-                                    {% elseif application.status == 'Accepted' %}bg-success
-                                    {% elseif application.status == 'Rejected' %}bg-danger
-                                    {% else %}bg-secondary{% endif %}">
-                                    {{ application.status }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-{% endblock %}
 
-{% block javascripts %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Status Chart
-        new Chart(document.getElementById('statusChart'), {
-            type: 'doughnut',
-            data: {
-                labels: {{ chart_data.application_status.labels|json_encode|raw }},
-                datasets: [{
-                    data: {{ chart_data.application_status.data|json_encode|raw }},
-                    backgroundColor: {{ chart_data.application_status.colors|json_encode|raw }},
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right'
-                    }
-                }
-            }
-        });
+    <div class="section">
+        <h2>Overview</h2>
+        <div class="stats-row">
+            <div class="stat-card total">
+                <h3>Total Jobs</h3>
+                <div class="value">{{ stats.total_jobs }}</div>
+                <div class="change">
+                    {% if stats.jobs_change >= 0 %}▲{% else %}▼{% endif %}
+                    {{ stats.jobs_change|abs }}% vs previous period
+                </div>
+            </div>
+            
+            <div class="stat-card active">
+                <h3>Active Jobs</h3>
+                <div class="value">{{ stats.active_jobs }}</div>
+            </div>
+            
+            <div class="stat-card applications">
+                <h3>Applications</h3>
+                <div class="value">{{ stats.total_applications }}</div>
+                <div>{{ stats.avg_applications_per_job|round(1) }} per job</div>
+            </div>
+            
+            <div class="stat-card popular">
+                <h3>Popular Job</h3>
+                <div class="value">
+                    {% if stats.popular_job %}
+                        {{ stats.popular_job.title|slice(0, 15) }}{% if stats.popular_job.title|length > 15 %}...{% endif %} 
+                        ({{ stats.popular_job.application_count }})
+                    {% else %}
+                        No popular jobs
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="stat-card ratio">
+                <h3>Conversion Rate</h3>
+                <div class="value">{{ stats.conversion_rate }}%</div>
+                <div class="change">
+                    {% if stats.conversion_change >= 0 %}▲{% else %}▼{% endif %}
+                    {{ stats.conversion_change|abs }}%
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Jobs Chart
-        new Chart(document.getElementById('jobsChart'), {
-            type: 'bar',
-            data: {
-                labels: {{ chart_data.job_applications.labels|json_encode|raw }},
-                datasets: [{
-                    label: 'Applications',
-                    data: {{ chart_data.job_applications.datasets[0].data|json_encode|raw }},
-                    backgroundColor: '#4e73df',
-                    borderColor: '#4e73df',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    });
-    </script>
-{% endblock %}
+    <div class="section">
+        <h2>Application Status</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for status, count in stats.application_statuses %}
+                <tr>
+                    <td>{{ status }}</td>
+                    <td>{{ count }}</td>
+                    <td>{{ (count / stats.total_applications * 100)|round(1) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Recent Applications</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Job Title</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for application in stats.recent_applications %}
+                <tr>
+                    <td>{{ application.candidateName }}</td>
+                    <td>{{ application.jobTitle }}</td>
+                    <td>{{ application.applicationDate|date('M d, Y') }}</td>
+                    <td>{{ application.status }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">No recent applications</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div class="section">
+        <h2>Job Applications</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Applications</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in job_offers|slice(0, 10) %}
+                <tr>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.applications|length }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3">No job offers</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="meta-info">
+        <p>This report was automatically generated from the company dashboard.</p>
+    </div>
+</body>
+</html>
