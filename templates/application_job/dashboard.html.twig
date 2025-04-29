@@ -1,0 +1,502 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Company Dashboard{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stat-card {
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        .stat-card.total { border-left-color: #4e73df; }
+        .stat-card.active { border-left-color: #1cc88a; }
+        .stat-card.applications { border-left-color: #36b9cc; }
+        .stat-card.popular { border-left-color: #f6c23e; }
+        .stat-card.ratio { border-left-color: #6f42c1; }
+        .pipeline-stage {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+        }
+        .pipeline-stage:after {
+            content: "→";
+            position: absolute;
+            right: -15px;
+            top: 0;
+            color: #6c757d;
+        }
+        .pipeline-stage:last-child:after {
+            display: none;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .small-chart {
+            height: 150px;
+        }
+        .progress-thin {
+            height: 6px;
+        }
+
+          @media print {
+            body * {
+                visibility: hidden;
+            }
+            #app, #app * {
+                visibility: visible;
+            }
+            #app {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .chart-container {
+                height: 400px !important;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Company Dashboard</h1>
+        
+    </div>
+
+    <!-- Stats Row (now 5 cards instead of 6) -->
+    <div class="row ">
+        <!-- Total Jobs -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card stat-card total shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Jobs</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_jobs }}</div>
+                            <div class="mt-2 text-xs">
+                                <span class="text-{{ stats.jobs_change >= 0 ? 'success' : 'danger' }} me-1">
+                                    <i class="bi bi-arrow-{{ stats.jobs_change >= 0 ? 'up' : 'down' }}"></i>
+                                    {{ stats.jobs_change|abs }}%
+                                </span>
+                                <span class="text-muted">vs previous period</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-briefcase fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Jobs -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card stat-card active shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Jobs</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_jobs }}</div>
+                            <div class="progress progress-thin mt-2">
+                                <div class="progress-bar bg-success" style="width: {{ (stats.active_jobs/stats.total_jobs)*100 }}%"></div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-clipboard-check fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card stat-card applications shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Applications</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_applications }}</div>
+                            <div class="mt-2">
+                                <small class="text-muted">{{ stats.avg_applications_per_job|round(1) }} per job</small>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-file-earmark-text fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Job -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card stat-card popular shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Popular Job</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if stats.popular_job %}
+                                    {{ stats.popular_job.title|slice(0, 15) }}{% if stats.popular_job.title|length > 15 %}...{% endif %} ({{ stats.popular_job.application_count }})
+                                {% else %}
+                                    No popular jobs
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-star fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conversion Rate -->
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card stat-card ratio shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-purple text-uppercase mb-1">
+                                Conversion Rate</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.conversion_rate }}%</div>
+                            <div class="mt-2 text-xs">
+                                <span class="text-{{ stats.conversion_change >= 0 ? 'success' : 'danger' }} me-1">
+                                    <i class="bi bi-arrow-{{ stats.conversion_change >= 0 ? 'up' : 'down' }}"></i>
+                                    {{ stats.conversion_change|abs }}%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-graph-up fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Action Buttons Column -->
+    <div class="col-xl-2 col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <!-- Post New Job Button -->
+                <a href="{{ path('app_job_offer_new') }}" 
+                   class="btn btn-primary btn-block mb-3 py-2">
+                    <i class="bi bi-plus-circle me-1"></i> Post New Job
+                </a>
+                
+                <!-- Export/Print Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-block dropdown-toggle py-2" 
+                            type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-download me-1"></i> Export Data
+                    </button>
+                   <ul class="dropdown-menu dropdown-menu-end shadow">
+    <li><a class="dropdown-item" href="#" id="exportPdf"><i class="bi bi-file-earmark-pdf me-2"></i> PDF Report</a></li>
+    <li><a class="dropdown-item" href="#" id="exportExcel"><i class="bi bi-file-earmark-excel me-2"></i> Excel Export</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="#" id="printDashboard"><i class="bi bi-printer me-2"></i> Print</a></li>
+</ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Main Content Row -->
+<div class="row">
+   <!-- Main Content Row -->
+<div class="row">
+    <!-- Combined Applications Overview -->
+    <div class="col-xl-8 mb-4 d-flex">
+        <div class="card shadow w-100">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Applications Overview</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots-vertical text-gray-400"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a class="dropdown-item" href="#">Export Data</a></li>
+                        <li><a class="dropdown-item" href="#">Print</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <div class="row flex-grow-1">
+                    <div class="col-md-6 d-flex flex-column">
+                        <div class="chart-container flex-grow-1">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="m-0">Weekly Applications</h6>
+                            <div class="btn-group">
+                                <button id="prevWeek" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <span id="weekDisplay" class="btn btn-sm disabled">
+                                    Current Week
+                                </span>
+                                <button id="nextWeek" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container flex-grow-1">
+                            <canvas id="timelineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="col-xl-4 mb-4 d-flex">
+        <div class="card shadow w-100">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Applications</h6>
+                <a href="{{ path('app_application_job_index') }}" class="btn btn-sm btn-link">View All</a>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <div class="list-group list-group-flush flex-grow-1">
+                    {% for application in stats.recent_applications %}
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ application.candidateName }}</h6>
+                            <small class="text-muted">
+                                {{ application.applicationDate|date('M d, h:i A') }}
+                            </small>
+                        </div>
+                        <p class="mb-1 small">
+                            {{ application.jobTitle|slice(0, 30) }}{% if application.jobTitle|length > 30 %}...{% endif %}
+                        </p>
+                        <small class="text-{{ application.status == 'Pending' ? 'warning' : 
+                                         application.status == 'Accepted' ? 'success' : 
+                                         application.status == 'Rejected' ? 'danger' : 'muted' }}">
+                            {{ application.status }}
+                        </small>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item">
+                        <p class="mb-1 small text-muted">No recent applications</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const timelineData = {{ timeline_data|json_encode|raw }};
+</script>
+
+    <!-- Jobs by Applications -->
+    <div class="row">
+        <div class="col-xl-12 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Jobs by Applications</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-filter text-gray-400"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li><a class="dropdown-item" href="#">This Month</a></li>
+                            <li><a class="dropdown-item" href="#">Last Month</a></li>
+                            <li><a class="dropdown-item" href="#">This Year</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="jobsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        //pdf
+        
+        // Status Chart
+        const statusCtx = document.getElementById('statusChart');
+        if (statusCtx) {
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ chart_data.application_status.labels|json_encode|raw }},
+                    datasets: [{
+                        data: {{ chart_data.application_status.data|json_encode|raw }},
+                        backgroundColor: {{ chart_data.application_status.colors|json_encode|raw }},
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // Jobs Chart
+        const jobsCtx = document.getElementById('jobsChart');
+        if (jobsCtx) {
+            new Chart(jobsCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ chart_data.job_applications.labels|json_encode|raw }},
+                    datasets: [{
+                        label: 'Applications',
+                        data: {{ chart_data.job_applications.datasets[0].data|json_encode|raw }},
+                        backgroundColor: '#4e73df',
+                        borderColor: '#4e73df',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+      
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    let currentWeekIndex = Object.keys(timelineData.weeks).length - 1; // Start with most recent week
+    const weekKeys = Object.keys(timelineData.weeks).sort();
+    let chart;
+
+    function updateChart() {
+        const currentWeekKey = weekKeys[currentWeekIndex];
+        const weekData = timelineData.weeks[currentWeekKey];
+        
+        // Format week display (e.g., "Week 23, 2023")
+        const year = currentWeekKey.substring(0, 4);
+        const weekNum = currentWeekKey.substring(4);
+        document.getElementById('weekDisplay').textContent = `Week ${weekNum}, ${year}`;
+        
+        // Prepare datasets
+        const datasets = [];
+        for (const [status, color] of Object.entries(timelineData.colors)) {
+            const data = days.map(day => {
+                return weekData[day]?.[status] || 0;
+            });
+            
+            datasets.push({
+                label: status,
+                data: data,
+                backgroundColor: color,
+                borderColor: '#ffffff',
+                borderWidth: 1
+            });
+        }
+        
+        // Update or create chart
+        const ctx = document.getElementById('timelineChart').getContext('2d');
+        if (chart) {
+            chart.data.labels = days;
+            chart.data.datasets = datasets;
+            chart.update();
+        } else {
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: datasets
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Week Days'
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Applications'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Navigation handlers
+    document.getElementById('prevWeek').addEventListener('click', () => {
+        if (currentWeekIndex > 0) {
+            currentWeekIndex--;
+            updateChart();
+        }
+    });
+
+    document.getElementById('nextWeek').addEventListener('click', () => {
+        if (currentWeekIndex < weekKeys.length - 1) {
+            currentWeekIndex++;
+            updateChart();
+        }
+    });
+
+    // Initialize
+    updateChart();
+    });
+    </script>
+
+
+
+    
+{% endblock %}

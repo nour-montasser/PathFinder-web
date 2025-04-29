@@ -1,0 +1,321 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0 job-application-header">Apply to: {{ job_offer.title }}</h2>
+                    <span class="badge bg-light text-primary fs-6">Step {{ current_step }} of 4</span>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- Progress Bar -->
+                <div class="progress mb-4 mt-4" style="height: 10px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" 
+                         style="width: {{ current_step * 25 }}%" 
+                         aria-valuenow="{{ current_step }}" 
+                         aria-valuemin="1" 
+                         aria-valuemax="4">
+                    </div>
+                </div>
+
+                {{ form_start(form, {'attr': {'id': 'application-form', 'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                <input type="hidden" name="current_step" value="{{ current_step }}" id="current_step_input">
+
+                <!-- Step 1: CV Selection -->
+                <div class="step step-1 {{ current_step != 1 ? 'd-none' : '' }} animate__animated animate__fadeIn">
+                    <div class="step-header mb-4">
+                        <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">1</div>
+                        <h4 class="d-inline ms-3">Select Your CV</h4>
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form_label(form.cv, 'Choose from your CVs', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.cv, {'attr': {'class': 'form-select form-select-lg'}}) }}
+                        <div class="invalid-feedback">
+                            {{ form_errors(form.cv) }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+    <button type="submit" class="btn btn-primary btn-lg px-4" name="action" value="next">
+        Continue <i class="bi bi-arrow-right ms-2"></i>
+    </button>
+</div>
+                </div>
+
+                <!-- Step 2: Cover Letter -->
+                <div class="step step-2 {{ current_step != 2 ? 'd-none' : '' }} animate__animated animate__fadeIn">
+                    <div class="step-header mb-4">
+                        <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">2</div>
+                        <h4 class="d-inline ms-3">Cover Letter</h4>
+                    </div>
+                    
+                     <!-- Add this AI generation button section -->
+<div class="mb-3">
+    <button type="button" id="generate-cover-letter" class="btn btn-info mb-3">
+        <i class="bi bi-magic me-2"></i> Generate with AI
+    </button>
+    <div id="generation-loading" class="spinner-border text-primary d-none" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <div id="generation-error" class="alert alert-danger d-none mt-2"></div>
+</div>
+    
+    <div class="mb-4">
+        {% if form.coverletter is defined %}
+            {{ form_row(form.coverletter.subject, {
+                'label': 'Subject *',
+                'attr': {
+                    'class': 'form-control form-control-lg mb-3',
+                    'placeholder': 'Application for ' ~ job_offer.title ~ ' position'
+                }
+            }) }}
+            
+            {{ form_label(form.coverletter.content, 'Content *', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+            {{ form_widget(form.coverletter.content, {
+                'attr': {
+                    'class': 'form-control',
+                    'rows': 8,
+                    'id': 'application_job_coverletter_content'
+                }
+            }) }}
+        {% endif %}
+    </div>
+                    
+                    <div class="d-flex justify-content-between">
+    <button type="submit" class="btn btn-outline-secondary btn-lg px-4" name="action" value="prev">
+        <i class="bi bi-arrow-left me-2"></i> Back
+    </button>
+    <button type="submit" class="btn btn-primary btn-lg px-4" name="action" value="next" id="cover-letter-next">
+        Continue <i class="bi bi-arrow-right ms-2"></i>
+    </button>
+</div>
+                </div>
+
+                <!-- Step 3: Skill Test -->
+                <div class="step step-3 {{ current_step != 3 ? 'd-none' : '' }} animate__animated animate__fadeIn">
+                    <div class="step-header mb-4">
+                        <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">3</div>
+                        <h4 class="d-inline ms-3">Skill Test</h4>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        The skill test feature is coming soon. You can proceed to review your application.
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+    <button type="submit" class="btn btn-outline-secondary btn-lg px-4" name="action" value="prev">
+        <i class="bi bi-arrow-left me-2"></i> Back
+    </button>
+    <button type="submit" class="btn btn-primary btn-lg px-4" name="action" value="next">
+        Continue <i class="bi bi-arrow-right ms-2"></i>
+    </button>
+</div>
+                </div>
+
+                <!-- Step 4: Review -->
+                <div class="step step-4 {{ current_step != 4 ? 'd-none' : '' }} animate__animated animate__fadeIn">
+                    <div class="step-header mb-4">
+                        <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">4</div>
+                        <h4 class="d-inline ms-3">Review Your Application</h4>
+                    </div>
+                    
+                    <div class="card mb-4 border-primary">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Application Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6 class="text-muted">Selected CV:</h6>
+                                <p class="fs-5">{{ form.cv.vars.value }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="text-muted">Position:</h6>
+                                <p class="fs-5">{{ job_offer.title }}</p>
+                            </div>
+                            {% if form.coverletter is defined and form.coverletter.vars.value and (form.coverletter.vars.value.subject or form.coverletter.vars.value.content) %}
+                                <div class="mb-3">
+                                    <h6 class="text-muted">Cover Letter:</h6>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5>{{ form.coverletter.vars.value.subject }}</h5>
+                                            <hr>
+                                            <div>{{ form.coverletter.vars.value.content|raw }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Please review your information carefully before submitting.
+                    </div>
+                    
+                   <div class="d-flex justify-content-between">
+    <button type="submit" class="btn btn-outline-secondary btn-lg px-4" name="action" value="prev">
+        <i class="bi bi-arrow-left me-2"></i> Back
+    </button>
+    <button type="submit" class="btn btn-success btn-lg px-4" name="submit_final" value="1">
+        <i class="bi bi-check-circle-fill me-2"></i> Submit Application
+    </button>
+</div>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .job-application-header {
+            color:rgb(234, 232, 232);
+            padding: 1rem;
+            border-radius: 0.25rem;
+        }
+        .step {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .step-header {
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+    </style>
+
+       
+    
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Initialize CKEditor for the cover letter content
+    let editor;
+    if (document.querySelector('#application_job_coverletter_content')) {
+        ClassicEditor
+            .create(document.querySelector('#application_job_coverletter_content'))
+            .then(createdEditor => {
+                editor = createdEditor;
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    // AI Cover Letter Generation
+    const generateBtn = document.getElementById('generate-cover-letter');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', async function() {
+            const loadingIndicator = document.getElementById('generation-loading');
+            const errorDisplay = document.getElementById('generation-error');
+            const subjectField = document.getElementById('application_job_coverletter_subject');
+            
+            try {
+                // Reset UI
+                generateBtn.disabled = true;
+                loadingIndicator.classList.remove('d-none');
+                errorDisplay.classList.add('d-none');
+                errorDisplay.textContent = '';
+                
+                const response = await fetch('{{ path("app_application_generate_coverletter", {"job_offer_id": job_offer.getIdOffer}) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to generate cover letter');
+                }
+                
+                const data = await response.json();
+                
+                if (subjectField && data.subject) {
+                    subjectField.value = data.subject;
+                }
+                
+                if (data.content) {
+                    if (editor) {
+                        editor.setData(data.content);
+                    } else {
+                        const contentField = document.getElementById('application_job_coverletter_content');
+                        if (contentField) {
+                            contentField.value = data.content;
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error generating cover letter:', error);
+                errorDisplay.textContent = error.message;
+                errorDisplay.classList.remove('d-none');
+            } finally {
+                generateBtn.disabled = false;
+                loadingIndicator.classList.add('d-none');
+            }
+        });
+    }
+
+    // Get the form and buttons
+    const form = document.querySelector('#application-form');
+    if (form) {
+        const nextButtons = form.querySelectorAll('[name="action"][value="next"]');
+        const prevButtons = form.querySelectorAll('[name="action"][value="prev"]');
+        const currentStepInput = document.getElementById('current_step_input');
+
+        // Handle the "Next" button
+        nextButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                const currentStep = parseInt(currentStepInput.value);
+                if (currentStep < 4) {
+                    currentStepInput.value = currentStep + 1;
+                }
+            });
+        });
+
+        // Handle the "Back" button
+        prevButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                const currentStep = parseInt(currentStepInput.value);
+                if (currentStep > 1) {
+                    currentStepInput.value = currentStep - 1;
+                }
+            });
+        });
+
+        // Form validation for step 2 (cover letter)
+        form.addEventListener('submit', function(e) {
+            const currentStep = parseInt(currentStepInput.value);
+            if (currentStep === 2) {
+                const subject = document.getElementById('application_job_coverletter_subject')?.value.trim();
+                let content = '';
+                
+                if (editor) {
+                    content = editor.getData().trim();
+                } else {
+                    content = document.getElementById('application_job_coverletter_content')?.value.trim() || '';
+                }
+                
+                if (!subject || !content) {
+                    e.preventDefault();
+                    alert('Please fill in both the subject and content for your cover letter.');
+                }
+            }
+        });
+    }
+});
+</script>
+    {% endblock %}

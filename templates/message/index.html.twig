@@ -1,0 +1,894 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Message index
+{% endblock %}
+
+{% block body %}
+	<div class="container-fluid vh-100 p-0">
+		<div
+			class="row g-0 h-100">
+			<!-- Channels Sidebar -->
+			<div class="col-md-4 h-100 d-flex flex-column border-end">
+				{% include 'message/_channel_list.html.twig' %}
+			</div>
+
+			<!-- Messages Content -->
+			<div class="col-md-8 d-flex flex-column h-100 position-relative">
+    <div class="p-3 border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Messages</h5>
+            <div class="d-flex align-items-center">
+                <div class="position-relative me-3">
+                    <input type="text" 
+                           id="message-search" 
+                           class="form-control form-control-sm" 
+                           placeholder="Search messages...">
+                    <div id="search-results" 
+                         class="position-absolute start-0 w-100 mt-1 bg-white shadow-sm rounded-2" 
+                         style="display: none; max-height: 300px; overflow-y: auto; z-index: 1000;">
+                    </div>
+                </div>
+                <small class="text-muted">{{ messages|length }} messages</small>
+            </div>
+        </div>
+    </div>
+
+				<!-- Scrollable messages area -->
+				<div id="messages-container" class="flex-grow-1 overflow-auto p-3 bg-grey">
+    <div class="chat-content">
+        {% for message in messages %}
+            <div class="d-flex {% if message.sender.getId_user == currentUser.getId_user %}justify-content-end{% else %}justify-content-start{% endif %} mb-3">
+                {% if message.sender.getId_user != currentUser.getId_user %}
+                    <!-- Profile picture for received messages -->
+                    <div class="me-3">
+                        {% if message.sender.image %}
+                            <img src="{{ message.sender.image }}" alt="{{ message.sender.name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% else %}
+                            <img src="{{ asset('build/images/faces/default-profile.png') }}" alt="Default profile" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <div class="chat-message {% if message.sender.getId_user == currentUser.getId_user %}sent-message{% else %}received-message{% endif %}"
+     data-message-id="{{ message.idMessage }}"
+     data-sender-id="{{ message.sender.getId_user }}">
+    <div class="message-content">
+        {{ message.content }}
+    </div>
+    <div class="message-meta">
+        <div class="d-flex align-items-center justify-content-between w-100">
+            <div class="d-flex align-items-center">
+                <small class="message-time">{{ message.timeSent ? message.timeSent|date('H:i') : '' }}</small>
+                {% if message.sender.getId_user == currentUser.getId_user %}
+                    <small class="seen-status ms-2">•&nbsp;Seen</small>
+                {% endif %}
+            </div>
+            {% if message.sender.getId_user == currentUser.getId_user %}
+                <div class="message-actions">
+                    <a href="{{ path('app_message_edit_inline', {'id_message': message.idMessage}) }}" 
+                       class="text-decoration-none me-2">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form action="{{ path('app_message_delete', {'id_message': message.idMessage}) }}" 
+                          method="post" 
+                          class="d-inline"
+                          onsubmit="return confirm('Are you sure you want to delete this message?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ message.idMessage) }}">
+                        <button type="submit" class="btn btn-link p-0 text-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+                {% if message.sender.getId_user == currentUser.getId_user %}
+                    <!-- Profile picture for sent messages (optional) -->
+                    <div class="ms-3">
+                        {% if currentUser.image %}
+                            <img src="{{ currentUser.image }}" alt="{{ currentUser.name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% else %}
+                            <img src="{{ asset('build/images/faces/default-profile.png') }}" alt="Default profile" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+				<!-- New Message Form -->
+				<!-- New Message Form -->
+<div class="border-top bg-white">
+    {{ form_start(form) }}
+    <div class="input-group">
+        {{ form_widget(form.content, {
+            'attr': {
+                'class': 'form-control',
+                'placeholder': 'Type your message here...'
+            }
+        }) }}
+
+        {{ form_widget(form.mediaFile, {
+            'attr': {
+                'class': 'd-none'
+            },
+            'label': false
+        }) }}
+
+        <label class="input-group-text" for="{{ form.mediaFile.vars.id }}" title="Attach file">
+            <i class="bi bi-paperclip"></i>
+        </label>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send"></i>
+        </button>
+    </div>
+    {{ form_end(form) }}
+</div>
+				
+
+			</div>
+		</div>
+	</div>
+	<script>
+function scrollToBottom(force = false) {
+    const container = document.getElementById('messages-container');
+    if (!container) return;
+
+    // Add a small delay to ensure content is rendered
+    setTimeout(() => {
+        const scrollHeight = container.scrollHeight;
+        const scrollTop = container.scrollTop;
+        const clientHeight = container.clientHeight;
+        const inputHeight = 70; // Match the height from CSS
+        
+        // Calculate if we're near the bottom (within 100px)
+        const isAtBottom = (scrollHeight - scrollTop - inputHeight) <= (clientHeight + 100);
+
+        if (force || isAtBottom) {
+            // Scroll to bottom while accounting for the input area
+            container.scrollTop = scrollHeight - clientHeight + inputHeight;
+        }
+    }, 100); // Increased delay for better reliability
+}
+
+// Scroll on page load
+document.addEventListener('DOMContentLoaded', () =>scrollToBottom(true)
+);
+document.addEventListener('turbo:render', () => scrollToBottom(true));
+window.addEventListener('load', () => scrollToBottom(true));
+const messagesContainer = document.getElementById('messages-container');
+if (messagesContainer) {
+    const observer = new MutationObserver(() => scrollToBottom(true));
+    observer.observe(messagesContainer, { 
+        childList: true, 
+        subtree: true 
+    });
+}
+	</script>
+
+{# Define user variables first #}
+<script>
+    // These variables must be defined BEFORE websocket.js loads
+    const currentUserId = {{ currentUser.getId_user() }};
+    const channelId = {{ selectedChannelId ?? 'null' }};
+    const currentUserImage = "{{ currentUser.image ? currentUser.image : asset('build/images/faces/default-profile.png') }}";
+    const currentUserName = "{{ currentUser.name }}";
+</script>
+
+{# Define user variables in a hidden element #}
+<div id="current-user-data" 
+     data-user-id="{{ currentUser.getId_user() }}"
+     data-channel-id="{{ selectedChannelId ?? '' }}"
+     data-user-image="{{ currentUser.image ? currentUser.image : asset('build/images/faces/default-profile.png') }}"
+     style="display:none;"></div>
+
+{# Single script section #}
+<script>
+// WebSocketClient class definition
+class WebSocketClient {
+    constructor(userId, channelId, userImage) {
+        this.userId = userId;
+        this.channelId = channelId;
+        this.userImage = userImage || '/build/images/faces/default-profile.png';
+        this.socket = null;
+        this.messageQueue = [];
+        this.connectAttempts = 0;
+        this.maxConnectAttempts = 5;
+        this.onlineUsers = new Set();
+        this.seenMessages = new Set();
+        
+        this.connect();
+        
+        // Keepalive ping every 25 seconds
+        this.keepaliveInterval = setInterval(() => {
+            if (this.socket?.readyState === WebSocket.OPEN) {
+                this.socket.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 25000);
+
+        // Add visibility change detection
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && this.channelId) {
+                this.markChannelAsSeen();
+            }
+        });
+
+        // Mark messages as seen when scrolling
+        const messagesContainer = document.getElementById('messages-container');
+        if (messagesContainer) {
+            messagesContainer.addEventListener('scroll', this.handleScroll.bind(this));
+        }
+    }
+
+    handleScroll() {
+        const messages = document.querySelectorAll('.chat-message[data-message-id]');
+        messages.forEach(message => {
+            if (this.isMessageVisible(message) && 
+                message.dataset.senderId !== this.userId.toString() && 
+                !this.seenMessages.has(message.dataset.messageId)) {
+                this.markMessageAsSeen(message.dataset.messageId);
+            }
+        });
+    }
+
+    isMessageVisible(element) {
+        const container = document.getElementById('messages-container');
+        if (!container) return false;
+
+        const containerRect = container.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+
+        return elementRect.top >= containerRect.top && 
+               elementRect.bottom <= containerRect.bottom;
+    }
+
+    markMessageAsSeen(messageId) {
+        if (this.seenMessages.has(messageId)) return;
+        
+        this.seenMessages.add(messageId);
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: 'messageSeen',
+                messageId: messageId,
+                channelId: this.channelId
+            }));
+        }
+    }
+
+    markChannelAsSeen() {
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: 'channelSeen',
+                channelId: this.channelId
+            }));
+        }
+    }
+
+    updateMessageSeen(messageId, seenBy) {
+        console.log('Updating message seen status:', messageId, 'seen by:', seenBy);
+        if (seenBy === this.userId) return;
+        
+        const messageElement = document.querySelector(`.chat-message[data-message-id="${messageId}"]`);
+        if (messageElement) {
+            let seenElement = messageElement.querySelector('.seen-status');
+            if (!seenElement) {
+                seenElement = document.createElement('small');
+                seenElement.className = 'seen-status';
+                seenElement.textContent = 'Seen';
+                const metaDiv = messageElement.querySelector('.message-meta .d-flex');
+                if (metaDiv) {
+                    metaDiv.appendChild(seenElement);
+                }
+            }
+            seenElement.style.display = 'inline'; // Make sure it's visible
+        }
+    }
+
+    updateChannelSeen(channelId, seenBy) {
+        if (seenBy === this.userId) return;
+        
+        document.querySelectorAll(`.chat-message[data-sender-id="${this.userId}"]`).forEach(msg => {
+            if (!msg.querySelector('.seen-status')) {
+                const seenElement = document.createElement('small');
+                seenElement.className = 'seen-status';
+                seenElement.textContent = 'Seen';
+                msg.querySelector('.message-meta').appendChild(seenElement);
+            }
+        });
+    }
+
+    flushMessageQueue() {
+        while (this.messageQueue.length > 0) {
+            const message = this.messageQueue.shift();
+            if (this.socket?.readyState === WebSocket.OPEN) {
+                this.socket.send(JSON.stringify(message));
+            }
+        }
+    }
+
+    connect() {
+        try {
+            this.socket = new WebSocket('ws://localhost:8082');
+            
+            this.socket.onopen = () => {
+                console.log('Connected to WebSocket server');
+                this.authenticate();
+                if (this.channelId) {
+                    this.subscribe();
+                }
+            };
+            
+            this.socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                this.handleMessage(data);
+            };
+            
+            this.socket.onclose = () => {
+                console.log('WebSocket connection closed');
+                setTimeout(() => this.reconnect(), 2000);
+            };
+            
+            this.socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        } catch (error) {
+            console.error('WebSocket connection error:', error);
+            setTimeout(() => this.reconnect(), 2000);
+        }
+    }
+
+    authenticate() {
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: 'auth',
+                userId: this.userId
+            }));
+        }
+    }
+
+    subscribe() {
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: 'subscribe',
+                channelId: this.channelId,
+                userId: this.userId
+            }));
+        }
+    }
+
+    reconnect() {
+        if (this.connectAttempts < this.maxConnectAttempts) {
+            this.connectAttempts++;
+            console.log(`Reconnecting... Attempt ${this.connectAttempts}`);
+            this.connect();
+        }
+    }
+
+    sendMessage(content) {
+        if (this.socket?.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: 'message',
+                content: content,
+                channelId: this.channelId,
+                userId: this.userId
+            }));
+        } else {
+            this.messageQueue.push({
+                type: 'message',
+                content: content,
+                channelId: this.channelId,
+                userId: this.userId
+            });
+        }
+    }
+
+    handleMessage(data) {
+        console.log('Received message:', data);
+        switch (data.type) {
+            case 'message':
+                this.displayMessage(data);
+                break;
+            case 'messageSeen':
+                this.updateMessageSeen(data.messageId, data.seenBy);
+                break;
+            case 'channelSeen':
+                this.updateChannelSeen(data.channelId, data.seenBy);
+                break;
+            case 'userStatus':
+                this.updateUserStatus(data.userId, data.isOnline);
+                break;
+            case 'authenticated':
+                console.log('Successfully authenticated');
+                break;
+            case 'subscribed':
+                console.log('Successfully subscribed to channel');
+                break;
+            case 'pong':
+                break;
+            default:
+                console.warn('Unknown message type:', data.type);
+        }
+    }
+
+    displayMessage(data) {
+        const messagesContainer = document.getElementById('messages-container');
+        if (!messagesContainer) return;
+
+        const isCurrentUser = data.sender.id === this.userId;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `d-flex ${isCurrentUser ? 'justify-content-end' : 'justify-content-start'} mb-3`;
+
+        messageDiv.innerHTML = `
+            ${!isCurrentUser ? `
+                <div class="me-3">
+                    <img src="${data.sender.image || '/build/images/faces/default-profile.png'}" 
+                         alt="${data.sender.name}" 
+                         class="rounded-circle" 
+                         style="width: 40px; height: 40px; object-fit: cover;">
+                </div>
+            ` : ''}
+
+            <div class="chat-message ${isCurrentUser ? 'sent-message' : 'received-message'}"
+                 data-message-id="${data.id}"
+                 data-sender-id="${data.sender.id}">
+                <div class="message-content">${data.content}</div>
+                <div class="message-meta">
+                    <div class="d-flex align-items-center">
+                        <small class="message-time">${data.timeSent}</small>
+                        ${isCurrentUser ? '<small class="seen-status" style="display: none;">Seen</small>' : ''}
+                    </div>
+                </div>
+            </div>
+
+            ${isCurrentUser ? `
+                <div class="ms-3">
+                    <img src="${this.userImage}" 
+                         alt="You" 
+                         class="rounded-circle" 
+                         style="width: 40px; height: 40px; object-fit: cover;">
+                </div>
+            ` : ''}
+        `;
+
+        messagesContainer.querySelector('.chat-content').appendChild(messageDiv);
+        scrollToBottom(true);
+    }
+
+    updateUserStatus(userId, isOnline) {
+        console.log('Updating user status:', userId, isOnline);
+        if (isOnline) {
+            this.onlineUsers.add(userId);
+        } else {
+            this.onlineUsers.delete(userId);
+        }
+
+        document.querySelectorAll(`[data-user-id="${userId}"] .user-status`).forEach(indicator => {
+            indicator.classList.remove('online', 'offline');
+            indicator.classList.add(isOnline ? 'online' : 'offline');
+            indicator.title = isOnline ? 'Online' : 'Offline';
+        });
+
+        console.log('Current online users:', Array.from(this.onlineUsers));
+    }
+}
+</script>
+
+<script>
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        const userData = document.getElementById('current-user-data');
+        if (!userData) {
+            console.error('Current user data element not found');
+            return;
+        }
+
+        const currentUserId = parseInt(userData.dataset.userId);
+        const channelId = userData.dataset.channelId ? parseInt(userData.dataset.channelId) : null;
+        const currentUserImage = userData.dataset.userImage;
+
+        if (channelId && !isNaN(currentUserId)) {
+            window.wsClient = new WebSocketClient(currentUserId, channelId, currentUserImage);
+            
+            // Mark channel as seen when loading
+            setTimeout(() => {
+                window.wsClient.markChannelAsSeen();
+                window.wsClient.handleScroll(); // Check initial messages
+            }, 1000);
+
+            const messageForm = document.querySelector('form[name="message"]');
+            if (messageForm) {
+                messageForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const input = messageForm.querySelector('input[name="message[content]"]');
+                    const textarea = messageForm.querySelector('textarea[name="message[content]"]');
+                    const messageInput = input || textarea;
+                    
+                    if (messageInput?.value.trim()) {
+                        window.wsClient.sendMessage(messageInput.value.trim());
+                        messageInput.value = '';
+                        
+                        // Also submit the form normally for fallback
+                        if (window.wsClient.socket?.readyState !== WebSocket.OPEN) {
+                            messageForm.submit();
+                        }
+                    }
+                });
+            }
+        } else {
+            console.error('Missing required user data or channel ID');
+        }
+    });
+
+    // Add this to your existing script section
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('message-search');
+    const searchResults = document.getElementById('search-results');
+    let searchTimeout;
+
+    if (!searchInput || !searchResults) return;
+
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+        
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        searchTimeout = setTimeout(() => {
+            const currentChannelId = document.querySelector('#current-user-data').dataset.channelId;
+            
+            fetch(`/message/messages/search?q=${encodeURIComponent(query)}&channelId=${currentChannelId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.messages && data.messages.length > 0) {
+                        searchResults.innerHTML = data.messages.map(message => `
+                            <div class="search-result" data-message-id="${message.id}">
+                                <div class="d-flex align-items-center">
+                                    <img src="${message.sender.image || '/build/images/faces/default-profile.png'}" 
+                                         alt="${message.sender.name}"
+                                         class="rounded-circle me-2"
+                                         style="width: 24px; height: 24px; object-fit: cover;">
+                                    <div>
+                                        <div class="small text-truncate">${message.content}</div>
+                                        <small class="text-muted">${message.timeSent}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                        searchResults.style.display = 'block';
+                    } else {
+                        searchResults.innerHTML = '<div class="p-2 text-muted">No messages found</div>';
+                        searchResults.style.display = 'block';
+                    }
+                });
+        }, 300);
+    });
+
+    // Hide search results when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!searchResults.contains(e.target) && e.target !== searchInput) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    // Scroll to message when clicking search result
+    searchResults.addEventListener('click', (e) => {
+        const resultItem = e.target.closest('.search-result');
+        if (resultItem) {
+            const messageId = resultItem.dataset.messageId;
+            const messageElement = document.querySelector(`.chat-message[data-message-id="${messageId}"]`);
+            if (messageElement) {
+                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                messageElement.classList.add('highlighted-message');
+                setTimeout(() => {
+                    messageElement.classList.remove('highlighted-message');
+                }, 2000);
+            }
+            searchResults.style.display = 'none';
+            searchInput.value = '';
+        }
+    });
+});
+</script>
+
+{% endblock %}
+
+
+{% block styles %}
+	<style>
+		body {
+			overflow: hidden; /* ✅ Keep this */
+		}
+
+
+		html,
+		body {
+			height: 100%;
+		}
+		.bg-grey {
+			background-color: #f5f5f5;
+		}
+		.chat {
+			border-radius: 5px;
+		}
+		.chat.chat-left .chat-message {
+			background: #5a8dee;
+			float: left;
+			color: #fff;
+		}
+		.chat .chat-message {
+			text-align: left;
+			float: right;
+			margin: 0.2rem 0 1.8rem 0.2rem;
+			color: #525361;
+			background-color: #fafbfb;
+			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+			padding: 0.75rem 1rem;
+			position: relative;
+			max-width: calc(100% - 5rem);
+			clear: both;
+			word-break: break-word;
+			border-radius: 0.267rem;
+			cursor: pointer;
+		}
+		.chat.chat-left .message-time,
+		.chat.chat-left .message-actions a,
+		.chat.chat-left .message-actions button {
+			color: rgba(255, 255, 255, 0.7) !important;
+		}
+		.message-actions {
+			opacity: 0;
+			transition: opacity 0.2s;
+		}
+		.chat-message:hover .message-actions {
+			opacity: 1;
+		}
+		.message-time-full {
+			position: absolute;
+			bottom: -1.5rem;
+			left: 0;
+			background: rgba(0, 0, 0, 0.7);
+			color: white;
+			padding: 0.2rem 0.5rem;
+			border-radius: 0.25rem;
+			z-index: 10;
+		}
+		.chat-left .message-time-full {
+			left: auto;
+			right: 0;
+		}
+		.list-group-item {
+			border-left: 0;
+			border-right: 0;
+			padding: 0.75rem 1.25rem;
+		}
+		.edit-message-form {
+			background: #f8f9fa;
+			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+		}
+		#user-select {
+			cursor: pointer;
+		}
+
+	
+		.list-group-item-action:hover {
+			background-color: #f5f5f5;
+		}
+		/* Add to your existing styles */
+		.list-group-item {
+			display: flex;
+			align-items: center;
+			padding: 0.75rem 1.25rem;
+		}
+
+		.list-group-item a {
+			flex-grow: 1;
+		}
+
+		.btn-danger {
+			opacity: 0;
+			transition: opacity 0.2s;
+		}
+
+		.list-group-item:hover .btn-danger {
+			opacity: 1;
+		}
+
+		/* Message bubbles */
+		.chat-left .chat-message {
+			background: #f1f1f1; /* Grey for received messages */
+			color: #333;
+			float: left;
+			margin-right: auto;
+		}
+
+		.chat-right .chat-message {
+			background: #5a8dee; /* Blue for sent messages */
+			color: white;
+			float: right;
+			margin-left: auto;
+		}
+
+		/* Consistent message bubble styling */
+		.chat-message {
+			max-width: 70%;
+			padding: 0.75rem 1rem;
+			border-radius: 0.75rem;
+			margin-bottom: 0.5rem;
+			position: relative;
+			clear: both;
+		}
+
+		/* Message bubbles */
+		.chat-message {
+			max-width: 70%;
+			padding: 0.75rem 1rem;
+			border-radius: 1rem;
+			position: relative;
+			word-wrap: break-word;
+		}
+
+		.sent-message {
+			background: #5a8dee; /* Blue for sent messages */
+			color: white;
+			border-bottom-right-radius: 0;
+		}
+
+		.received-message {
+			background: #f1f1f1; /* Grey for received messages */
+			color: #333;
+			border-bottom-left-radius: 0;
+		}
+
+		/* Message meta information */
+		.message-meta {
+			font-size: 0.75rem;
+		}
+
+		.sent-message .message-time {
+			color: rgba(255, 255, 255, 0.7);
+		}
+
+		.received-message .message-time {
+			color: rgba(0, 0, 0, 0.5);
+		}
+
+		/* Action buttons */
+		.message-actions {
+			opacity: 0;
+			transition: opacity 0.2s;
+		}
+
+		.chat-message:hover .message-actions {
+			opacity: 1;
+		}
+
+		.message-actions a,
+		.message-actions button {
+			color: inherit;
+			opacity: 0.7;
+		}
+
+		.sent-message .message-actions a,
+		.sent-message .message-actions button {
+			color: rgba(255, 255, 255, 0.9);
+		}
+
+		.received-message .message-actions a,
+		.received-message .message-actions button {
+			color: rgba(0, 0, 0, 0.7);
+		}
+
+		.message-actions a:hover,
+		.message-actions button:hover {
+			opacity: 1;
+		}
+
+		.message-media {
+			margin-top: 8px;
+			padding: 8px;
+			background: rgba(0, 0, 0, 0.03);
+			border-radius: 4px;
+			border: 1px solid rgba(0, 0, 0, 0.1);
+		}
+
+		.message-media img {
+			max-height: 200px;
+			display: block;
+		}
+
+		/* For the attachment button */
+		.input-group-text {
+			cursor: pointer;
+			transition: background-color 0.2s;
+		}
+
+		.input-group-text:hover {
+			background-color: #e9ecef;
+		}
+		#messages-container {
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    height: calc(100vh - 160px); /* Adjust height to account for header and input */
+    padding-bottom: 100px; /* Increase padding at bottom */
+    position: relative;
+}
+		 .chat-content {
+    min-height: min-content;
+    padding-bottom: 10px;
+}
+	
+		.bg-white {
+			box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+		}
+		 /* Ensure the container fills available space */
+    .flex-grow-1 {
+        flex-grow: 1;
+        min-height: 0; /* Important for flex children */
+    }
+	/* Update the message input container styling */
+.border-top.bg-white {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background: white;
+    z-index: 1000;
+    padding: 15px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    width: 66.67%; /* Width for the input area (matches col-md-8) */
+}
+		/* Add to your existing styles in the style block */
+.seen-status {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-left: 8px;
+    transition: opacity 0.3s;
+}
+
+.received-message .seen-status {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.message-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.message-meta .d-flex {
+    align-items: center;
+}
+.search-result {
+    cursor: pointer;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.search-result:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+#search-results {
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.highlighted-message {
+    animation: highlight 2s ease-out;
+}
+
+@keyframes highlight {
+    0% { background-color: rgba(255, 243, 205, 0.5); }
+    100% { background-color: inherit; }
+}
+	</style>
+{% endblock %}

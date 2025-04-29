@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Skilltests{% endblock %}
+
+{% block body %}
+    <style>
+        .skilltest-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .skilltest-card {
+            background-color: #f8f5f2;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(59, 38, 29, 0.1);
+            padding: 20px;
+            transition: transform 0.3s ease;
+            border: 1px solid #e6dcd7;
+        }
+
+        .skilltest-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .skilltest-title {
+            color: #3B261D;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .skilltest-description {
+            font-size: 1rem;
+            color: #5a3e2e;
+            margin-bottom: 10px;
+        }
+
+        .skilltest-meta {
+            color: #7b5a48;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .skilltest-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .skilltest-actions a {
+            padding: 6px 14px;
+            background-color: #3B261D;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .skilltest-actions a:hover {
+            background-color: #5a3e2e;
+        }
+
+        .create-btn-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 30px;
+            margin-top: 20px;
+        }
+
+        .create-btn {
+            padding: 10px 24px;
+            background-color: #3B261D;
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .create-btn:hover {
+            background-color: #5a3e2e;
+        }
+    </style>
+
+    <div class="create-btn-wrapper">
+        <a href="{{ path('app_skilltest_new') }}" class="create-btn">➕ Create New Skilltest</a>
+    </div>
+
+    <h1 class="text-center mt-4" style="color: #3B261D">Available Skill Tests</h1>
+
+    <div class="skilltest-wrapper">
+        {% for skilltest in skilltests %}
+            <div class="skilltest-card">
+                <div class="skilltest-title">{{ skilltest.title }}</div>
+                <div class="skilltest-description">{{ skilltest.description }}</div>
+                <div class="skilltest-meta"><strong>Duration:</strong> {{ skilltest.duration }} mins</div>
+                <div class="skilltest-meta"><strong>Score Required:</strong> {{ skilltest.scoreRequired }}</div>
+                <div class="skilltest-actions">
+                    <a href="{{ path('app_skilltest_show', {'id': skilltest.id }) }}" class="btn btn-primary">
+                        👁 View
+                    </a>
+
+
+                    <a href="{{ path('app_skilltest_edit', { 'id': skilltest.id }) }}" class="btn btn-warning">
+                        ✏️ Edit
+                    </a>
+                    <a href="{{ path('app_skilltest_take', {'id': skilltest.id}) }}" class="btn btn-outline-success mt-2">
+                        🧪 Take This Test
+                    </a>
+
+
+                </div>
+            </div>
+        {% else %}
+            <p class="text-center">No skill tests available at the moment.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

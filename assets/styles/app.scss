@@ -1,0 +1,65 @@
+/*
+* Mazer, Technology Innovations Bootstrap HTML5 Landing Page
+* 
+* File: app.scss
+*
+* If you want to edit the components, just go to _variables.scss
+*/
+
+/** 
+ * ====== TABLE OF CONTENTS =======
+ * 1. Custom Variables (Mazer overrides)
+ * 2. Bootstrap SCSS (You can include parts of Bootstrap)
+ * 3. Bootstrap Component Overrides (Mazer)
+ * 4. Mazer Layout and Utility Styles
+ */
+
+// 1. Custom Variables (Mazer overrides)
+@import "./variables";  // Your custom Mazer variables (colors, fonts, etc.)
+
+// 2. Bootstrap SCSS (You can include parts of Bootstrap)
+
+@import "~bootstrap/scss/functions";  // Bootstrap's functions (optional)
+@import "~bootstrap/scss/variables";  // Bootstrap's variables (optional)
+@import "~bootstrap/scss/mixins";     // Bootstrap's mixins (optional)
+@import "~bootstrap/scss/bootstrap";  // The full Bootstrap SCSS
+
+// Add this line (adjust path if needed)
+@import "~bootstrap-icons/font/bootstrap-icons.css";
+
+
+// 3. Bootstrap Component Overrides (Mazer)
+// Customize Bootstrap components for Mazer template
+@import "./components/alert";    // Customize Alert component
+@import "./components/avatar";   // Customize Avatar component
+@import "./components/badge";    // Customize Badge component
+@import "./components/buttons";  // Customize Buttons component
+@import "./components/breadcrumb"; // Customize Breadcrumb component
+@import "./components/carousel"; // Customize Carousel component
+@import "./components/card";     // Customize Card component
+@import "./components/divider";  // Customize Divider component
+@import "./components/dropdowns"; // Customize Dropdown component
+@import "./components/forms";    // Customize Forms component
+@import "./components/modal";    // Customize Modal component
+@import "./components/sidebar";  // Customize Sidebar component
+@import "./components/navs";     // Customize Navs component
+@import "./components/navbar";   // Customize Navbar component
+@import "./components/pagination"; // Customize Pagination component
+@import "./components/table";    // Customize Table component
+@import "./components/progress"; // Customize Progress component
+@import "./components/icons";    // Customize Icons component
+
+// 4. Mazer Layout and Utility Styles
+@import "./layouts/main.scss";    // Mazer layout styles
+@import "./utilities";            // Utility classes
+
+
+@import "~@fortawesome/fontawesome-free/css/all.min.css";
+
+
+// Add any additional custom styles below if needed
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: #f8f9fa;
+  }
+  
