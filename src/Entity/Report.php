@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Report
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private string $id_report;
 

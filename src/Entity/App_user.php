@@ -20,6 +20,7 @@ use App\Entity\Profile;
 class App_user
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_user;
 
@@ -33,7 +34,7 @@ class App_user
     private string $password;
 
     #[ORM\Column(type: "bigint")]
-    private string $role;
+    private int $role;
 
     #[ORM\Column(type: "string", length: 255)]
     private string $image;
@@ -51,7 +52,7 @@ class App_user
     private Collection $serviceApplications;
     
     // Job applications
-    #[ORM\OneToMany(mappedBy: "user", targetEntity: Application_job::class)]
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: ApplicationJob::class)]
     private Collection $jobApplications;
     
     // Job offers
@@ -102,12 +103,12 @@ class App_user
     
     // Getters and setters
     
-    public function getIdUser(): int
+    public function getId_user(): int
     {
         return $this->id_user;
     }
     
-    public function setIdUser(int $id_user): self
+    public function setId_user(int $id_user): self
     {
         $this->id_user = $id_user;
         return $this;
@@ -146,12 +147,12 @@ class App_user
         return $this;
     }
     
-    public function getRole(): string
+    public function getRole(): int
     {
         return $this->role;
     }
     
-    public function setRole(string $role): self
+    public function setRole(int $role): self
     {
         $this->role = $role;
         return $this;

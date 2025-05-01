@@ -13,6 +13,7 @@ use App\Entity\Skilltest;
 class Job_offer
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_offer;
 
@@ -48,26 +49,26 @@ class Job_offer
     private string $field;
 
     #[ORM\Column(type: "string", length: 255)]
-    private string $address;
+    private string $address="";
 
-    #[ORM\OneToMany(mappedBy: "jobOffer", targetEntity: Application_job::class)]
+    #[ORM\OneToMany(mappedBy: "jobOffer", targetEntity: ApplicationJob::class)]
     private Collection $applications;
 
     #[ORM\OneToMany(mappedBy: "jobOffer", targetEntity: Skilltest::class)]
-    private Collection $skillTests;
+    private Collection $skill_tests;
 
     public function __construct()
     {
         $this->applications = new ArrayCollection();
-        $this->skillTests = new ArrayCollection();
+        $this->skill_tests = new ArrayCollection();
     }
 
-    public function getId_offer(): int
+    public function getIdOffer(): int
     {
         return $this->id_offer;
     }
 
-    public function setId_offer(int $id_offer): self
+    public function setIdOffer(int $id_offer): self
     {
         $this->id_offer = $id_offer;
         return $this;
@@ -106,12 +107,12 @@ class Job_offer
         return $this;
     }
 
-    public function getDate_posted(): \DateTimeInterface
+    public function getDatePosted(): \DateTimeInterface
     {
         return $this->date_posted;
     }
 
-    public function setDate_posted(\DateTimeInterface $date_posted): self
+    public function setDatePosted(\DateTimeInterface $date_posted): self
     {
         $this->date_posted = $date_posted;
         return $this;
@@ -128,34 +129,34 @@ class Job_offer
         return $this;
     }
 
-    public function getNumber_of_spots(): int
+    public function getNumberOfSpots(): int
     {
         return $this->number_of_spots;
     }
 
-    public function setNumber_of_spots(int $number_of_spots): self
+    public function setNumberOfSpots(int $number_of_spots): self
     {
         $this->number_of_spots = $number_of_spots;
         return $this;
     }
 
-    public function getRequired_education(): string
+    public function getRequiredEducation(): string
     {
         return $this->required_education;
     }
 
-    public function setRequired_education(string $required_education): self
+    public function setRequiredEducation(string $required_education): self
     {
         $this->required_education = $required_education;
         return $this;
     }
 
-    public function getRequired_experience(): string
+    public function getRequiredExperience(): string
     {
         return $this->required_experience;
     }
 
-    public function setRequired_experience(string $required_experience): self
+    public function setRequiredExperience(string $required_experience): self
     {
         $this->required_experience = $required_experience;
         return $this;
@@ -199,7 +200,7 @@ class Job_offer
         return $this->applications;
     }
 
-    public function addApplication(Application_job $application): self
+    public function addApplication(ApplicationJob $application): self
     {
         if (!$this->applications->contains($application)) {
             $this->applications[] = $application;
@@ -208,7 +209,7 @@ class Job_offer
         return $this;
     }
 
-    public function removeApplication(Application_job $application): self
+    public function removeApplication(ApplicationJob $application): self
     {
         if ($this->applications->removeElement($application)) {
             if ($application->getJobOffer() === $this) {
@@ -220,13 +221,13 @@ class Job_offer
 
     public function getSkillTests(): Collection
     {
-        return $this->skillTests;
+        return $this->skill_tests;
     }
 
     public function addSkillTest(Skilltest $skillTest): self
     {
-        if (!$this->skillTests->contains($skillTest)) {
-            $this->skillTests[] = $skillTest;
+        if (!$this->skill_tests->contains($skillTest)) {
+            $this->skill_tests[] = $skillTest;
             $skillTest->setJobOffer($this);
         }
         return $this;
@@ -234,11 +235,70 @@ class Job_offer
 
     public function removeSkillTest(Skilltest $skillTest): self
     {
-        if ($this->skillTests->removeElement($skillTest)) {
+        if ($this->skill_tests->removeElement($skillTest)) {
             if ($skillTest->getJobOffer() === $this) {
                 $skillTest->setJobOffer(null);
             }
         }
         return $this;
     }
+
+    public const JOB_TYPES = [
+        'Full-time',
+        'Part-time', 
+        'Fixed-term contract',
+        'Long-term contract'
+    ];
+    
+    public const FIELDS = [
+        'IT jobs',
+        'Sales jobs',
+        'Unknown'
+    ];
+    
+    public const EDUCATION_LEVELS = [
+        'High School',
+        'Bachelor\'s degree',
+        'Licence',
+        'Master\'s degree',
+        'Doctorate',
+        'Postdoc',
+        'PhD'
+    ];
+
+    // Add these new methods to handle city/country
+    public function getCity(): ?string
+    {
+        $parts = explode(',', $this->address);
+        return $parts[0] ?? null;
+    }
+
+    public function getCountry(): ?string
+    {
+        $parts = explode(',', $this->address);
+        return trim($parts[1] ?? '');
+    }
+
+    public static function getJobTypes(): array
+    {
+        return self::JOB_TYPES;
+    }
+
+    public static function getFields(): array
+    {
+        return self::FIELDS;
+    }
+
+    public static function getEducationLevels(): array
+    {
+        return self::EDUCATION_LEVELS;
+    }
+
+    public function __toString(): string
+    {
+        return $this->title;
+    }
+
+    
+    
 }

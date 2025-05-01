@@ -9,6 +9,7 @@ use App\Entity\Cv;
 class Experience
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     #[ORM\GeneratedValue(strategy: "AUTO")]
     private int $id_experience;

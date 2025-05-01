@@ -29,6 +29,17 @@
             background-color: #fff;
         }
     }
+    &.btn-outline-secondary {
+        // Default Bootstrap outline secondary styles remain
+        color: $secondary;
+        border-color: $secondary;
+        
+        &:hover, &:focus, &:active {
+            color: #fff !important;          // White text on hover
+            background-color: $secondary;    // Secondary background on hover
+            border-color: $secondary;        // Keep secondary border
+        }
+    }
     
     @each $key, $value in $theme-colors-light {
         &.btn-light-#{$key} {

@@ -10,6 +10,7 @@ use App\Entity\App_user;
 class Applicationservice
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_app;
 
@@ -95,4 +96,4 @@ class Applicationservice
         $this->rating = $value;
         return $this;
     }
-}
+}   

@@ -1,0 +1,190 @@
+{# templates/skilltest/show.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="skilltest-container">
+
+        <div class="action-buttons">
+            <a href="{{ path('app_skilltest_index') }}" class="btn-back">
+                ← Back to Skill Tests
+            </a>
+
+            <form method="post" action="{{ path('app_skilltest_delete', {'id': skilltest.id}) }}" onsubmit="return confirm('Are you sure you want to delete this entire Skill Test and all its questions?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ skilltest.id) }}">
+                <button class="btn-delete-test" type="submit">🗑️ Delete Skill Test</button>
+            </form>
+        </div>
+
+        <div class="skilltest-header">
+            <h1>{{ skilltest.title }}</h1>
+            <div class="meta">
+                <span><i class="fas fa-clock"></i> Duration: {{ skilltest.duration }} min</span>
+                <span><i class="fas fa-star"></i> Required Score: {{ skilltest.scoreRequired }}</span>
+            </div>
+        </div>
+
+        <div class="questions-section">
+            <h2><i class="fas fa-question-circle"></i> Questions</h2>
+            {% for question in skilltest.questions %}
+                <div class="question-card">
+                    <div class="question-header">
+                        <strong>Q{{ loop.index }}:</strong> {{ question.question }}
+                        <form method="post" action="{{ path('app_questions_delete', {'id': question.id}) }}" class="delete-question-form" onsubmit="return confirm('Delete this question?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ question.id) }}">
+                            <button class="btn-delete" type="submit">🗑️</button>
+                        </form>
+                    </div>
+                    <ul class="answers-list">
+                        {% set responses = question.responses|split(',') %}
+                        {% for response in responses %}
+                            <li><i class="fas fa-circle"></i> {{ response }}</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="correct-answer">
+                        ✅ Correct Answer: <strong>{{ question.correctResponse }}</strong>
+                    </div>
+                </div>
+            {% else %}
+                <p>No questions found for this skill test.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <style>
+        .skilltest-container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fdfdfd;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .btn-back,
+        .btn-delete-test {
+            padding: 10px 18px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: 0.2s ease;
+        }
+
+        .btn-back {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-back:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-delete-test {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-delete-test:hover {
+            background-color: #c0392b;
+        }
+
+        .skilltest-header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .skilltest-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .meta {
+            font-size: 16px;
+            color: #777;
+        }
+
+        .meta span {
+            margin-right: 20px;
+        }
+
+        .questions-section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+
+        .question-card {
+            background-color: #ffffff;
+            border: 1px solid #e3e3e3;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .question-card:hover {
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.07);
+        }
+
+        .question-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-question-form {
+            margin-left: 10px;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #c0392b;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .answers-list {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 10px;
+        }
+
+        .answers-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f1f1;
+            color: #555;
+        }
+
+        .answers-list li:last-child {
+            border-bottom: none;
+        }
+
+        .correct-answer {
+            margin-top: 15px;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        i.fas {
+            margin-right: 6px;
+        }
+    </style>
+{% endblock %}

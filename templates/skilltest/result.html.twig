@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+{% block title %}SkillTest Result{% endblock %}
+
+{% block body %}
+    <div class="container mt-5 text-center">
+        <h2>🧪 {{ skilltest.title }}</h2>
+        <p>Your Score: <strong>{{ score }}/{{ total }}</strong></p>
+        <p>Percentage: <strong>{{ percentage|number_format(1) }}%</strong></p>
+        <p>Status:
+            {% if passed %}
+                <span class="text-success">✅ Passed</span>
+            {% else %}
+                <span class="text-danger">❌ Failed</span>
+            {% endif %}
+        </p>
+        <a href="{{ path('app_skilltest_index') }}" class="btn btn-outline-primary mt-3">← Back to SkillTests</a>
+    </div>
+{% endblock %}

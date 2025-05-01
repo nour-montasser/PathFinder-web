@@ -1,69 +1,43 @@
 <?php
 
 namespace App\Entity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 class Test_result
 {
-
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
-    private int $id_result;  // Change to integer or big integer
+    private int $id_result;
 
-    #[ORM\Column(type: "bigint")]
-    private int $id_user;  // Change to integer
-
-    #[ORM\Column(type: "bigint")]
-    private int $id_test;  // Change to integer
-
-    #[ORM\Column(type: "float")]
+    #[Assert\NotNull]
+    #[Assert\Range(min: 0, max: 100, notInRangeMessage: "Result must be between 0 and 100.")]
     private float $result;
 
-    #[ORM\Column(type: "datetime")]
+    #[Assert\NotNull(message: "Date cannot be null.")]
+    #[Assert\Type("\DateTimeInterface")]
     private \DateTimeInterface $date;
-
-    #[ORM\Column(type: "boolean")]
+    #[Assert\NotNull]
     private bool $status;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "testResults")]
-    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user")]
+    #[ORM\ManyToOne(targetEntity: App_user::class)]
+    #[Assert\NotNull(message: "Result must be assigned to a user.")]
+    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE", nullable: false)]
     private App_user $user;
     
 
     #[ORM\ManyToOne(targetEntity: Skilltest::class)]
-    #[ORM\JoinColumn(name: "id_test", referencedColumnName: "id_test")]
+    #[ORM\JoinColumn(name: "id_test", referencedColumnName: "id_test", onDelete: "CASCADE", nullable: false)]
+    #[Assert\NotNull(message: "Result must be linked to a test.")]
+
     private Skilltest $test;
 
-    public function getId_result(): int
+    public function getIdResult(): int
     {
         return $this->id_result;
-    }
-
-    public function setId_result(int $value): void
-    {
-        $this->id_result = $value;
-    }
-
-    public function getId_user(): int
-    {
-        return $this->id_user;
-    }
-
-    public function setId_user(int $value): void
-    {
-        $this->id_user = $value;
-    }
-
-    public function getId_test(): int
-    {
-        return $this->id_test;
-    }
-
-    public function setId_test(int $value): void
-    {
-        $this->id_test = $value;
     }
 
     public function getResult(): float
@@ -96,27 +70,25 @@ class Test_result
         $this->status = $value;
     }
 
-    // Getter for user relationship
     public function getUser(): App_user
     {
         return $this->user;
     }
 
-    // Setter for user relationship
     public function setUser(App_user $user): void
     {
         $this->user = $user;
     }
 
-    // Getter for test relationship
     public function getTest(): Skilltest
     {
         return $this->test;
     }
 
-    // Setter for test relationship
     public function setTest(Skilltest $test): void
     {
         $this->test = $test;
     }
+
+
 }

@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    geonames_username: 'nourmontasser' # Add this to your .env file
 
 services:
     # default configuration for services in *this* file
@@ -23,3 +24,33 @@ services:
     # add more service definitions when explicit configuration is needed
     App\Service\LightcastTokenService: ~
     # please note that last definitions always *replace* previous ones
+    App\Service\GeonamesService:
+        arguments:
+            $geonamesUsername: '%geonames_username%'
+
+    App\Service\ApplicationMailer:
+        autowire: true
+        autoconfigure: true
+        
+    App\Service\AiCoverLetterGenerator:
+            arguments:
+                $huggingFaceToken: '%env(HUGGING_FACE_API_TOKEN)%'
+                $modelName: '%env(HUGGING_FACE_MODEL)%'        
+    App\Service\DeepseekAIService:
+        arguments:
+            $deepseekApiKey: '%env(DEEPSEEK_API_KEY)%'
+    knp_snappy.pdf:
+        class: Knp\Snappy\Pdf
+        arguments:
+            - '"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"' # Wrap path in quotes
+        calls:
+            - [setTemporaryFolder, ['%kernel.cache_dir%/snappy']]
+
+
+    
+    # Register the PDF generator service
+    App\Service\PdfGenerator:
+        arguments:
+            $pdf: '@knp_snappy.pdf'
+            $twig: '@twig'
+            $projectDir: '%kernel.project_dir%'

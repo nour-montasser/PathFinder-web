@@ -12,6 +12,7 @@ use App\Entity\App_user;
 class Serviceoffre
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_service;
 

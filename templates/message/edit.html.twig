@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Message{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Edit Message</h1>
+
+    {{ form_start(form, 'attr': {'class': 'edit-message-form'}) }}
+        <div class="mb-3">
+            {{ form_widget(form.content, {'attr': {
+                'class': 'form-control',
+                'rows': 3
+            }}) }}
+        </div>
+        {% if message.media %}
+            <div class="mb-3">
+                <img src="{{ asset('uploads/' ~ message.media) }}" alt="Current Media" class="img-thumbnail" style="max-width: 200px;">
+            </div>
+        {% endif %}
+        <div class="mb-3">
+            {{ form_label(form.media, 'Change Media:') }}
+            {{ form_widget(form.media) }}
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a href="{{ path('app_message_index', {'id_channel': message.channel.id}) }}" class="btn btn-secondary">Cancel</a>
+        </div>
+       
+       
+    {{ form_end(form) }}
+</div>
+{% endblock %}

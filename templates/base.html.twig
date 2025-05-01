@@ -1,55 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Pathfinder{% endblock %}</title>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="icon" href="{{ asset('build/images/logo/pathfinder_logo_compass.png.png') }}" type="image/png">
+		<title>
+			{% block title %}Pathfinder
+			{% endblock %}
+		</title>
+    <script src="https://cdn.ckeditor.com/ckeditor5/38.0.1/classic/ckeditor.js"></script>
 
-  {{ encore_entry_link_tags('app') }}
-   {% block styles %}
-  <style>
-    /* Modal overlay */
-    .modal {
-      display: none;              /* hidden by default */
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0, 0, 0, 0.5); /* semi‑transparent black */
-      z-index: 1050;              /* above most other content */
-      display: flex;              /* enable flex centering */
-      align-items: center;
-      justify-content: center;
-    }
+		{{ encore_entry_link_tags('app') }}
+		{% block styles %}{% endblock %}
+	</head>
 
-    /* Modal content container */
-    .modal .modal-content {
-      background-color: #fff;
-      border-radius: 0.5rem;
-      max-width: 500px;
-      width: 90%;
-      padding: 1.5rem;
-    }
-  </style>
-{% endblock %}
-</head>
+	<body>
+		<div id="app">
 
-<body>
-    <div id="app">
-        
-            {% include "includes/navbar.html.twig" %}
-      
+			{% include "includes/navbar.html.twig" %}
 
-        
-        
-            <div id="main-content">
-                {% block body %}{% endblock %}
-                {% include "includes/footer.html.twig" %}
-            </div>
-        
-    </div>
 
-    {{ encore_entry_script_tags('app') }}
-    {% block javascripts %}{% endblock %}
-</body>
+			<div id="main-content" style="{% if current_user.role == 3 %}margin-left: 250px;{% endif %} padding: 20px;"> {% block body %}{% endblock %}
+				{% include "includes/footer.html.twig" %}
+			</div>
+
+
+		</div>
+
+		{{ encore_entry_script_tags('app') }}
+		{% block javascripts %}{% endblock %}
+	</body>
 
 </html>

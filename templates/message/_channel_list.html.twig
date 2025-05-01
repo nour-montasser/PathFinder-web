@@ -1,0 +1,181 @@
+<!-- Add this user selection form at the top -->
+<div class="p-3 border-bottom">
+    <form method="post" action="{{ path('app_message_index') }}">
+        <div class="input-group mb-3">
+            <select name="selected_user" class="form-select" id="user-select">
+                <option value="" selected disabled>Select a user to message</option>
+                {% for user in availableUsers %}
+                    <option value="{{ user.getId_user }}">{{ user.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Start Chat</button>
+        </div>
+    </form>
+</div>
+
+{# Add this at the top of the file, after the user selection form #}
+<style>
+.user-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.user-status.online {
+    background-color: #28a745;
+}
+
+.user-status.offline {
+    background-color: #dc3545;
+}
+</style>
+
+<!-- Channel list with profile pictures -->
+<div class="flex-grow-1 overflow-auto">
+    <div class="list-group list-group-flush">
+        {% for channelData in channels|default([]) %}
+            {% set channel = channelData.channel %}
+            {% set lastMessage = channelData.last_message %}
+            {% set otherUser = channel.initiator.getId_user == currentUser.getId_user ? channel.receiver : channel.initiator %}
+            
+            {% if channel is defined and channel %}
+                <div class="list-group-item list-group-item-action {% if selectedChannelId is defined and selectedChannelId == channel.id_channel %}active{% endif %}"
+                     data-user-id="{{ otherUser.getId_user }}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ path('app_message_index', {'id_channel': channel.id_channel}) }}" class="flex-grow-1 text-decoration-none text-reset d-flex align-items-center">
+                            <!-- Profile picture -->
+                            <div class="me-3 position-relative">
+                                {% if otherUser.image %}
+                                    <img src="{{ otherUser.image }}" alt="{{ otherUser.name }}" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{{ asset('build/images/faces/default-profile.png') }}" alt="Default profile" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                                {% endif %}
+                                <span class="user-status offline position-absolute" style="bottom: 0; right: 0;" title="Offline"></span>
+                            </div>
+                            
+                            <!-- User info and last message -->
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>{{ otherUser.name }}</strong>
+                                    <small class="text-muted ms-2">
+                                    </small>
+                                </div>
+                                <small class="text-muted text-truncate d-block">
+                                    {% if lastMessage %}
+                                        {{ lastMessage.content|slice(0, 30) }}
+                                        {% if lastMessage.content|length > 30 %}...{% endif %}
+                                    {% else %}
+                                        No messages yet
+                                    {% endif %}
+                                </small>
+                                 <form method="post" action="{{ path('app_channel_delete', {'id_channel': channelData.channel.id_channel}) }}" 
+              class="d-inline" onsubmit="return confirm('Are you sure you want to delete this channel?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete-channel' ~ channelData.channel.id_channel) }}">
+            <button type="submit" class="btn btn-sm btn-link text-danger p-0">
+                <i class="bi bi-trash"></i>
+            </button>
+        </form>
+                            </div>
+                        </a>
+                        
+                    </div>
+                    
+                </div>
+                
+            {% endif %}
+        {% else %}
+            <div class="text-center text-muted p-3">No conversations found</div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="p-3 border-top">
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            {% if currentUser.image %}
+                <img src="{{ currentUser.image }}" alt="{{ currentUser.name }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+            {% else %}
+                <img src="{{ asset('build/images/faces/default-profile.png') }}" alt="Default profile" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+            {% endif %}
+            <small class="text-muted">{{ currentUser.name }}</small>
+        </div>
+        <small class="text-muted">{{ "now"|date("H:i") }}</small>
+    </div>
+</div>
+<script>
+document.querySelectorAll('.channel-item').forEach(item => {
+    item.addEventListener('mouseenter', () => {
+        item.querySelector('.delete-channel-btn').classList.add('show');
+    });
+    item.addEventListener('mouseleave', () => {
+        item.querySelector('.delete-channel-btn').classList.remove('show');
+    });
+});
+</script>
+<!-- Updated styles -->
+<style>
+    /* Channel list styles */
+    .list-group-item {
+        border-left: 0;
+        border-right: 0;
+        padding: 0.75rem 1.25rem;
+        transition: background-color 0.2s;
+    }
+
+    .list-group-item.active {
+        background-color: rgba(87, 84, 84, 0.09);
+        border-color: #613f1d;
+    }
+
+    .list-group-item:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    .text-truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Profile picture styles */
+    .rounded-circle {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    @media(max-width: 768px) {
+        .list-group-item {
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .list-group-item img {
+            width: 32px !important;
+            height: 32px !important;
+        }
+    }
+
+    /* User select dropdown */
+    #user-select {
+        cursor: pointer;
+    }
+    .channel-item {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s;
+}
+
+.channel-item:hover {
+    background-color: #f8f9fa; /* Your template's hover color */
+}
+
+.delete-channel-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.channel-item:hover .delete-channel-btn {
+    opacity: 1;
+}
+</style>

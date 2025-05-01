@@ -4,17 +4,19 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\App_user;
+
 use App\Entity\Channel;
 
 #[ORM\Entity]
 class Message
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $id_message;
 
     #[ORM\Column(type: "text", length: 500)]
-    private string $content;
+    private string $content ;
 
     #[ORM\ManyToOne(targetEntity: App_user::class,inversedBy:"sentMessages")]
     #[ORM\JoinColumn(name: "id_user_sender", referencedColumnName: "id_user", onDelete: "CASCADE")]
@@ -30,12 +32,12 @@ class Message
     #[ORM\JoinColumn(name: "id_channel", referencedColumnName: "id_channel", onDelete: "CASCADE")]
     private Channel $channel;
 
-    public function getId_message(): int
+    public function getIdMessage(): int
     {
         return $this->id_message;
     }
 
-    public function setId_message(int $id_message): self
+    public function setIdMessage(int $id_message): self
     {
         $this->id_message = $id_message;
         return $this;
@@ -74,12 +76,12 @@ class Message
         return $this;
     }
 
-    public function getTime_sent(): \DateTimeInterface
+    public function getTimeSent(): \DateTimeInterface
     {
         return $this->time_sent;
     }
 
-    public function setTime_sent(\DateTimeInterface $time_sent): self
+    public function setTimesent(\DateTimeInterface $time_sent): self
     {
         $this->time_sent = $time_sent;
         return $this;

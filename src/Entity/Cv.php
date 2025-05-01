@@ -54,7 +54,7 @@ class Cv
     #[ORM\OneToMany(mappedBy: "cv", targetEntity: Languages::class, cascade: ["persist", "remove"])]
     private Collection $languages;
 
-    #[ORM\OneToMany(mappedBy: "cv", targetEntity: Application_job::class)]
+    #[ORM\OneToMany(mappedBy: "cv", targetEntity: ApplicationJob::class)]
     private Collection $applications;
     
 
@@ -247,7 +247,7 @@ class Cv
         return $this->applications;
     }
 
-    public function addApplication(Application_job $application): self
+    public function addApplication(ApplicationJob $application): self
     {
         if (!$this->applications->contains($application)) {
             $this->applications[] = $application;
@@ -256,7 +256,7 @@ class Cv
         return $this;
     }
 
-    public function removeApplication(Application_job $application): self
+    public function removeApplication(ApplicationJob $application): self
     {
         if ($this->applications->removeElement($application)) {
             if ($application->getCv() === $this) {
