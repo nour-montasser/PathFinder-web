@@ -7,10 +7,7 @@ use App\Entity\Questions;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
-use App\Entity\Job_offer;
-use App\Entity\Questions;
+
 
 #[ORM\Entity]
 class Skilltest
