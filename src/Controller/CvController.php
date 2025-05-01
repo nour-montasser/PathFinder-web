@@ -61,13 +61,13 @@ public function __construct(
         $user = $this->getCurrentUser();
 
         $cv = new Cv();
+        
         $form = $this->createForm(CvType::class, $cv);
         $form->handleRequest($request);
         // --- pull the raw skills string back out of the form ---
         $skillsString = $form->get('skills')->getData();    
         // if the user submitted something (even invalid), this will be their value:
         $cv->setSkills($skillsString ?: '');
-
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($cv);
             $em->flush();
@@ -144,8 +144,12 @@ public function __construct(
     #[Route('/cv/create', name: 'cv_create')]
     public function create(Request $request, EntityManagerInterface $em): Response
     {
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
+
         var_dump($request->request->all());
         $cv = new Cv();
+        $cv->setUser($user);
 
         // Create the form for CV
         $form = $this->createForm(CvType::class, $cv);
@@ -298,10 +302,10 @@ public function __construct(
     #[Route('/cv/show', name: 'cv_show')]
     public function show(EntityManagerInterface $em): Response
     {
-
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
         // Retrieve all CV entities (you may want to add ordering)
-        $cvs = $em->getRepository(Cv::class)->findAll();
-
+        $cvs = $em->getRepository(Cv::class)->findBy(['user' => $user]);    
         return $this->render('cv/cvshow.html.twig', [
             'cvs' => $cvs,
         ]);
@@ -315,6 +319,8 @@ public function __construct(
         //$cv->setSkills('');
 
         // Create the form using the updated entity.
+        
+
         $form = $this->createForm(CvType::class, $cv);
         $form->handleRequest($request);
 
@@ -387,6 +393,10 @@ public function __construct(
         // 1) build form & handle request
         $form = $this->createForm(CvType::class, $cv);
         $form->handleRequest($request);
+
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
+        $cv->setUser($user);
     
         // 2) Prepare inline validation flags
       

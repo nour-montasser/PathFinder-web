@@ -1,1 +1,71 @@
 {% extends 'base.html.twig' %}
+
+{% block title %}CV Backoffice{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1>CV Backoffice</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User Title</th>
+                <th>Title</th>
+                <th>Date Creation</th>
+                <th>Languages</th>
+                <th>Experiences</th>
+                <th>Certificates</th>
+                <th>User</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cv in cvs %}
+                <tr>
+                    <td>
+                        {# Use cv.id if available; if your identifier is named differently adjust here #}
+                        {{ cv.id|default(cv.id_cv) }}
+                    </td>
+                    <td>{{ cv.userTitle }}</td>
+                    <td>{{ cv.title }}</td>
+                    <td>{{ cv.dateCreation|date('Y-m-d') }}</td>
+                    <td>
+                        {# Render associated languages as a comma‑separated list #}
+                        {% if cv.languages is defined and cv.languages|length > 0 %}
+                            {% for lang in cv.languages %}
+                                {{ lang.languageName }} ({{ lang.level }}){% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {# Render a list of experience positions #}
+                        {% if cv.experiences is defined and cv.experiences|length > 0 %}
+                            {% for exp in cv.experiences %}
+                                {{ exp.position }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {# Render a list of certificate titles #}
+                        {% if cv.certificates is defined and cv.certificates|length > 0 %}
+                            {% for cert in cv.certificates %}
+                                {{ cert.title }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="8">No CV found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

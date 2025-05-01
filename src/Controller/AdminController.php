@@ -16,6 +16,8 @@ use App\Repository\FeedbackRepository;
 use App\Entity\Feedback;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Entity\Cv;
+
 use Symfony\Component\HttpFoundation\RequestStack;
 
 
@@ -35,9 +37,23 @@ class AdminController extends BaseController
     }
 
     #[Route('/cvs', name: 'admin_cvs')]
-    public function cvs(): Response
+    public function cvs(EntityManagerInterface $em): Response
     {
-        return $this->render('admin/cvs.html.twig');
+           // Build a query that retrieves CVs and join fetch its associations.
+        // Using distinct() avoids duplicate CV rows if there are multiple associations.
+        $qb = $em->createQueryBuilder();
+        $qb->select('c, l, e, cert, u')
+            ->from(Cv::class, 'c')
+            ->leftJoin('c.languages', 'l')
+            ->leftJoin('c.experiences', 'e')
+            ->leftJoin('c.certificates', 'cert')
+            ->leftJoin('c.user', 'u')
+            ->distinct();
+        $cvs = $qb->getQuery()->getResult();
+
+        return $this->render('admin/cvs.html.twig', [
+            'cvs' => $cvs,
+        ]);
     }
 
     #[Route('/skill-tests', name: 'admin_skill_tests')]
