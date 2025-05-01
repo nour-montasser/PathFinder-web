@@ -9,7 +9,6 @@ use App\Entity\Cv;
 class Certificates
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     #[ORM\GeneratedValue(strategy: "AUTO")]
     private int $id_certificate;

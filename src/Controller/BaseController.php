@@ -12,8 +12,10 @@ abstract class BaseController extends AbstractController
 {
     public function __construct(
         protected EntityManagerInterface $entityManager,
-        protected RequestStack $requestStack
-    ) {}
+        protected ?RequestStack $requestStack = null
+    ) {
+        $this->requestStack = $requestStack ?? new RequestStack();
+    }
 
     protected function getCurrentUser(): ?App_user
     {

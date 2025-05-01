@@ -34,8 +34,8 @@ class JobSuggestionController extends BaseController
         $latestDate = null;
 
         foreach ($cvs as $cv) {
-            if ($latestDate === null || $cv->getDate_creation() > $latestDate) {
-                $latestDate = $cv->getDate_creation();
+            if ($latestDate === null || $cv->getDateCreation() > $latestDate) {
+                $latestDate = $cv->getDateCreation();
                 $latestCv = $cv;
             }
         }
@@ -125,7 +125,7 @@ class JobSuggestionController extends BaseController
             );
 
             $titleSimilarity = $this->calculateTitleSimilarity(
-                $latestCv->getUser_title(),
+                $latestCv->getUserTitle(),
                 $jobOffer->getTitle()
             );
 

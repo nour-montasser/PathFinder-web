@@ -30,26 +30,36 @@ use Symfony\Component\Intl\Languages as IntlLanguages;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Entity\Languages as EntityLanguages; // Alias for your custom Languages entity
+use Symfony\Component\HttpFoundation\RequestStack;
 
 
 
-final class CvController extends AbstractController
+final class CvController extends BaseController
 {
     private HttpClientInterface $httpClient;
     private Pdf $snappyPdf;
     
     private Image $snappyImage;
-    public function __construct(HttpClientInterface $httpClient,Pdf $snappyPdf,Image $snappyImage)
-    {
-        $this->httpClient = $httpClient;
-        $this->snappyPdf = $snappyPdf;
-        $this->snappyImage = $snappyImage;
-    
-    }
+    // src/Controller/CvController.php
+public function __construct(
+    HttpClientInterface $httpClient,
+    Pdf $snappyPdf,
+    Image $snappyImage,
+    EntityManagerInterface $entityManager,
+    RequestStack $requestStack
+) {
+    parent::__construct($entityManager, $requestStack);
+    $this->httpClient = $httpClient;
+    $this->snappyPdf = $snappyPdf;
+    $this->snappyImage = $snappyImage;
+}
 
     #[Route('/cv', name: 'app_cv')]
     public function index(Request $request, EntityManagerInterface $em): Response
     {
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
+
         $cv = new Cv();
         $form = $this->createForm(CvType::class, $cv);
         $form->handleRequest($request);

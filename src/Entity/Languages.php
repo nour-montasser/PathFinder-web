@@ -8,7 +8,6 @@ use Doctrine\ORM\Mapping as ORM;
 class Languages
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     #[ORM\GeneratedValue(strategy: "AUTO")]
     private int $id_language;
