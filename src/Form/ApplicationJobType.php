@@ -49,6 +49,8 @@ class ApplicationJobType extends AbstractType
             'data_class' => ApplicationJob::class,
             'available_cvs' => [],
             'current_step' => 1, // Default to step 1
+            'has_skill_test' => false,
+
         ]);
         $resolver->setAllowedTypes('current_step', 'int');
     }

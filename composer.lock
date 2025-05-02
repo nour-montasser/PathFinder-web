@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "13b1dcbe88fa71dbc214495b5adc0c4e",
+    "content-hash": "dc00b192a3b9df4d2279edd46fd03101",
     "packages": [
         {
             "name": "cboden/ratchet",
@@ -2084,261 +2084,6 @@
             "time": "2025-04-15T21:47:20+00:00"
         },
         {
-            "name": "gos/pubsub-router-bundle",
-            "version": "v2.8.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/GeniusesOfSymfony/PubSubRouterBundle.git",
-                "reference": "f91b170d521c19e5fc3ec1c401652536c2d0f007"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/GeniusesOfSymfony/PubSubRouterBundle/zipball/f91b170d521c19e5fc3ec1c401652536c2d0f007",
-                "reference": "f91b170d521c19e5fc3ec1c401652536c2d0f007",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.2 || ^8.0",
-                "symfony/config": "^4.4.42 || ^5.4 || ^6.0",
-                "symfony/console": "^4.4.42 || ^5.4 || ^6.0",
-                "symfony/dependency-injection": "^4.4.42 || ^5.4 || ^6.0",
-                "symfony/deprecation-contracts": "^2.1 || ^3.0",
-                "symfony/http-foundation": "^4.4.42 || ^5.4 || ^6.0",
-                "symfony/http-kernel": "^4.4.42 || ^5.4 || ^6.0",
-                "symfony/polyfill-php80": "^1.22",
-                "symfony/yaml": "^4.4.42 || ^5.4 || ^6.0"
-            },
-            "require-dev": {
-                "matthiasnoback/symfony-dependency-injection-test": "^4.1.2",
-                "phpstan/extension-installer": "^1.1",
-                "phpstan/phpstan": "1.8.5",
-                "phpstan/phpstan-phpunit": "1.1.1",
-                "phpstan/phpstan-symfony": "1.2.13",
-                "phpunit/phpunit": "^8.5 || ^9.3",
-                "psr/container": "^1.0 || ^2.0",
-                "symfony/phpunit-bridge": "^5.4 || ^6.0"
-            },
-            "type": "symfony-bundle",
-            "autoload": {
-                "psr-4": {
-                    "Gos\\Bundle\\PubSubRouterBundle\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Johann Saunier",
-                    "email": "johann_27@hotmail.fr"
-                }
-            ],
-            "description": "Symfony PubSub Router Bundle",
-            "homepage": "https://github.com/GeniusesOfSymfony/PubSubRouterBundle",
-            "keywords": [
-                "PubSub Bundle",
-                "WAMP",
-                "bundle",
-                "pubsub",
-                "redis",
-                "zmq"
-            ],
-            "support": {
-                "issues": "https://github.com/GeniusesOfSymfony/PubSubRouterBundle/issues",
-                "source": "https://github.com/GeniusesOfSymfony/PubSubRouterBundle/tree/v2.8.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/mbabker",
-                    "type": "github"
-                }
-            ],
-            "time": "2022-09-20T01:46:13+00:00"
-        },
-        {
-            "name": "gos/web-socket-bundle",
-            "version": "v3.15.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/GeniusesOfSymfony/WebSocketBundle.git",
-                "reference": "1c718de6434b87e28c65376fa61b159d24053aae"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/GeniusesOfSymfony/WebSocketBundle/zipball/1c718de6434b87e28c65376fa61b159d24053aae",
-                "reference": "1c718de6434b87e28c65376fa61b159d24053aae",
-                "shasum": ""
-            },
-            "require": {
-                "cboden/ratchet": "^0.4.4",
-                "gos/pubsub-router-bundle": "^2.2",
-                "gos/websocket-client": "^1.1",
-                "php": "^7.4 || ^8.0",
-                "psr/log": "^1.1 || ^2.0 || ^3.0",
-                "react/event-loop": "^1.2",
-                "react/socket": "^1.9",
-                "symfony/config": "^4.4 || ^5.4 || ^6.0",
-                "symfony/console": "^4.4 || ^5.4 || ^6.0",
-                "symfony/dependency-injection": "^4.4 || ^5.4 || ^6.0",
-                "symfony/deprecation-contracts": "^2.1 || ^3.0",
-                "symfony/event-dispatcher": "^4.4 || ^5.4 || ^6.0",
-                "symfony/http-foundation": "^4.4 || ^5.4 || ^6.0",
-                "symfony/http-kernel": "^4.4 || ^5.4 || ^6.0",
-                "symfony/polyfill-php80": "^1.15",
-                "symfony/security-core": "^4.4 || ^5.4 || ^6.0",
-                "symfony/serializer": "^4.4 || ^5.4 || ^6.0",
-                "symfony/string": "^5.4 || ^6.0",
-                "symfony/yaml": "^4.4 || ^5.4 || ^6.0"
-            },
-            "conflict": {
-                "doctrine/cache": "<1.11",
-                "doctrine/dbal": "<2.13.1 || ~3.0.0",
-                "gos/react-amqp": "<0.3",
-                "symfony/cache": "<4.4 || >=5.0,<5.3",
-                "symfony/monolog-bundle": "<3.0",
-                "symfony/options-resolver": "<4.4 || >=5.0,<5.3",
-                "symfony/stopwatch": "<4.4 || >=5.0,<5.3",
-                "symfony/twig-bundle": "<4.4 || >=5.0,<5.3",
-                "symfony/web-profiler-bundle": "<4.4 || >=5.0,<5.3",
-                "twig/twig": "<1.36 || >=2.0,<2.6"
-            },
-            "require-dev": {
-                "doctrine/cache": "^1.11 || ^2.0",
-                "doctrine/dbal": "^2.13.1 || ^3.1",
-                "matthiasnoback/symfony-dependency-injection-test": "^4.2",
-                "phpstan/extension-installer": "^1.1",
-                "phpstan/phpstan": "1.8.5",
-                "phpstan/phpstan-phpunit": "1.1.1",
-                "phpstan/phpstan-symfony": "1.2.13",
-                "phpunit/phpunit": "^9.5",
-                "symfony/cache": "^4.4 || ^5.4 || ^6.0",
-                "symfony/options-resolver": "^4.4 || ^5.4 || ^6.0",
-                "symfony/phpunit-bridge": "^5.4 || ^6.0",
-                "symfony/stopwatch": "^4.4 || ^5.4 || ^6.0",
-                "symfony/twig-bundle": "^4.4 || ^5.4 || ^6.0",
-                "symfony/web-profiler-bundle": "^4.4 || ^5.4 || ^6.0"
-            },
-            "suggest": {
-                "doctrine/cache": "to use doctrine/cache as a client driver",
-                "doctrine/dbal": "to use Doctrine ping services",
-                "ext-amqp": "* to use the amqp pusher",
-                "ext-pcntl": "* to handle process signals",
-                "ext-pdo": "* to use PDO ping services",
-                "gos/react-amqp": "to use the amqp server push handler",
-                "symfony/cache": "to use symfony/cache as an authentication storage driver",
-                "symfony/options-resolver": "to use the pushers",
-                "symfony/serializer": "to use the pushers",
-                "symfony/stopwatch": "to use the data collectors"
-            },
-            "type": "symfony-bundle",
-            "autoload": {
-                "psr-4": {
-                    "Gos\\Bundle\\WebSocketBundle\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Jeremy Dare",
-                    "email": "jeremy.d.dare@gmail.com"
-                },
-                {
-                    "name": "Johann Saunier",
-                    "email": "johann_27@hotmail.fr"
-                }
-            ],
-            "description": "Symfony Web Socket Bundle",
-            "homepage": "https://github.com/GeniusesOfSymfony/WebSocketBundle",
-            "keywords": [
-                "Ratchet",
-                "WAMP",
-                "Web Socket Bundle",
-                "io",
-                "websocket"
-            ],
-            "support": {
-                "issues": "https://github.com/GeniusesOfSymfony/WebSocketBundle/issues",
-                "source": "https://github.com/GeniusesOfSymfony/WebSocketBundle/tree/v3.15.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/mbabker",
-                    "type": "github"
-                }
-            ],
-            "time": "2022-09-20T02:03:09+00:00"
-        },
-        {
-            "name": "gos/websocket-client",
-            "version": "v1.5.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/GeniusesOfSymfony/WebSocketPhpClient.git",
-                "reference": "97354f2b970f59cb6d511307ef7af5f761b684ff"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/GeniusesOfSymfony/WebSocketPhpClient/zipball/97354f2b970f59cb6d511307ef7af5f761b684ff",
-                "reference": "97354f2b970f59cb6d511307ef7af5f761b684ff",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "php": "^7.2 || ^8.0",
-                "psr/log": "^1.0 || ^2.0 || ^3.0",
-                "symfony/deprecation-contracts": "^2.1 || ^3.0",
-                "symfony/options-resolver": "^4.4 || ^5.3 || ^6.0"
-            },
-            "require-dev": {
-                "cboden/ratchet": "^0.4.3",
-                "phpstan/extension-installer": "^1.1",
-                "phpstan/phpstan": "1.2.0",
-                "phpstan/phpstan-phpunit": "1.0.0",
-                "phpunit/phpunit": "^8.5 || ^9.5"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Gos\\Component\\WebSocketClient\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Martin Bažík",
-                    "email": "martin@bazo.sk"
-                },
-                {
-                    "name": "Johann Saunier",
-                    "email": "johann_27@hotmail.fr"
-                }
-            ],
-            "description": "WAMP client in PHP",
-            "keywords": [
-                "Ratchet",
-                "WAMP",
-                "websocket"
-            ],
-            "support": {
-                "issues": "https://github.com/GeniusesOfSymfony/WebSocketPhpClient/issues",
-                "source": "https://github.com/GeniusesOfSymfony/WebSocketPhpClient/tree/v1.5.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/mbabker",
-                    "type": "github"
-                }
-            ],
-            "time": "2021-11-24T03:24:48+00:00"
-        },
-        {
             "name": "guzzlehttp/guzzle",
             "version": "7.9.3",
             "source": {
@@ -3288,32 +3033,31 @@
         },
         {
             "name": "maennchen/zipstream-php",
-            "version": "3.1.2",
+            "version": "3.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/maennchen/ZipStream-PHP.git",
-                "reference": "aeadcf5c412332eb426c0f9b4485f6accba2a99f"
+                "reference": "6187e9cc4493da94b9b63eb2315821552015fca9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/maennchen/ZipStream-PHP/zipball/aeadcf5c412332eb426c0f9b4485f6accba2a99f",
-                "reference": "aeadcf5c412332eb426c0f9b4485f6accba2a99f",
+                "url": "https://api.github.com/repos/maennchen/ZipStream-PHP/zipball/6187e9cc4493da94b9b63eb2315821552015fca9",
+                "reference": "6187e9cc4493da94b9b63eb2315821552015fca9",
                 "shasum": ""
             },
             "require": {
                 "ext-mbstring": "*",
                 "ext-zlib": "*",
-                "php-64bit": "^8.2"
+                "php-64bit": "^8.1"
             },
             "require-dev": {
-                "brianium/paratest": "^7.7",
                 "ext-zip": "*",
                 "friendsofphp/php-cs-fixer": "^3.16",
                 "guzzlehttp/guzzle": "^7.5",
                 "mikey179/vfsstream": "^1.6",
                 "php-coveralls/php-coveralls": "^2.5",
-                "phpunit/phpunit": "^11.0",
-                "vimeo/psalm": "^6.0"
+                "phpunit/phpunit": "^10.0",
+                "vimeo/psalm": "^5.0"
             },
             "suggest": {
                 "guzzlehttp/psr7": "^2.4",
@@ -3354,7 +3098,7 @@
             ],
             "support": {
                 "issues": "https://github.com/maennchen/ZipStream-PHP/issues",
-                "source": "https://github.com/maennchen/ZipStream-PHP/tree/3.1.2"
+                "source": "https://github.com/maennchen/ZipStream-PHP/tree/3.1.1"
             },
             "funding": [
                 {
@@ -3362,7 +3106,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-27T12:07:53+00:00"
+            "time": "2024-10-10T12:33:01+00:00"
         },
         {
             "name": "markbaker/complex",
@@ -8719,16 +8463,16 @@
         },
         {
             "name": "symfony/polyfill-intl-icu",
-            "version": "v1.31.0",
+            "version": "v1.32.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-intl-icu.git",
-                "reference": "d80a05e9904d2c2b9b95929f3e4b5d3a8f418d78"
+                "reference": "763d2a91fea5681509ca01acbc1c5e450d127811"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-intl-icu/zipball/d80a05e9904d2c2b9b95929f3e4b5d3a8f418d78",
-                "reference": "d80a05e9904d2c2b9b95929f3e4b5d3a8f418d78",
+                "url": "https://api.github.com/repos/symfony/polyfill-intl-icu/zipball/763d2a91fea5681509ca01acbc1c5e450d127811",
+                "reference": "763d2a91fea5681509ca01acbc1c5e450d127811",
                 "shasum": ""
             },
             "require": {
@@ -8783,7 +8527,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-intl-icu/tree/v1.31.0"
+                "source": "https://github.com/symfony/polyfill-intl-icu/tree/v1.32.0"
             },
             "funding": [
                 {
@@ -8799,20 +8543,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-09T11:45:10+00:00"
+            "time": "2024-12-21T18:38:29+00:00"
         },
         {
             "name": "symfony/polyfill-intl-idn",
-            "version": "v1.31.0",
+            "version": "v1.32.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-intl-idn.git",
-                "reference": "c36586dcf89a12315939e00ec9b4474adcb1d773"
+                "reference": "9614ac4d8061dc257ecc64cba1b140873dce8ad3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-intl-idn/zipball/c36586dcf89a12315939e00ec9b4474adcb1d773",
-                "reference": "c36586dcf89a12315939e00ec9b4474adcb1d773",
+                "url": "https://api.github.com/repos/symfony/polyfill-intl-idn/zipball/9614ac4d8061dc257ecc64cba1b140873dce8ad3",
+                "reference": "9614ac4d8061dc257ecc64cba1b140873dce8ad3",
                 "shasum": ""
             },
             "require": {
@@ -8866,7 +8610,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-intl-idn/tree/v1.31.0"
+                "source": "https://github.com/symfony/polyfill-intl-idn/tree/v1.32.0"
             },
             "funding": [
                 {
@@ -8882,7 +8626,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-09T11:45:10+00:00"
+            "time": "2024-09-10T14:38:51+00:00"
         },
         {
             "name": "symfony/polyfill-intl-normalizer",
@@ -11510,16 +11254,16 @@
         },
         {
             "name": "twig/extra-bundle",
-            "version": "v3.20.0",
+            "version": "v3.21.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/twig-extra-bundle.git",
-                "reference": "9df5e1dbb6a68c0665ae5603f6f2c20815647876"
+                "reference": "62d1cf47a1aa009cbd07b21045b97d3d5cb79896"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/twig-extra-bundle/zipball/9df5e1dbb6a68c0665ae5603f6f2c20815647876",
-                "reference": "9df5e1dbb6a68c0665ae5603f6f2c20815647876",
+                "url": "https://api.github.com/repos/twigphp/twig-extra-bundle/zipball/62d1cf47a1aa009cbd07b21045b97d3d5cb79896",
+                "reference": "62d1cf47a1aa009cbd07b21045b97d3d5cb79896",
                 "shasum": ""
             },
             "require": {
@@ -11568,7 +11312,7 @@
                 "twig"
             ],
             "support": {
-                "source": "https://github.com/twigphp/twig-extra-bundle/tree/v3.20.0"
+                "source": "https://github.com/twigphp/twig-extra-bundle/tree/v3.21.0"
             },
             "funding": [
                 {
@@ -11580,11 +11324,11 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-02-08T09:47:15+00:00"
+            "time": "2025-02-19T14:29:33+00:00"
         },
         {
             "name": "twig/string-extra",
-            "version": "v3.20.0",
+            "version": "v3.21.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/string-extra.git",
@@ -11635,7 +11379,7 @@
                 "unicode"
             ],
             "support": {
-                "source": "https://github.com/twigphp/string-extra/tree/v3.20.0"
+                "source": "https://github.com/twigphp/string-extra/tree/v3.21.0"
             },
             "funding": [
                 {
@@ -11651,16 +11395,16 @@
         },
         {
             "name": "twig/twig",
-            "version": "v3.20.0",
+            "version": "v3.21.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "3468920399451a384bef53cf7996965f7cd40183"
+                "reference": "b54a265712a475da0aef560e184d68a9affd3ace"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/3468920399451a384bef53cf7996965f7cd40183",
-                "reference": "3468920399451a384bef53cf7996965f7cd40183",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/b54a265712a475da0aef560e184d68a9affd3ace",
+                "reference": "b54a265712a475da0aef560e184d68a9affd3ace",
                 "shasum": ""
             },
             "require": {
@@ -11714,7 +11458,7 @@
             ],
             "support": {
                 "issues": "https://github.com/twigphp/Twig/issues",
-                "source": "https://github.com/twigphp/Twig/tree/v3.20.0"
+                "source": "https://github.com/twigphp/Twig/tree/v3.21.0"
             },
             "funding": [
                 {
@@ -11726,7 +11470,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-02-13T08:34:43+00:00"
+            "time": "2025-05-02T13:18:20+00:00"
         },
         {
             "name": "webmozart/assert",

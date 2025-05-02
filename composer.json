@@ -13,7 +13,6 @@
         "doctrine/doctrine-bundle": "^2.14",
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": "^3.3",
-        "gos/web-socket-bundle": "^3.15",
         "knplabs/knp-paginator-bundle": "*",
         "dompdf/dompdf": "^3.1",
         "phpoffice/phpword": "^1.3",

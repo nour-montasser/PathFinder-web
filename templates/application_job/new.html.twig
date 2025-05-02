@@ -103,10 +103,35 @@
                         <h4 class="d-inline ms-3">Skill Test</h4>
                     </div>
                     
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        The skill test feature is coming soon. You can proceed to review your application.
+                    {# In your application_job/new.html.twig #}
+
+{% if current_step == 3 and has_skill_test %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Skill Test Required</h5>
+            <p class="card-text">You need to complete a skill test for this application.</p>
+            
+            {% set test_result = test_result_repository.findOneBy({'user': app.user, 'test': skill_test}) %}
+            
+            {% if test_result %}
+                {% if test_result.getStatus() %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> You passed the skill test!
                     </div>
+                {% else %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle"></i> You failed the skill test. Your application cannot proceed.
+                    </div>
+                {% endif %}
+            {% else %}
+                <a href="{{ path('app_skilltest_take', {'id': skill_test.id}) }}" 
+                   class="btn btn-primary">
+                    <i class="fas fa-pencil-alt"></i> Take Skill Test
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
                     
                     <div class="d-flex justify-content-between">
     <button type="submit" class="btn btn-outline-secondary btn-lg px-4" name="action" value="prev">

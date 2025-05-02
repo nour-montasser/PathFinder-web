@@ -30,7 +30,8 @@ use App\Service\PdfGenerator;
 use App\Service\ApplicationMailer;
 use App\Service\AiCoverLetterGenerator;
 use App\Service\CsvExporter;
-
+use App\Entity\Skilltest;
+use App\Entity\Test_result;
 
 
 
@@ -74,118 +75,152 @@ public function index(Request $request, ApplicationJobRepository $applicationJob
     ]);
 }
 
-    #[Route('/new', name: 'app_application_job_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $this->ensureUserSession();
-        $user = $this->getCurrentUser();
-        $jobOfferId = $request->query->get('job_offer_id');
-        $jobOffer = $entityManager->getRepository(Job_offer::class)->find($jobOfferId);
-    
-        if (!$jobOffer) {
-            throw $this->createNotFoundException('Job offer not found');
-        }
-    
-        // Find or create application
-        $application = $entityManager->getRepository(ApplicationJob::class)->findOneBy([
-            'user' => $user,
-            'jobOffer' => $jobOffer
-        ]);
-    
-        if ($application && $application->getStatus() === 'Pending') {
-            $this->addFlash('warning', 'You have already submitted this application');
-            return $this->redirectToRoute('app_application_job_index');
-        }
-    
-        if (!$application) {
-            $application = (new ApplicationJob())
-                ->setUser($user)
-                ->setJobOffer($jobOffer)
-                ->setStatus('Applying-1')
-                ->setDateApplication(new \DateTime());
-            $entityManager->persist($application);
-        }
-    
-        $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
-        $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
-    
-        $form = $this->createForm(ApplicationJobType::class, $application, [
-            'available_cvs' => $userCvs,
-            'current_step' => $currentStep
-        ]);
-    
-        $form->handleRequest($request);
-    
-        if ($form->isSubmitted()) {
-            $action = $request->request->get('action');
-            
-            // Determine next step
-            if ($action === 'prev') {
-                $nextStep = max($currentStep - 1, 1);
-            } else {
-                // Only validate when moving forward
-                if (!$form->isValid()) {
-                    return $this->render('application_job/new.html.twig', [
-                        'form' => $form->createView(),
-                        'job_offer' => $jobOffer,
-                        'current_step' => $currentStep,
-                        'cover_letter' => [
-                            'subject' => $application->getCoverletter()?->getSubject() ?? '',
-                            'content' => $application->getCoverletter()?->getContent() ?? ''
-                        ]
-                    ]);
-                }
-                
-                $nextStep = min($currentStep + 1, 4);
-            }
-    
-            // Process cover letter data when moving forward from step 2
-            if ($currentStep === 2 && $action === 'next') {
-                $coverLetterForm = $form->get('coverletter');
-                $subject = $coverLetterForm->get('subject')->getData();
-                $content = $coverLetterForm->get('content')->getData();
-    
-                if (!$application->getCoverletter()) {
-                    $coverLetter = new Coverletter();
-                    $coverLetter->setApplication($application);
-                    $application->setCoverletter($coverLetter);
-                    $entityManager->persist($coverLetter);
-                }
-    
-                $application->getCoverletter()
-                    ->setSubject($subject)
-                    ->setContent($content);
-            }
-    
-            // Final submission
-            if ($nextStep === 4 && $request->request->get('submit_final')) {
-                $application->setStatus('Pending');
-                $application->setDateApplication(new \DateTime());
-                $entityManager->flush();
-                $this->addFlash('success', 'Application submitted successfully!');
-                return $this->redirectToRoute('app_job_offer_show', [
-                    'id_offer' => $jobOffer->getIdOffer()
+   // In ApplicationJobController.php, modify the new() and edit() methods
+
+#[Route('/new', name: 'app_application_job_new', methods: ['GET', 'POST'])]
+public function new(Request $request, EntityManagerInterface $entityManager): Response
+{
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
+    $jobOfferId = $request->query->get('job_offer_id');
+    $jobOffer = $entityManager->getRepository(Job_offer::class)->find($jobOfferId);
+
+    if (!$jobOffer) {
+        throw $this->createNotFoundException('Job offer not found');
+    }
+
+    // Find or create application
+    $application = $entityManager->getRepository(ApplicationJob::class)->findOneBy([
+        'user' => $user,
+        'jobOffer' => $jobOffer
+    ]);
+
+    if ($application && $application->getStatus() === 'Pending') {
+        $this->addFlash('warning', 'You have already submitted this application');
+        return $this->redirectToRoute('app_application_job_index');
+    }
+
+    if (!$application) {
+        $application = (new ApplicationJob())
+            ->setUser($user)
+            ->setJobOffer($jobOffer)
+            ->setStatus('Applying-1')
+            ->setDateApplication(new \DateTime());
+        $entityManager->persist($application);
+    }
+
+    $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
+    $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
+
+    // Check if job offer has a skill test
+    $skillTest = $entityManager->getRepository(Skilltest::class)->findOneBy(['jobOffer' => $jobOffer]);
+    $hasSkillTest = $skillTest !== null;
+
+    $form = $this->createForm(ApplicationJobType::class, $application, [
+        'available_cvs' => $userCvs,
+        'current_step' => $currentStep,
+        'has_skill_test' => $hasSkillTest
+    ]);
+
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted()) {
+        $action = $request->request->get('action');
+        
+        // Determine next step
+        if ($action === 'prev') {
+            $nextStep = max($currentStep - 1, 1);
+        } else {
+            // Only validate when moving forward
+            if (!$form->isValid()) {
+                return $this->render('application_job/new.html.twig', [
+                    'form' => $form->createView(),
+                    'job_offer' => $jobOffer,
+                    'current_step' => $currentStep,
+                    'has_skill_test' => $hasSkillTest,
+                    'skill_test' => $skillTest,
+                    'cover_letter' => [
+                        'subject' => $application->getCoverletter()?->getSubject() ?? '',
+                        'content' => $application->getCoverletter()?->getContent() ?? ''
+                    ]
                 ]);
             }
-    
-            $application->setStatus('Applying-' . $nextStep);
+            
+            $nextStep = min($currentStep + 1, $hasSkillTest ? 4 : 3); // Adjust max step based on skill test
+        }
+
+        // Process cover letter data when moving forward from step 2
+        if ($currentStep === 2 && $action === 'next') {
+            $coverLetterForm = $form->get('coverletter');
+            $subject = $coverLetterForm->get('subject')->getData();
+            $content = $coverLetterForm->get('content')->getData();
+
+            if (!$application->getCoverletter()) {
+                $coverLetter = new Coverletter();
+                $coverLetter->setApplication($application);
+                $application->setCoverletter($coverLetter);
+                $entityManager->persist($coverLetter);
+            }
+
+            $application->getCoverletter()
+                ->setSubject($subject)
+                ->setContent($content);
+        }
+
+        // Handle skill test step (step 3)
+        if ($currentStep === 3 && $action === 'next' && $hasSkillTest) {
+            // Check if user has already taken the test
+            $testResult = $entityManager->getRepository(Test_result::class)->findOneBy([
+                'user' => $user,
+                'test' => $skillTest
+            ]);
+
+            if (!$testResult) {
+                // Redirect to take the test
+                return $this->redirectToRoute('app_skilltest_take', ['id' => $skillTest->getId()]);
+            }
+
+            // If test was failed, reject application
+            if (!$testResult->getStatus()) {
+                $application->setStatus('Rejected');
+                $entityManager->flush();
+                $this->addFlash('error', 'Your application was rejected because you failed the required skill test.');
+                return $this->redirectToRoute('app_application_job_index');
+            }
+        }
+
+        // Final submission
+        if (($nextStep === ($hasSkillTest ? 4 : 3)) && $request->request->get('submit_final')) {
+            $application->setStatus('Pending');
+            $application->setDateApplication(new \DateTime());
             $entityManager->flush();
-    
-            return $this->redirectToRoute('app_application_job_new', [
-                'job_offer_id' => $jobOfferId
+            $this->addFlash('success', 'Application submitted successfully!');
+            return $this->redirectToRoute('app_job_offer_show', [
+                'id_offer' => $jobOffer->getIdOffer()
             ]);
         }
-    
-        return $this->render('application_job/new.html.twig', [
-            'form' => $form->createView(),
-            'job_offer' => $jobOffer,
-            'current_step' => $currentStep,
-            'cover_letter' => [
-                'subject' => $application->getCoverletter()?->getSubject() ?? '',
-                'content' => $application->getCoverletter()?->getContent() ?? ''
-            ]
+
+        $application->setStatus('Applying-' . $nextStep);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('app_application_job_new', [
+            'job_offer_id' => $jobOfferId
         ]);
     }
+
+    return $this->render('application_job/new.html.twig', [
+        'form' => $form->createView(),
+        'job_offer' => $jobOffer,
+        'current_step' => $currentStep,
+        'has_skill_test' => $hasSkillTest,
+        'test_result_repository' => $entityManager->getRepository(Test_result::class),
+        'skill_test' => $skillTest,
+        'cover_letter' => [
+            'subject' => $application->getCoverletter()?->getSubject() ?? '',
+            'content' => $application->getCoverletter()?->getContent() ?? ''
+        ]
+    ]);
+}
     
 
     #[Route('/delete/{application_id}', name: 'app_application_job_delete', methods: ['POST'])]
