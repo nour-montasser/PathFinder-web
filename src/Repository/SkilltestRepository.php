@@ -26,4 +26,5 @@ class SkilltestRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
 }

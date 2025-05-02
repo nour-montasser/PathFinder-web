@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Résultat SkillTest</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            padding: 40px;
+            color: #2c3e50;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #4B2E2E;
+        }
+
+        .section {
+            margin-top: 40px;
+            padding: 20px;
+            border: 1px solid #e0dcdc;
+            border-radius: 10px;
+            background-color: #fdfafa;
+        }
+
+        .label {
+            font-weight: bold;
+            margin-right: 10px;
+            display: inline-block;
+            min-width: 150px;
+        }
+
+        .success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .fail {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .icon {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>📄 Résultat du SkillTest : {{ skilltest.title }}</h1>
+
+<div class="section">
+    <p><span class="label">👤 Nom de l'utilisateur :</span> {{ user.name }}</p>
+    <p><span class="label">📊 Score :</span> {{ result.result|number_format(0) }} %</p>
+    <p><span class="label">📌 Statut :</span>
+        {% if result.status %}
+            <span class="success">🟢 Réussi</span>
+        {% else %}
+            <span class="fail">🔴 Échoué</span>
+        {% endif %}
+    </p>
+    <p><span class="label">🕓 Date :</span> {{ result.date|date('d/m/Y H:i') }}</p>
+</div>
+
+</body>
+</html>

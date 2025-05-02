@@ -58,23 +58,21 @@
         </button>
     </form>
 
-    {% if job_offer.skillTest is defined and job_offer.skillTest %}
-        <!-- View SkillTest Modal Button -->
-        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#viewSkillTestModal">
-            <i class="bi bi-eye"></i>
-            View Skill Test
-        </button>
-    {% else %}
-        <!-- Create SkillTest Modal Button -->
-        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#createSkillTestModal">
-            <i class="bi bi-plus-circle"></i>
-            Create Skill Test
-        </button>
-    {% endif %}
-</div>
-{# Include the modal below or in a modal block #}
-{% include 'skilltest/new.html.twig' %}
-{#include 'skilltest/_show.html.twig' #}
+                                {% if job_offer.getSkillTests|length > 0 %}
+                                    <a href="{{ path('app_skilltest_show', {'id': job_offer.getSkillTests[0].id}) }}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-eye"></i>
+                                        View Skill Test
+                                    </a>
+                                {% else %}
+                                    <a href="{{ path('app_skilltest_new', {'jobOfferId': job_offer.idOffer}) }}" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-plus-circle"></i>
+                                        Create Skill Test
+                                    </a>
+                                {% endif %}
+
+
+                            </div>
+
 						{% endif %}
 
 						<div class="d-flex flex-wrap gap-2">

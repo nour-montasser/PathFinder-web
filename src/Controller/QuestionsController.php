@@ -5,14 +5,13 @@ namespace App\Controller;
 use App\Entity\Questions;
 use App\Form\QuestionsType;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Query\Expr\Base;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/questions')]
-final class QuestionsController extends BaseController
+final class QuestionsController extends AbstractController
 {
     #[Route(name: 'app_questions_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
@@ -75,7 +74,7 @@ final class QuestionsController extends BaseController
     #[Route('/{id_question}', name: 'app_questions_delete', methods: ['POST'])]
     public function delete(Request $request, Questions $question, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$question->getIdQuestion(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$question->getId_question(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($question);
             $entityManager->flush();
         }

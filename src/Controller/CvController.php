@@ -54,7 +54,7 @@ public function __construct(
     $this->snappyImage = $snappyImage;
 }
 
-    #[Route('/cv', name: 'app_cv')]
+    #[Route('/cv/new', name: 'app_cv')]
     public function index(Request $request, EntityManagerInterface $em): Response
     {
         $this->ensureUserSession();
@@ -299,7 +299,7 @@ public function __construct(
             'oldExperiences' => $exps,
         ]);
     }
-    #[Route('/cv/show', name: 'cv_show')]
+    #[Route('/cv', name: 'cv_show')]
     public function show(EntityManagerInterface $em): Response
     {
         $this->ensureUserSession();
@@ -310,7 +310,7 @@ public function __construct(
             'cvs' => $cvs,
         ]);
     }
-    #[Route('/cv/{id}/edit', name: 'cv_edit')]
+    #[Route('/cv/{id}/show', name: 'cv_edit')]
     public function edit(Request $request, Cv $cv, EntityManagerInterface $em, HttpClientInterface $httpClient): Response
     {
         // Reset specific fields so the form appears blank (like in create mode)

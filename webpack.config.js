@@ -12,7 +12,7 @@ Encore
     // Main JS & CSS files
     .addEntry('app', './assets/app.js')
 
-   
+
 
     // Split vendor chunks (useful for performance)
     .splitEntryChunks()

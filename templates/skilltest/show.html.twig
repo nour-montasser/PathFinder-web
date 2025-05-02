@@ -6,8 +6,11 @@
     <div class="skilltest-container">
 
         <div class="action-buttons">
-            <a href="{{ path('app_skilltest_index') }}" class="btn-back">
-                ← Back to Skill Tests
+            <a href="{{ path('app_job_offer_show', {'id_offer': skilltest.jobOffer.idOffer}) }}" class="btn-back">
+                ← Back to Job offer
+            </a>
+            <a href="{{ path('app_skilltest_edit', {'id': skilltest.id, 'jobOfferId': skilltest.jobOffer.idOffer}) }}" class="btn btn-sm btn-warning">
+                ✏️ Edit Skill Test
             </a>
 
             <form method="post" action="{{ path('app_skilltest_delete', {'id': skilltest.id}) }}" onsubmit="return confirm('Are you sure you want to delete this entire Skill Test and all its questions?');">
@@ -33,7 +36,10 @@
                         <form method="post" action="{{ path('app_questions_delete', {'id': question.id}) }}" class="delete-question-form" onsubmit="return confirm('Delete this question?');">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ question.id) }}">
                             <button class="btn-delete" type="submit">🗑️</button>
+
                         </form>
+
+
                     </div>
                     <ul class="answers-list">
                         {% set responses = question.responses|split(',') %}

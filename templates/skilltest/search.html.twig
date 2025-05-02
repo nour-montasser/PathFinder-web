@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Advanced Search{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h2 class="mb-4">🔍 Advanced SkillTest Search</h2>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <input type="text" id="titleFilter" class="form-control" placeholder="Search by title...">
+            </div>
+            <div class="col-md-4">
+                <input type="number" id="durationFilter" class="form-control" placeholder="Max duration (mins)">
+            </div>
+            <div class="col-md-4">
+                <input type="number" id="scoreFilter" class="form-control" placeholder="Minimum score required">
+            </div>
+        </div>
+
+        <div id="search-results" class="row g-4">
+            {% include 'skilltest/_search_results.html.twig' with {'skilltests': skilltests} %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        function performSearch() {
+            const title = document.getElementById('titleFilter').value;
+            const duration = document.getElementById('durationFilter').value;
+            const score = document.getElementById('scoreFilter').value;
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/skilltest/search?title=${title}&duration=${duration}&score=${score}`, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    document.getElementById('search-results').innerHTML = xhr.responseText;
+                }
+            };
+            xhr.send();
+        }
+
+        document.getElementById('titleFilter').addEventListener('input', performSearch);
+        document.getElementById('durationFilter').addEventListener('input', performSearch);
+        document.getElementById('scoreFilter').addEventListener('input', performSearch);
+    </script>
+{% endblock %}

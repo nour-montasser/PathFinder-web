@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Entity;
-use Symfony\Component\Validator\Constraints as Assert;
 
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -13,27 +13,34 @@ class Test_result
     #[ORM\Column(type: "bigint")]
     private int $id_result;
 
+    #[ORM\Column(type: 'float')]
     #[Assert\NotNull]
     #[Assert\Range(min: 0, max: 100, notInRangeMessage: "Result must be between 0 and 100.")]
     private float $result;
 
+    #[ORM\Column(type: 'datetime')]
     #[Assert\NotNull(message: "Date cannot be null.")]
     #[Assert\Type("\DateTimeInterface")]
     private \DateTimeInterface $date;
+
+    #[ORM\Column(type: 'boolean')]
     #[Assert\NotNull]
     private bool $status;
 
     #[ORM\ManyToOne(targetEntity: App_user::class)]
-    #[Assert\NotNull(message: "Result must be assigned to a user.")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE", nullable: false)]
+    #[Assert\NotNull(message: "Result must be assigned to a user.")]
     private App_user $user;
-    
 
     #[ORM\ManyToOne(targetEntity: Skilltest::class)]
     #[ORM\JoinColumn(name: "id_test", referencedColumnName: "id_test", onDelete: "CASCADE", nullable: false)]
     #[Assert\NotNull(message: "Result must be linked to a test.")]
-
     private Skilltest $test;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $rating = null;
+
+    // Getters and setters...
 
     public function getIdResult(): int
     {
@@ -90,5 +97,13 @@ class Test_result
         $this->test = $test;
     }
 
+    public function getRating(): ?int
+    {
+        return $this->rating;
+    }
 
+    public function setRating(?int $rating): void
+    {
+        $this->rating = $rating;
+    }
 }

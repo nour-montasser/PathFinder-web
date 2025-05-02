@@ -1,18 +1,191 @@
 {% extends 'base.html.twig' %}
+
 {% block title %}SkillTest Result{% endblock %}
 
 {% block body %}
-    <div class="container mt-5 text-center">
-        <h2>🧪 {{ skilltest.title }}</h2>
-        <p>Your Score: <strong>{{ score }}/{{ total }}</strong></p>
-        <p>Percentage: <strong>{{ percentage|number_format(1) }}%</strong></p>
-        <p>Status:
-            {% if passed %}
-                <span class="text-success">✅ Passed</span>
-            {% else %}
-                <span class="text-danger">❌ Failed</span>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <div class="container mt-5" style="font-family: 'Poppins', sans-serif;">
+
+        <div class="card p-4 shadow-sm mb-5">
+            <h2 class="text-center mb-4">🧪 {{ skilltest.title }}</h2>
+
+            <div class="row text-center mb-4">
+                <div class="col">
+                    <h5 class="text-muted">Your Score</h5>
+                    <p class="fs-3 fw-semibold">{{ score }}/{{ total }}</p>
+                </div>
+                <div class="col">
+                    <h5 class="text-muted">Percentage</h5>
+                    <p class="fs-3 fw-semibold">{{ percentage|number_format(1) }}%</p>
+                </div>
+                <div class="col">
+                    <h5 class="text-muted">Status</h5>
+                    <p class="fs-3 fw-semibold {% if passed %}text-success{% else %}text-danger{% endif %}">
+                        {% if passed %}
+                            ✅ Passed
+                        {% else %}
+                            ❌ Failed
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            {# 🧪 Statistics Chart Section #}
+            {% if passed is defined and failed is defined %}
+                <div class="card p-4 shadow-sm mt-4" style="background-color: #f9f9f9;">
+                    <h4 class="text-center mb-3 text-primary">📊 Overall Test Statistics</h4>
+                    <div class="d-flex justify-content-center">
+                        <div style="width: 400px;">
+                            <div style="width:400px; margin:auto;">
+                                <canvas id="myChart" width="400" height="400"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {% endif %}
-        </p>
-        <a href="{{ path('app_skilltest_index') }}" class="btn btn-outline-primary mt-3">← Back to SkillTests</a>
+
+            {# 🧡 Rating Section #}
+            {% if form is defined and form is not null %}
+                <h4 class="text-warning fw-semibold mt-5 mb-3 text-center">⭐ Rate This SkillTest</h4>
+
+                <div class="d-flex justify-content-center">
+                    <div style="width: 300px;">
+                        {{ form_start(form, {'render_rest': false}) }}
+                        {{ form_row(form._token) }}
+
+                        <div class="star-rating mt-2">
+                            {% for i in 5..1 %}
+                                <input type="radio"
+                                       id="star{{ i }}"
+                                       name="{{ form.rating.vars.full_name }}"
+                                       value="{{ i }}"
+                                       {% if form.rating.vars.value == i %}checked{% endif %}>
+                                <label for="star{{ i }}">★</label>
+                            {% endfor %}
+                        </div>
+
+                        <button type="submit" class="btn btn-success mt-3 w-100">Submit Rating</button>
+
+                        {{ form_end(form, {'render_rest': false}) }}
+                    </div>
+                </div>
+
+            {% else %}
+                <div class="text-muted mt-4 fw-semibold fs-5 text-center">
+                    ⭐ You have already rated this test.
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="d-flex flex-column align-items-center">
+                    <a href="{{ path('app_skilltest_pdf', { id: skilltest.id }) }}" class="btn btn-outline-dark mb-2 w-75">
+                        📄 Download Result as PDF
+                    </a>
+                    <a href="{{ path('app_skilltest_index') }}" class="btn btn-outline-primary w-75">
+                        ← Back to SkillTests
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm p-3" style="background-color: #f9f9f9;">
+                    <h5 class="text-danger fw-semibold text-center mb-3">❓ Still confused? Ask the AI Assistant</h5>
+
+                    <textarea id="userPromptInput" class="form-control mb-2" placeholder="Ask anything about the test..." rows="4"></textarea>
+
+                    <button id="ask-button" class="btn btn-info w-100 mb-2">Ask AI</button>
+
+                    <div id="aiResponse" class="text-start text-muted" style="white-space: pre-wrap;">
+                        🤖 No response yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartCanvas = document.getElementById('myChart');
+            if (chartCanvas) {
+                const ctx = chartCanvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Passed', 'Failed'],
+                        datasets: [{
+                            label: 'Test Results',
+                            data: [{{ passed|default(0) }}, {{ failed|default(0) }}],
+                            backgroundColor: ['#28a745', '#dc3545'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                        },
+                    },
+                });
+            }
+        });
+    </script>
+
+    <script>
+        document.getElementById('ask-button').addEventListener('click', () => {
+            const question = document.getElementById('userPromptInput').value;
+            const answerEl = document.getElementById('aiResponse');
+
+            answerEl.innerHTML = '🤖 Thinking...';
+
+            fetch('/skilltest/ai/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'question=' + encodeURIComponent(question)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.response) {
+                        answerEl.innerHTML = '💬 ' + data.response;
+                    } else if (data.error) {
+                        answerEl.innerHTML = '⚠️ Error: ' + data.error;
+                    } else {
+                        answerEl.innerHTML = '⚠️ Unknown error.';
+                    }
+                })
+                .catch(() => {
+                    answerEl.innerHTML = '⚠️ An unexpected error occurred.';
+                });
+        });
+    </script>
+
+    <style>
+        .star-rating {
+            direction: rtl;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            font-size: 2.5rem;
+        }
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+        .star-rating label {
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .star-rating input[type="radio"]:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: gold;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 {% endblock %}
