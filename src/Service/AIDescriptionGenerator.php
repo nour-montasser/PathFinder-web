@@ -22,7 +22,7 @@ class AIDescriptionGenerator
         $this->httpClient = $httpClient;
         $this->apiKey = trim($deepseekApiKey); // Ensure no whitespace in the key
         $this->logger = $logger;
-        $this->apiUrl = 'https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B';
+        $this->apiUrl = 'https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-32B';
     }
 
     public function generateDescription(string $serviceTitle): ?string
@@ -105,7 +105,7 @@ class AIDescriptionGenerator
         } catch (\Exception $e) {
             $this->logger->error('Hugging Face API request failed', [
                 'error' => $e->getMessage(),
-                'model' => 'DeepSeek-R1-Distill-Qwen-7B'
+                'model' => 'DeepSeek-R1-Distill-Qwen-32B'
             ]);
             throw $e;  // Rethrow the exception
         }
