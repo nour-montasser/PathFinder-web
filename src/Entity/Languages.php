@@ -8,9 +8,9 @@ use Doctrine\ORM\Mapping as ORM;
 class Languages
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
-    private string $id_language;
+    #[ORM\GeneratedValue(strategy: "AUTO")]
+    private int $id_language;
 
     #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "languages")]
     #[ORM\JoinColumn(name: "id_cv", referencedColumnName: "id_cv", onDelete: "CASCADE")]
@@ -24,12 +24,12 @@ class Languages
 
     // Getters and Setters
 
-    public function getId_language(): string
+    public function getIdLanguage(): string
     {
         return $this->id_language;
     }
 
-    public function setId_language(string $id_language): self
+    public function setIdLanguage(int $id_language): self
     {
         $this->id_language = $id_language;
         return $this;
@@ -46,12 +46,12 @@ class Languages
         return $this;
     }
 
-    public function getLanguage_name(): string
+    public function getLanguageName(): string
     {
         return $this->language_name;
     }
 
-    public function setLanguage_name(string $language_name): self
+    public function setLanguageName(string $language_name): self
     {
         $this->language_name = $language_name;
         return $this;

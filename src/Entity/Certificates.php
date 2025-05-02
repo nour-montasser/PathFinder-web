@@ -9,8 +9,8 @@ use App\Entity\Cv;
 class Certificates
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
+    #[ORM\GeneratedValue(strategy: "AUTO")]
     private int $id_certificate;
 
     #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "certificates")]
@@ -32,12 +32,12 @@ class Certificates
     #[ORM\Column(type: "string", length: 255)]
     private string $issued_by;
 
-    public function getId_certificate(): int
+    public function getIdCertificate(): int
     {
         return $this->id_certificate;
     }
 
-    public function setId_certificate(int $id_certificate): self
+    public function setIdCertificate(int $id_certificate): self
     {
         $this->id_certificate = $id_certificate;
         return $this;
@@ -55,7 +55,7 @@ class Certificates
     }
 
     public function getTitle(): string
-    {
+    {   
         return $this->title;
     }
 
@@ -87,23 +87,23 @@ class Certificates
         return $this;
     }
 
-    public function getIssue_date(): \DateTimeInterface
+    public function getIssueDate(): \DateTimeInterface
     {
         return $this->issue_date;
     }
 
-    public function setIssue_date(\DateTimeInterface $issue_date): self
+    public function setIssueDate(\DateTimeInterface $issue_date): self
     {
         $this->issue_date = $issue_date;
         return $this;
     }
 
-    public function getIssued_by(): string
+    public function getIssuedBy(): string
     {
         return $this->issued_by;
     }
 
-    public function setIssued_by(string $issued_by): self
+    public function setIssuedBy(string $issued_by): self
     {
         $this->issued_by = $issued_by;
         return $this;

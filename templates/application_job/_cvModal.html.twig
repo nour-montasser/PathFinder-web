@@ -1,0 +1,34 @@
+{# templates/application_job/_cvModal.html.twig #}
+{% if application is defined and application.cv %}
+<div class="modal fade" id="cvModal-{{ application.application_id }}" tabindex="-1" aria-labelledby="cvModalLabel-{{ application.application_id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white" id="cvModalLabel-{{ application.application_id }}">
+                    <i class="bi bi-file-earmark-person me-2"></i>
+                    CV for {{ application.user.name }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body text-center">
+                <img src="{{ asset('images/previews/cv-' ~ application.cv.id_cv ~ '.png') }}" 
+                     class="img-fluid rounded border shadow-sm" 
+                     alt="{{ application.user.name }}'s CV"
+                     style="max-height: 80vh;">
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>
+                    Close
+                </button>
+                <a href="{{ path('cv_export_pdf', {'id': application.cv.id_cv}) }}" class="btn btn-primary">
+                    <i class="bi bi-download me-1"></i>
+                    Download PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

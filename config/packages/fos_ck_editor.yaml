@@ -1,0 +1,11 @@
+fos_ck_editor:
+    default_config: full
+    configs:
+        full:
+            toolbar: 
+                - ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']
+                - ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
+                - ['Link', 'Unlink', 'Anchor']
+                - ['Blockquote', 'JustifyLeft', 'JustifyCenter', 'JustifyRight']
+                - ['Undo', 'Redo']
+            uiColor: '#F7F7F7'

@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin - Job Offers{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Job Offers Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Company</th>
+                                    <th>Posted</th>
+                                    <th>Type</th>
+                                    <th>Applications</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for job in job_offers %}
+                                <tr>
+                                    <td>{{ job.idOffer }}</td>
+                                    <td>{{ job.title }}</td>
+                                    <td>{{ job.user.name }}</td>
+                                    <td>{{ job.datePosted|date('Y-m-d') }}</td>
+                                    <td>{{ job.type }}</td>
+                                    <td>{{ job.applications|length }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" 
+                                            onclick="if(confirm('Delete this job offer and all applications?')) { 
+                                                document.getElementById('delete-job-{{ job.idOffer }}').submit(); 
+                                            }">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                        <form id="delete-job-{{ job.idOffer }}" 
+                                            action="{{ path('admin_job_offer_delete', {'id': job.idOffer}) }}" 
+                                            method="POST" style="display: none;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ job.idOffer) }}">
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% if job.applications|length > 0 %}
+                                <tr>
+                                    <td colspan="7" class="p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <thead class="table-secondary">
+                                                    <tr>
+                                                        <th>App ID</th>
+                                                        <th>Candidate</th>
+                                                        <th>Status</th>
+                                                        <th>Date</th>
+                                                        <th>Cover Letter</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for application in job.applications %}
+                                                    <tr>
+                                                        <td>{{ application.getApplication_id }}</td>
+                                                        <td>{{ application.user.name }}</td>
+                                                        <td>
+                                                            <span class="badge 
+                                                                {% if application.status == 'Accepted' %}bg-success
+                                                                {% elseif application.status == 'Rejected' %}bg-danger
+                                                                {% elseif application.status == 'Pending' %}bg-warning
+                                                                {% else %}bg-secondary{% endif %}">
+                                                                {{ application.status }}
+                                                            </span>
+                                                        </td>
+                                                        <td>{{ application.dateApplication|date('Y-m-d') }}</td>
+                                                        <td>
+                                                            {% if application.coverletter %}
+                                                            <button class="btn btn-sm btn-outline-primary" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#coverLetterModal-{{ application.getApplication_id }}">
+                                                                <i class="bi bi-file-text"></i> View
+                                                            </button>
+                                                            {% else %}
+                                                            <span class="text-muted">None</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-danger" 
+                                                                onclick="if(confirm('Delete this application?')) { 
+                                                                    document.getElementById('delete-app-{{ application.getApplication_id }}').submit(); 
+                                                                }">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                            <form id="delete-app-{{ application.getApplication_id  }}" 
+                                                                action="{{ path('admin_application_delete', {'id': application.getApplication_id }) }}" 
+                                                                method="POST" style="display: none;">
+                                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.getApplication_id ) }}">
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">No job offers found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Cover Letter Modals #}
+{% for job in job_offers %}
+    {% for application in job.applications %}
+        {% if application.coverletter %}
+        <div class="modal fade" id="coverLetterModal-{{ application.getApplication_id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">Cover Letter for {{ job.title }}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6>{{ application.coverletter.subject }}</h6>
+                        <p class="text-muted small">
+                            From: {{ application.user.name }}<br>
+                            Date: {{ application.dateApplication|date('Y-m-d H:i') }}
+                        </p>
+                        <hr>
+                        <div style="white-space: pre-wrap;">{{ application.coverletter.content }}</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+{% endblock %}

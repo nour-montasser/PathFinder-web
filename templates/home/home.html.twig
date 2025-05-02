@@ -120,7 +120,9 @@
             </div>
         </div>
     </div>
-</section><!-- Contact Section -->
+</section>
+{% if current_user.role!=3 %}
+<!-- Contact Section -->
 <section class="contact-section py-5">
     <div class="container">
         <div class="row justify-content-center">
@@ -172,32 +174,89 @@
             <div class="col-lg-7">
                 <div class="card team-card h-100">
                     <div class="card-body">
-                        <form>
+                        <form id="feedbackForm" action="{{ path('feedback_submit') }}" method="POST">
                             <div class="mb-3">
                                 <label for="name" class="form-label fw-bold text-brown">Your Name</label>
-                                <input type="text" class="form-control" id="name">
+                                <input type="text" class="form-control" id="name" name="name" required>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label for="subject" class="form-label fw-bold text-brown">Subject</label>
-                                <input type="text" class="form-control" id="subject">
+                                <input type="text" class="form-control" id="subject" name="subject" required>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label for="message" class="form-label fw-bold text-brown">Message</label>
-                                <textarea class="form-control" id="message" rows="5"></textarea>
+                                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
                             </div>
-                            
+
                             <button type="submit" class="btn btn-brown">
                                 <i class="bi bi-send-fill me-2"></i>Send Message
                             </button>
                         </form>
+
+                        {# Modal outside the form #}
+                        <div class="modal fade" id="thankYouModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title text-brown">Thank You!</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Thank you for your feedback! We appreciate your input.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-brown" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Keep the script at the end of the card body #}
+                        <script>
+                            document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('thankYouModal'));
+            modal.show();
+            
+            // Reset the form
+            this.reset();
+        } else {
+            alert(data.message || 'There was an error submitting your feedback. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Thank you for your feedback!');
+    });
+});
+                        </script>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+{% endif %}
+
+
 
 <style>
     .team-section {

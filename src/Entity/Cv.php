@@ -5,36 +5,37 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
-use App\Entity\AppUser;
+use App\Entity\App_user;
 use App\Entity\Certificates;
 use App\Entity\Experience;
 use App\Entity\Languages;
-use App\Entity\ApplicationJob;
-
+use App\Entity\Application_job;
+use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity]
 class Cv
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[ORM\Column(type: "bigint")]
     private int $id_cv;
-
-    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "cvs")]
-    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE")]
-    private AppUser $user;
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "cvs")]
+    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE", nullable: true)]
+    private ?App_user $user = null;
+    
+    
 
     #[ORM\Column(type: "string", length: 255)]
     private string $title;
-
+    #[Assert\NotBlank(message: 'CV Title is required.')]
     #[ORM\Column(type: "string", length: 255)]
     private string $user_title;
-
+    #[Assert\NotBlank(message: 'Introduction is required.')]
     #[ORM\Column(type: "string", length: 500)]
     private string $introduction;
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $date_creation;
-
+    #[Assert\NotBlank(message: 'Skills cannot be blank.')]
     #[ORM\Column(type: "string", length: 255)]
     private string $skills;
 
@@ -55,6 +56,7 @@ class Cv
 
     #[ORM\OneToMany(mappedBy: "cv", targetEntity: ApplicationJob::class)]
     private Collection $applications;
+    
 
     public function __construct()
     {
@@ -69,18 +71,21 @@ class Cv
         return $this->id_cv;
     }
 
-    public function setId_cv(int $id_cv): self
+    public function getId(): int
     {
-        $this->id_cv = $id_cv;
-        return $this;
+        return $this->id_cv;
+    }
+    public function setId(int $id): void
+    {
+        $this->id_cv= $id ;
     }
 
-    public function getUser(): AppUser
+    public function getUser(): App_user
     {
         return $this->user;
     }
 
-    public function setUser(AppUser $user): self
+    public function setUser(App_user $user): self
     {
         $this->user = $user;
         return $this;
@@ -97,16 +102,18 @@ class Cv
         return $this;
     }
 
-    public function getUser_title(): string
+    public function getUserTitle(): string
     {
         return $this->user_title;
+        
     }
-
-    public function setUser_title(string $user_title): self
+    
+    public function setUserTitle(string $user_title): self
     {
         $this->user_title = $user_title;
         return $this;
     }
+    
 
     public function getIntroduction(): string
     {
@@ -119,12 +126,12 @@ class Cv
         return $this;
     }
 
-    public function getDate_creation(): \DateTimeInterface
+    public function getDateCreation(): \DateTimeInterface
     {
         return $this->date_creation;
     }
 
-    public function setDate_creation(\DateTimeInterface $date_creation): self
+    public function setDateCreation(\DateTimeInterface $date_creation): self
     {
         $this->date_creation = $date_creation;
         return $this;
@@ -141,12 +148,12 @@ class Cv
         return $this;
     }
 
-    public function getLast_viewed(): \DateTimeInterface
+    public function getLastViewed(): \DateTimeInterface
     {
         return $this->last_viewed;
     }
 
-    public function setLast_viewed(\DateTimeInterface $last_viewed): self
+    public function setLastViewed(\DateTimeInterface $last_viewed): self
     {
         $this->last_viewed = $last_viewed;
         return $this;

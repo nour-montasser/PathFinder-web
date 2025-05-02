@@ -1,0 +1,207 @@
+{# templates/application_job/dashboard_pdf.html.twig #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Company Dashboard Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .section {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        .stat-card {
+            border-left: 4px solid;
+            background-color: #f8f9fc;
+            padding: 15px;
+            margin: 10px;
+            width: calc(33.333% - 20px);
+            box-sizing: border-box;
+        }
+        .stat-card.total { border-left-color: #4e73df; }
+        .stat-card.active { border-left-color: #1cc88a; }
+        .stat-card.applications { border-left-color: #36b9cc; }
+        .stat-card.popular { border-left-color: #f6c23e; }
+        .stat-card.ratio { border-left-color: #6f42c1; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .chart-img {
+            max-width: 100%;
+            height: auto;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .meta-info {
+            font-size: 10px;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Company Dashboard Report</h1>
+        <p>Generated on: {{ "now"|date("F d, Y H:i") }}</p>
+        {% if current_user %}
+            <p>Company: {{ current_user.name }}</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Overview</h2>
+        <div class="stats-row">
+            <div class="stat-card total">
+                <h3>Total Jobs</h3>
+                <div class="value">{{ stats.total_jobs }}</div>
+                <div class="change">
+                    {% if stats.jobs_change >= 0 %}▲{% else %}▼{% endif %}
+                    {{ stats.jobs_change|abs }}% vs previous period
+                </div>
+            </div>
+            
+            <div class="stat-card active">
+                <h3>Active Jobs</h3>
+                <div class="value">{{ stats.active_jobs }}</div>
+            </div>
+            
+            <div class="stat-card applications">
+                <h3>Applications</h3>
+                <div class="value">{{ stats.total_applications }}</div>
+                <div>{{ stats.avg_applications_per_job|round(1) }} per job</div>
+            </div>
+            
+            <div class="stat-card popular">
+                <h3>Popular Job</h3>
+                <div class="value">
+                    {% if stats.popular_job %}
+                        {{ stats.popular_job.title|slice(0, 15) }}{% if stats.popular_job.title|length > 15 %}...{% endif %} 
+                        ({{ stats.popular_job.application_count }})
+                    {% else %}
+                        No popular jobs
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="stat-card ratio">
+                <h3>Conversion Rate</h3>
+                <div class="value">{{ stats.conversion_rate }}%</div>
+                <div class="change">
+                    {% if stats.conversion_change >= 0 %}▲{% else %}▼{% endif %}
+                    {{ stats.conversion_change|abs }}%
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Application Status</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for status, count in stats.application_statuses %}
+                <tr>
+                    <td>{{ status }}</td>
+                    <td>{{ count }}</td>
+                    <td>{{ (count / stats.total_applications * 100)|round(1) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Recent Applications</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Job Title</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for application in stats.recent_applications %}
+                <tr>
+                    <td>{{ application.candidateName }}</td>
+                    <td>{{ application.jobTitle }}</td>
+                    <td>{{ application.applicationDate|date('M d, Y') }}</td>
+                    <td>{{ application.status }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">No recent applications</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div class="section">
+        <h2>Job Applications</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Applications</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in job_offers|slice(0, 10) %}
+                <tr>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.applications|length }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3">No job offers</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="meta-info">
+        <p>This report was automatically generated from the company dashboard.</p>
+    </div>
+</body>
+</html>

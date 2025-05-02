@@ -1,0 +1,201 @@
+user_id,company_id,job_offer_id,cv_skills,cv_user_title,experience_position,job_offer_title,job_offer_required_skills,application_status,y
+25,108,1024,"React, Node.js, Spring, SQL",DevOps Engineer,Mobile App Developer,Frontend Engineer,"SQL, JavaScript, React",Accepted,1
+27,110,1012,"Node.js, Angular, Django, React",Mobile Developer,Backend Developer,DevOps Specialist,"MongoDB, PHP, Spring, Node.js",Rejected,0
+4,106,1018,"Python, Node.js, Symfony",System Analyst,Frontend Developer,Full Stack Developer,"Python, .NET, Vue.js",Rejected,0
+13,109,1023,"Symfony, PHP, Angular, Node.js",DevOps Engineer,Frontend Developer,Mobile Developer,"Java, Django, Flask",Rejected,0
+27,102,1024,".NET, Angular",Software Engineer,Backend Developer,Mobile Developer,"Node.js, Vue.js",Rejected,0
+30,103,1006,"JavaScript, MongoDB",Frontend Developer,Frontend Developer,Full Stack Developer,"Angular, Django, Symfony, .NET",Rejected,0
+4,109,1006,"Django, JavaScript, Flask, Angular",Senior Developer,Mobile App Developer,Data Engineer,"React, Vue.js, Flask, Node.js",Pending,1
+9,108,1020,"Java, C#, React",Full Stack Developer,Backend Developer,Backend Engineer,"Vue.js, SQL, .NET, React",Rejected,0
+11,101,1001,"Java, Spring, Node.js, JavaScript",DevOps Engineer,Web Developer,Software Developer,"Symfony, Spring, React, Java",Accepted,1
+12,107,1007,".NET, Hibernate, C#",Full Stack Developer,Web Developer,Data Engineer,"Python, MongoDB, Java",Rejected,0
+10,103,1008,"Vue.js, Spring, C#, PHP",Software Engineer,Data Analyst,Frontend Engineer,"Hibernate, Java, JavaScript",Rejected,0
+8,105,1022,"React, Java",Data Scientist,Data Analyst,Mobile Developer,"Flask, Node.js",Rejected,0
+24,105,1004,"Python, PHP",Full Stack Developer,Mobile App Developer,Full Stack Developer,"MongoDB, Django, Hibernate",Rejected,0
+24,109,1009,"Symfony, Python",Backend Developer,Data Analyst,Web Developer,"C#, .NET, Python, Node.js",Pending,1
+26,110,1003,"Flask, Node.js, .NET, Vue.js",Frontend Developer,Software Engineer,Data Engineer,"Hibernate, MongoDB, Java",Rejected,0
+26,105,1010,"Spring, Hibernate",Full Stack Developer,Mobile App Developer,DevOps Specialist,"Java, JavaScript, Vue.js, .NET",Rejected,0
+2,105,1004,"PHP, Hibernate, C#",DevOps Engineer,Mobile App Developer,Mobile Developer,"C#, Node.js",Rejected,0
+23,103,1014,"Vue.js, JavaScript, PHP",Senior Developer,Web Developer,Frontend Engineer,"Hibernate, SQL, React",Rejected,0
+9,108,1001,"C#, Django, Vue.js, Node.js",Java Developer,Web Developer,Data Engineer,"MongoDB, React",Rejected,0
+13,110,1006,"MongoDB, Hibernate, SQL",Senior Developer,Mobile App Developer,Frontend Engineer,"SQL, Django",Pending,1
+15,102,1015,"Node.js, React, PHP, Hibernate",System Analyst,Web Developer,System Administrator,"Flask, PHP, Node.js, C#",Accepted,1
+17,105,1012,"Hibernate, PHP",Senior Developer,Frontend Developer,Full Stack Developer,"Vue.js, .NET, PHP, Java",Pending,1
+15,102,1025,"Flask, JavaScript, MongoDB, PHP",Frontend Developer,Backend Developer,Software Developer,"Python, Flask",Pending,1
+24,102,1002,"Django, Node.js",Java Developer,Backend Developer,Frontend Engineer,"SQL, PHP, Flask",Rejected,0
+25,106,1018,"Python, SQL, C#, Java",Senior Developer,Web Developer,System Administrator,"Django, Node.js, MongoDB, Spring",Rejected,0
+1,109,1016,"PHP, Flask, Angular, Hibernate",Mobile Developer,Data Analyst,Frontend Engineer,"Angular, Symfony",Pending,1
+11,108,1015,"PHP, Spring",Web Developer,Backend Developer,Full Stack Developer,"Symfony, Django, Node.js",Rejected,0
+22,110,1015,"SQL, Python, React, PHP",Software Engineer,Mobile App Developer,Mobile Developer,"Hibernate, Flask, MongoDB, Spring",Rejected,0
+28,109,1003,"C#, Vue.js, Symfony, Spring",Java Developer,Web Developer,DevOps Specialist,"Angular, C#, SQL",Rejected,0
+12,107,1013,"Python, React, Symfony",DevOps Engineer,Frontend Developer,Data Engineer,"JavaScript, React",Rejected,0
+25,109,1004,"Django, Python, Hibernate",DevOps Engineer,Mobile App Developer,Frontend Engineer,"Django, PHP, .NET",Pending,1
+11,105,1008,".NET, Hibernate, Node.js, Java",Full Stack Developer,Mobile App Developer,Backend Engineer,"Python, Angular, Spring, MongoDB",Rejected,0
+8,102,1003,"Java, SQL",Frontend Developer,Frontend Developer,Full Stack Developer,"Java, Spring",Pending,1
+25,110,1018,"Flask, MongoDB, Node.js",Full Stack Developer,Systems Engineer,System Administrator,".NET, Symfony",Rejected,0
+22,101,1012,"Symfony, SQL, Vue.js",DevOps Engineer,Backend Developer,Web Developer,"Flask, SQL",Pending,1
+12,108,1024,"React, SQL, Vue.js",Mobile Developer,Systems Engineer,DevOps Specialist,"JavaScript, React, Vue.js, Django",Accepted,1
+7,101,1020,"Vue.js, Angular, Node.js",Web Developer,Frontend Developer,Frontend Engineer,"Symfony, C#",Rejected,0
+29,110,1010,"PHP, Django",Full Stack Developer,Backend Developer,Mobile Developer,".NET, Hibernate",Rejected,0
+16,109,1020,"Vue.js, SQL",Backend Developer,Systems Engineer,Frontend Engineer,"Symfony, C#, SQL, Django",Pending,1
+11,102,1007,"MongoDB, C#, Node.js",Java Developer,Frontend Developer,Full Stack Developer,"Spring, Java, C#",Pending,1
+8,104,1011,"JavaScript, Node.js",Software Engineer,Data Analyst,Software Developer,"Spring, SQL",Rejected,0
+19,107,1012,"Symfony, Angular, Django, Vue.js",DevOps Engineer,Backend Developer,Backend Engineer,"Symfony, C#, Angular, Java",Accepted,1
+22,109,1015,"Node.js, Spring",Full Stack Developer,Systems Engineer,Full Stack Developer,"PHP, Vue.js, .NET, JavaScript",Rejected,0
+1,107,1023,"Java, Spring, Angular, React",Web Developer,Mobile App Developer,Mobile Developer,"Flask, Angular, .NET, React",Accepted,1
+8,107,1022,"Vue.js, SQL, Node.js, Python",Frontend Developer,Data Analyst,Software Developer,"MongoDB, Flask, JavaScript, Spring",Rejected,0
+25,106,1006,"Python, Spring, Symfony, .NET",Software Engineer,Software Engineer,DevOps Specialist,"SQL, .NET",Pending,1
+20,108,1015,"Python, MongoDB, Spring",Backend Developer,Backend Developer,System Administrator,"Symfony, MongoDB, React",Rejected,0
+18,102,1025,"Angular, MongoDB, .NET, Symfony",Software Engineer,Software Engineer,Full Stack Developer,"Node.js, Java, Angular, Flask",Pending,1
+16,105,1015,"MongoDB, Spring, React",Java Developer,Mobile App Developer,Data Engineer,"Python, Symfony, Spring",Pending,1
+1,107,1003,"Angular, Node.js, Symfony",Mobile Developer,Web Developer,Full Stack Developer,"SQL, Java, Node.js, Django",Rejected,0
+5,101,1012,"JavaScript, Flask, C#",DevOps Engineer,Mobile App Developer,Software Developer,"Spring, React, .NET",Rejected,0
+7,105,1004,"SQL, Hibernate, Node.js, Python",Full Stack Developer,Backend Developer,Frontend Engineer,"React, Vue.js",Rejected,0
+14,102,1009,"Vue.js, React, Hibernate, C#",System Analyst,Software Engineer,DevOps Specialist,"Hibernate, Spring",Pending,1
+13,102,1024,"Java, .NET, Symfony",Frontend Developer,Web Developer,Full Stack Developer,"Node.js, Spring, Java, .NET",Accepted,1
+20,102,1024,"Python, Java",Software Engineer,Web Developer,Web Developer,"Python, Symfony, Java, Angular",Accepted,1
+17,106,1011,"React, JavaScript",DevOps Engineer,Mobile App Developer,System Administrator,".NET, Python, Java",Rejected,0
+16,104,1022,"Angular, Node.js, Java, React",Software Engineer,Backend Developer,Frontend Engineer,"Java, PHP",Rejected,0
+24,104,1021,"React, SQL",Full Stack Developer,Software Engineer,Software Developer,"Flask, Java",Rejected,0
+16,105,1004,"Python, React, SQL",Frontend Developer,Systems Engineer,Software Developer,"Spring, MongoDB, Java, Angular",Rejected,0
+7,105,1005,"SQL, Flask, Python",System Analyst,Frontend Developer,Full Stack Developer,"Hibernate, Vue.js, MongoDB, Angular",Rejected,0
+6,101,1015,"Angular, Node.js, React",Java Developer,Backend Developer,Web Developer,"C#, Python, Django",Rejected,0
+1,110,1025,"Java, .NET, Spring",Data Scientist,Systems Engineer,Full Stack Developer,"Python, Symfony, Hibernate, Flask",Rejected,0
+15,105,1002,"Node.js, React, Python, Java",Frontend Developer,Mobile App Developer,DevOps Specialist,"Django, C#, PHP",Rejected,0
+11,110,1018,"React, JavaScript",Backend Developer,Web Developer,System Administrator,"React, PHP, Django, .NET",Rejected,0
+16,109,1011,"C#, Vue.js, Hibernate",System Analyst,Mobile App Developer,Mobile Developer,"Node.js, Flask, .NET, SQL",Rejected,0
+27,110,1021,"Symfony, SQL",System Analyst,Software Engineer,Web Developer,"C#, PHP, SQL",Rejected,0
+24,105,1002,"Node.js, JavaScript",Data Scientist,Backend Developer,DevOps Specialist,"Hibernate, MongoDB, Python, Symfony",Rejected,0
+28,109,1008,"Python, Node.js",Backend Developer,Frontend Developer,Data Engineer,"Hibernate, Symfony",Rejected,0
+10,109,1001,"PHP, SQL",Web Developer,Backend Developer,Mobile Developer,"MongoDB, React",Rejected,0
+8,106,1003,"Vue.js, Symfony",Backend Developer,Data Analyst,Full Stack Developer,"React, JavaScript, Vue.js",Rejected,0
+2,101,1004,"Spring, React",Java Developer,Frontend Developer,DevOps Specialist,"C#, Flask, Spring, Python",Rejected,0
+3,104,1010,"Hibernate, MongoDB",DevOps Engineer,Mobile App Developer,DevOps Specialist,"Node.js, JavaScript, Python",Rejected,0
+2,103,1010,"Hibernate, .NET, PHP, Flask",Data Scientist,Data Analyst,DevOps Specialist,"PHP, SQL, Spring, Flask",Accepted,1
+27,109,1019,"Python, JavaScript, PHP, Symfony",Full Stack Developer,Frontend Developer,DevOps Specialist,"Symfony, React, Node.js, Vue.js",Pending,1
+22,109,1002,"Vue.js, React",Web Developer,Systems Engineer,Full Stack Developer,"MongoDB, Python",Rejected,0
+25,102,1022,"Vue.js, .NET",Full Stack Developer,Backend Developer,Data Engineer,"PHP, MongoDB",Rejected,0
+30,109,1025,"Flask, Hibernate, SQL",Backend Developer,Backend Developer,Mobile Developer,"Hibernate, C#, Vue.js, Node.js",Pending,1
+4,102,1017,"Vue.js, Node.js, JavaScript",System Analyst,Software Engineer,Mobile Developer,"PHP, C#, Hibernate, .NET",Rejected,0
+20,105,1022,"MongoDB, Node.js, Angular, Vue.js",Backend Developer,Backend Developer,DevOps Specialist,"SQL, Flask, Spring, PHP",Rejected,0
+13,105,1010,"Spring, Django, React",Web Developer,Systems Engineer,System Administrator,"SQL, MongoDB, Spring",Pending,1
+12,101,1012,"JavaScript, Node.js, React",Data Scientist,Software Engineer,Backend Engineer,"MongoDB, Angular, Node.js",Rejected,0
+12,102,1002,"Django, Java",Software Engineer,Frontend Developer,Full Stack Developer,"Python, Hibernate, Angular, Java",Pending,1
+19,110,1022,"SQL, Vue.js, Java, Python",Data Scientist,Backend Developer,Software Developer,"Symfony, Vue.js, Django, Hibernate",Pending,1
+20,107,1007,"SQL, Java",Data Scientist,Systems Engineer,System Administrator,"MongoDB, Hibernate",Rejected,0
+8,107,1015,"Django, Python, Node.js",DevOps Engineer,Mobile App Developer,Frontend Engineer,"Node.js, MongoDB, React, SQL",Rejected,0
+22,103,1017,"C#, .NET",Backend Developer,Web Developer,Backend Engineer,"Python, Spring, C#",Pending,1
+17,106,1013,"React, C#",Java Developer,Systems Engineer,Mobile Developer,"Node.js, Vue.js, Angular",Rejected,0
+23,103,1017,"C#, Java",System Analyst,Backend Developer,System Administrator,"Java, Django, Spring, MongoDB",Pending,1
+18,102,1017,"JavaScript, Spring, Symfony, SQL",Backend Developer,Software Engineer,Mobile Developer,"Hibernate, .NET",Rejected,0
+1,108,1010,"Angular, C#, Symfony",Mobile Developer,Systems Engineer,Data Engineer,"C#, JavaScript, Vue.js, PHP",Rejected,0
+15,110,1011,"Node.js, Flask",System Analyst,Backend Developer,Frontend Engineer,"MongoDB, JavaScript, Vue.js",Rejected,0
+11,104,1018,"Python, Django, React, Flask",Web Developer,Data Analyst,Backend Engineer,"Flask, JavaScript",Rejected,0
+23,104,1016,"C#, Django",Senior Developer,Data Analyst,DevOps Specialist,"Java, MongoDB, PHP, Python",Rejected,0
+13,101,1020,"Node.js, Django, Python, Hibernate",Mobile Developer,Data Analyst,Web Developer,".NET, Java, PHP, Node.js",Pending,1
+21,103,1008,"PHP, Angular",System Analyst,Mobile App Developer,Data Engineer,"React, Flask, .NET, MongoDB",Rejected,0
+8,102,1008,"Spring, SQL, Hibernate, C#",System Analyst,Frontend Developer,Web Developer,"Flask, Node.js, Spring, SQL",Accepted,1
+12,104,1007,"React, MongoDB, Java, Angular",Senior Developer,Web Developer,Full Stack Developer,"C#, SQL, React, Vue.js",Rejected,0
+13,110,1020,"Java, Django",DevOps Engineer,Mobile App Developer,Data Engineer,"Node.js, SQL",Rejected,0
+3,109,1021,"React, Vue.js",Mobile Developer,Frontend Developer,Mobile Developer,"Vue.js, React, Spring, Hibernate",Accepted,1
+12,101,1007,"Node.js, MongoDB, .NET",DevOps Engineer,Web Developer,Frontend Engineer,"Python, C#, Spring, Django",Rejected,0
+23,106,1007,"Python, Node.js",Frontend Developer,Mobile App Developer,Web Developer,"JavaScript, Python, Spring, Vue.js",Rejected,0
+28,102,1003,"Python, Java, C#",Software Engineer,Software Engineer,Software Developer,"MongoDB, Python",Rejected,0
+14,109,1009,"Angular, Java",Software Engineer,Mobile App Developer,Backend Engineer,"PHP, MongoDB, Spring, Vue.js",Rejected,0
+14,107,1009,"Flask, Hibernate, JavaScript",System Analyst,Systems Engineer,Frontend Engineer,"PHP, Vue.js, Django",Rejected,0
+14,110,1011,"Angular, Flask, Node.js",Backend Developer,Software Engineer,DevOps Specialist,"MongoDB, JavaScript",Rejected,0
+29,108,1024,"React, Java, SQL",Java Developer,Software Engineer,Web Developer,"Spring, Java",Pending,1
+17,108,1022,"Node.js, .NET, Angular, C#",Backend Developer,Data Analyst,DevOps Specialist,"Python, Angular",Rejected,0
+14,109,1003,"Python, Spring",System Analyst,Backend Developer,DevOps Specialist,"Django, Node.js",Rejected,0
+8,107,1009,"JavaScript, SQL, Spring",Web Developer,Software Engineer,Web Developer,"SQL, .NET, React, Hibernate",Pending,1
+3,102,1016,"Spring, Angular",DevOps Engineer,Data Analyst,DevOps Specialist,"SQL, MongoDB",Rejected,0
+19,106,1018,"JavaScript, .NET",Data Scientist,Frontend Developer,Mobile Developer,"JavaScript, .NET, PHP, SQL",Accepted,1
+9,109,1025,"SQL, Spring, Vue.js",Java Developer,Software Engineer,Backend Engineer,"Vue.js, PHP, Python",Rejected,0
+24,106,1021,"Angular, Hibernate",DevOps Engineer,Mobile App Developer,Mobile Developer,"MongoDB, Flask, Django, Node.js",Rejected,0
+18,109,1017,"Spring, MongoDB, Django",System Analyst,Software Engineer,System Administrator,"Symfony, Angular, SQL",Rejected,0
+7,108,1001,"C#, Django",Mobile Developer,Frontend Developer,Frontend Engineer,"Flask, Angular, React",Rejected,0
+8,104,1009,"Hibernate, Django, Symfony",Software Engineer,Software Engineer,Web Developer,"Java, Spring",Rejected,0
+17,103,1009,"React, MongoDB, Angular, JavaScript",Software Engineer,Software Engineer,Frontend Engineer,".NET, Node.js, Python",Rejected,0
+27,105,1012,"Angular, Flask, Python",Java Developer,Mobile App Developer,Web Developer,".NET, PHP",Rejected,0
+6,101,1006,"Python, Java",System Analyst,Software Engineer,Mobile Developer,"Symfony, C#",Rejected,0
+18,109,1015,"C#, Java",Web Developer,Systems Engineer,DevOps Specialist,"Spring, SQL",Rejected,0
+18,105,1021,"PHP, React",System Analyst,Systems Engineer,Frontend Engineer,".NET, MongoDB",Rejected,0
+19,109,1013,"Python, Spring, SQL",Mobile Developer,Data Analyst,Data Engineer,"Django, React, JavaScript, Symfony",Rejected,0
+20,101,1008,"Spring, JavaScript, Hibernate, Python",Backend Developer,Web Developer,Full Stack Developer,"PHP, Hibernate",Pending,1
+23,109,1012,"Flask, Hibernate, Symfony",Mobile Developer,Systems Engineer,Frontend Engineer,"SQL, Hibernate, Flask",Accepted,1
+6,110,1020,"C#, JavaScript",Senior Developer,Systems Engineer,Mobile Developer,"Node.js, SQL",Rejected,0
+17,103,1018,"Python, Java, Angular",System Analyst,Software Engineer,Software Developer,"Symfony, Flask, React",Rejected,0
+20,104,1024,"MongoDB, Spring, Symfony",Backend Developer,Mobile App Developer,Data Engineer,"Spring, Vue.js, Symfony",Accepted,1
+13,106,1004,"Django, PHP",Frontend Developer,Web Developer,Frontend Engineer,"PHP, Python, Flask",Rejected,0
+21,110,1024,"Java, PHP, .NET, Angular",Mobile Developer,Web Developer,Mobile Developer,"Python, .NET",Pending,1
+23,103,1014,"Django, Hibernate, Angular",Backend Developer,Frontend Developer,Mobile Developer,"Node.js, PHP, Hibernate",Pending,1
+29,106,1004,"Node.js, Symfony, .NET, MongoDB",Frontend Developer,Mobile App Developer,Backend Engineer,"Vue.js, Python",Rejected,0
+17,101,1023,"Django, Hibernate, Node.js",Web Developer,Frontend Developer,Web Developer,"Java, Spring, Symfony, SQL",Rejected,0
+29,103,1025,"Vue.js, React",Mobile Developer,Web Developer,Data Engineer,"Java, Vue.js, Symfony, Angular",Rejected,0
+9,104,1023,"Vue.js, Python, MongoDB",Software Engineer,Systems Engineer,Full Stack Developer,"Vue.js, SQL, React, Angular",Pending,1
+7,108,1017,"Symfony, Hibernate",System Analyst,Software Engineer,System Administrator,"Hibernate, C#, React, JavaScript",Rejected,0
+21,109,1014,"React, Django, Flask, Python",DevOps Engineer,Backend Developer,Mobile Developer,"Java, Hibernate",Rejected,0
+9,108,1019,"Angular, JavaScript, Hibernate, Symfony",Software Engineer,Data Analyst,DevOps Specialist,"JavaScript, Hibernate, .NET, Python",Accepted,1
+2,108,1020,"Vue.js, Django",Full Stack Developer,Data Analyst,Frontend Engineer,"Java, JavaScript, C#, React",Rejected,0
+24,102,1023,"MongoDB, React",System Analyst,Mobile App Developer,System Administrator,"C#, .NET, Python",Rejected,0
+25,107,1020,"JavaScript, Angular",Backend Developer,Systems Engineer,System Administrator,"PHP, Node.js, Spring",Rejected,0
+20,107,1023,"Angular, Spring, Node.js, C#",Java Developer,Mobile App Developer,Web Developer,"Flask, C#",Rejected,0
+13,108,1007,"Django, Spring, Python, Vue.js",DevOps Engineer,Web Developer,DevOps Specialist,"C#, Java, Hibernate",Rejected,0
+22,104,1023,"SQL, Symfony, PHP, MongoDB",Mobile Developer,Software Engineer,Backend Engineer,"Django, Symfony, C#, React",Rejected,0
+14,102,1019,"PHP, JavaScript, Vue.js, Flask",Frontend Developer,Systems Engineer,Mobile Developer,"Spring, MongoDB, Hibernate, JavaScript",Rejected,0
+11,108,1013,"Symfony, JavaScript",Full Stack Developer,Software Engineer,Mobile Developer,"JavaScript, React",Pending,1
+9,106,1013,"Vue.js, Node.js, PHP",Senior Developer,Systems Engineer,Data Engineer,"Hibernate, MongoDB, PHP",Rejected,0
+14,109,1003,"SQL, .NET, Hibernate, C#",Frontend Developer,Frontend Developer,Frontend Engineer,"Django, Angular",Rejected,0
+10,104,1004,"Flask, React, Angular, Hibernate",Java Developer,Mobile App Developer,Data Engineer,".NET, Hibernate, SQL",Pending,1
+20,109,1007,"Hibernate, Spring",Web Developer,Software Engineer,System Administrator,"Spring, JavaScript, Java, Angular",Pending,1
+27,107,1008,"Symfony, Django, Vue.js, C#",System Analyst,Software Engineer,Software Developer,"Spring, SQL",Rejected,0
+19,109,1010,"C#, Spring, Django",Java Developer,Software Engineer,DevOps Specialist,"Django, Node.js",Rejected,0
+4,102,1006,"C#, Django, Flask",Mobile Developer,Backend Developer,Full Stack Developer,"Vue.js, Django, Angular",Pending,1
+4,108,1014,"Node.js, Angular, Java, Django",Backend Developer,Backend Developer,System Administrator,"Vue.js, Python, .NET, React",Rejected,0
+28,102,1019,"Angular, MongoDB",Backend Developer,Web Developer,Mobile Developer,"Java, PHP, Node.js",Rejected,0
+21,104,1022,"Python, Symfony, JavaScript, C#",Full Stack Developer,Backend Developer,Data Engineer,"MongoDB, Hibernate",Rejected,0
+4,104,1021,"Symfony, Hibernate, Flask",Backend Developer,Mobile App Developer,System Administrator,"Flask, Node.js, Vue.js, Spring",Pending,1
+17,108,1014,"C#, Angular, .NET",Frontend Developer,Web Developer,Web Developer,"Java, Node.js",Rejected,0
+20,101,1024,"Angular, JavaScript, MongoDB, SQL",Frontend Developer,Backend Developer,Web Developer,"Angular, SQL",Accepted,1
+4,102,1011,"Django, Flask, PHP, MongoDB",Java Developer,Systems Engineer,Data Engineer,"Vue.js, PHP, Symfony, Java",Pending,1
+6,105,1025,"Symfony, Node.js, PHP, Angular",System Analyst,Mobile App Developer,Web Developer,"Node.js, Spring, JavaScript, Django",Pending,1
+27,107,1019,"Python, MongoDB",DevOps Engineer,Web Developer,Frontend Engineer,"SQL, Node.js",Rejected,0
+17,104,1025,"Flask, Python, Angular",DevOps Engineer,Frontend Developer,Data Engineer,"React, Node.js, Symfony, Vue.js",Rejected,0
+16,103,1024,"Java, Python, Vue.js, MongoDB",Full Stack Developer,Backend Developer,System Administrator,"Symfony, Flask, Spring",Rejected,0
+26,103,1004,"Node.js, Angular, SQL, .NET",Backend Developer,Frontend Developer,Mobile Developer,"Python, Symfony, SQL, Node.js",Accepted,1
+21,108,1009,"JavaScript, MongoDB",Frontend Developer,Data Analyst,System Administrator,"Node.js, Django, SQL",Rejected,0
+28,103,1004,"Symfony, SQL",Java Developer,Systems Engineer,Web Developer,"Hibernate, JavaScript, MongoDB, Vue.js",Rejected,0
+27,103,1018,"Vue.js, Angular, Spring, C#",Java Developer,Mobile App Developer,Data Engineer,"JavaScript, Django, SQL",Rejected,0
+4,104,1023,"Angular, JavaScript, SQL",Data Scientist,Systems Engineer,Frontend Engineer,"Flask, Python",Rejected,0
+14,110,1013,"Hibernate, PHP",Data Scientist,Systems Engineer,Full Stack Developer,"Flask, Symfony",Rejected,0
+5,102,1023,"Angular, MongoDB, SQL",Mobile Developer,Frontend Developer,Frontend Engineer,".NET, Python",Rejected,0
+18,105,1013,"Node.js, Hibernate",Full Stack Developer,Web Developer,Data Engineer,"Python, Vue.js",Rejected,0
+26,102,1004,"C#, Node.js, SQL",System Analyst,Frontend Developer,Data Engineer,"Flask, C#",Pending,1
+1,106,1009,"MongoDB, Flask, React, Python",Mobile Developer,Software Engineer,Frontend Engineer,"Symfony, Django, Node.js",Rejected,0
+12,110,1022,"Django, .NET",DevOps Engineer,Systems Engineer,System Administrator,"React, MongoDB, Vue.js",Rejected,0
+5,109,1021,"Node.js, Django, JavaScript",Backend Developer,Web Developer,Backend Engineer,"SQL, PHP, MongoDB",Rejected,0
+28,106,1015,"Symfony, Python",System Analyst,Software Engineer,Frontend Engineer,"Spring, Hibernate",Rejected,0
+14,110,1005,".NET, SQL",Data Scientist,Mobile App Developer,Backend Engineer,"Symfony, Spring, Node.js, Vue.js",Rejected,0
+13,109,1022,"React, Node.js, JavaScript",Web Developer,Backend Developer,Mobile Developer,"Hibernate, PHP",Rejected,0
+22,101,1022,".NET, Node.js, Python, React",DevOps Engineer,Mobile App Developer,Frontend Engineer,"SQL, Symfony, PHP",Rejected,0
+8,106,1008,".NET, Flask, Java",Software Engineer,Systems Engineer,DevOps Specialist,"JavaScript, Spring, Node.js, Django",Rejected,0
+11,107,1008,"Flask, Symfony, Node.js",Senior Developer,Mobile App Developer,Full Stack Developer,"SQL, Hibernate, Symfony, Spring",Rejected,0
+24,109,1016,"JavaScript, Spring",Web Developer,Systems Engineer,System Administrator,"Java, Django, JavaScript, C#",Pending,1
+2,107,1014,"Hibernate, Angular, C#, Node.js",Web Developer,Web Developer,Software Developer,"Spring, Flask, SQL, Django",Rejected,0
+19,106,1013,"Node.js, Java, MongoDB",Web Developer,Web Developer,Web Developer,"Symfony, JavaScript, MongoDB",Pending,1
+27,101,1009,"Django, PHP, Java, Python",Full Stack Developer,Mobile App Developer,Software Developer,"Node.js, Symfony, SQL",Rejected,0
+4,108,1001,"MongoDB, PHP, Symfony",Senior Developer,Frontend Developer,System Administrator,"Hibernate, Spring, Node.js",Rejected,0
+5,109,1006,"Vue.js, Flask, Java, React",Full Stack Developer,Backend Developer,Backend Engineer,"SQL, Flask, Angular, Java",Accepted,1
+2,101,1011,"PHP, Hibernate",Full Stack Developer,Systems Engineer,Software Developer,"C#, Python, JavaScript",Rejected,0
+2,101,1009,"Java, Hibernate, Spring",System Analyst,Systems Engineer,DevOps Specialist,"PHP, Python, Hibernate, .NET",Rejected,0
+21,107,1009,"JavaScript, MongoDB, React",System Analyst,Frontend Developer,DevOps Specialist,"Flask, Spring, Python, Symfony",Rejected,0
+30,101,1006,"SQL, Angular, React",Data Scientist,Backend Developer,System Administrator,"MongoDB, Django",Rejected,0
+6,101,1019,".NET, MongoDB, PHP",Full Stack Developer,Frontend Developer,Mobile Developer,"C#, Hibernate, Flask, Django",Rejected,0
+3,102,1008,"JavaScript, Python",Mobile Developer,Systems Engineer,Software Developer,"Symfony, SQL, Python",Pending,1
+28,107,1011,".NET, React",Java Developer,Backend Developer,Web Developer,"Vue.js, React, Node.js",Pending,1
+18,103,1021,"React, MongoDB, Hibernate, .NET",Backend Developer,Systems Engineer,DevOps Specialist,"Python, Hibernate, Django",Rejected,0
+24,108,1023,"C#, Flask, Django",Senior Developer,Systems Engineer,Mobile Developer,"C#, .NET, React",Rejected,0
+2,110,1013,".NET, Angular, C#",Software Engineer,Frontend Developer,Mobile Developer,"Django, Spring, MongoDB, Vue.js",Rejected,0
+30,104,1015,"Spring, Node.js",Full Stack Developer,Systems Engineer,Mobile Developer,"Flask, Django",Rejected,0
+17,105,1018,"Angular, Hibernate, Symfony, Django",System Analyst,Frontend Developer,System Administrator,"C#, MongoDB",Rejected,0
+29,104,1022,".NET, Vue.js",Software Engineer,Data Analyst,Frontend Engineer,"Python, SQL, PHP",Rejected,0

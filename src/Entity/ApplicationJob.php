@@ -3,24 +3,27 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\JobOffer;
-use App\Entity\AppUser;
+use App\Entity\Job_offer;
+use App\Entity\App_user;
 use App\Entity\Cv;
+use App\Repository\ApplicationJobRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: ApplicationJobRepository::class)]
+#[ORM\Table(name: "application_job")] // 👈 garde le nom SQL que tu veux
 class ApplicationJob
 {
-    #[ORM\Id]
+    #[ORM\Id]   
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "bigint")]
     private int $application_id;
 
-    #[ORM\ManyToOne(targetEntity: JobOffer::class, inversedBy: "applications")]
-    #[ORM\JoinColumn(name: "JobOffer_id", referencedColumnName: "id_offer")]
-    private JobOffer $jobOffer;
+    #[ORM\ManyToOne(targetEntity: Job_offer::class, inversedBy: "applications")]
+    #[ORM\JoinColumn(name: "job_offer_id", referencedColumnName: "id_offer")]
+    private Job_offer $jobOffer;
 
-    #[ORM\ManyToOne(targetEntity: AppUser::class, inversedBy: "jobApplications")]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "jobApplications")]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user")]
-    private AppUser $user;
+    private App_user $user;
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $date_application;
@@ -28,49 +31,74 @@ class ApplicationJob
     #[ORM\Column(type: "string", length: 50)]
     private string $status;
 
-    #[ORM\ManyToOne(targetEntity: Cv::class)]
+    #[ORM\ManyToOne(targetEntity: Cv::class, inversedBy: "applications")]
     #[ORM\JoinColumn(name: "cv_id", referencedColumnName: "id_cv")]
     private Cv $cv;
+    
+    #[ORM\OneToOne(mappedBy: "application", targetEntity: Coverletter::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private ?Coverletter $coverletter = null;
+    
+public function getCoverletter(): ?Coverletter
+{
+    return $this->coverletter;
+}
+public function setCoverletter(?Coverletter $coverletter): self
+{
+    // 1. Handle null case (removing existing relationship)
+   /* if ($coverletter === null && $this->coverletter !== null) {
+        $this->coverletter->setApplication(null); // Tell the cover letter it's no longer associated
+    }*/
+
+    // 2. Handle new cover letter assignment
+    if ($coverletter !== null && $coverletter->getApplication() !== $this) {
+        $coverletter->setApplication($this); // Tell the cover letter about this application
+    }
+
+    // 3. Update this side of the relationship
+    $this->coverletter = $coverletter;
+    return $this;
+}
+
 
     public function getApplication_id(): string
     {
         return $this->application_id;
     }
 
-    public function setApplication_id(string $value): self
+    public function setApplication_id(int $value): self
     {
         $this->application_id = $value;
         return $this;
     }
 
-    public function getJobOffer(): JobOffer
+    public function getJobOffer(): Job_offer
     {
         return $this->jobOffer;
     }
 
-    public function setJobOffer(?JobOffer $jobOffer): self
+    public function setJobOffer(?Job_offer $jobOffer): self
     {
         $this->jobOffer = $jobOffer;
         return $this;
     }
 
-    public function getUser(): AppUser
+    public function getUser(): App_user
     {
         return $this->user;
     }
 
-    public function setUser(AppUser $user): self
+    public function setUser(App_user $user): self
     {
         $this->user = $user;
         return $this;
     }
 
-    public function getDate_application(): \DateTimeInterface
+    public function getDateApplication(): \DateTimeInterface
     {
         return $this->date_application;
     }
 
-    public function setDate_application(\DateTimeInterface $value): self
+    public function setDateApplication(\DateTimeInterface $value): self
     {
         $this->date_application = $value;
         return $this;
@@ -97,4 +125,37 @@ class ApplicationJob
         $this->cv = $cv;
         return $this;
     }
+
+    public function isDraft(): bool
+{
+    return str_starts_with($this->status, 'Applying-');
+}
+
+// In ApplicationJob.php
+public function getStatusStep(): ?int
+{
+    if (str_starts_with($this->status, 'Applying-')) {
+        return (int) explode('-', $this->status)[1];
+    }
+    return null;
+}
+
+public function isInProgress(): bool
+{
+    return str_starts_with($this->status, 'Applying-');
+}
+
+public function isPending(): bool
+{
+    return $this->status === 'Pending';
+}
+
+
+
+public function __construct()
+{
+    $this->coverletter = new Coverletter();
+   // $this->coverletter->setApplication($this);
+}
+
 }

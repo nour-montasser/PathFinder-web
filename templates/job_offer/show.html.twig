@@ -1,197 +1,612 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ job_offer.title }}{% endblock %}
+{% block title %}
+	{{ job_offer.title }}
+	-
+	{{ job_offer.user.name }}
+{% endblock %}
 
 {% block body %}
-<div class="container my-4">
-    <div class="row">
-        <!-- Left Sidebar (1/4 width) -->
-        <div class="col-lg-3">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body text-center">
-                    <div class="position-relative mb-3">
-                        <img src="{{ asset(job_offer.user.image ?: 'images/default-company.png') }}" 
-                             class="rounded-circle border border-3 border-primary" 
-                             width="120" 
-                             alt="Company Logo">
-                        <span class="position-absolute bottom-0 end-0 bg-success p-2 rounded-circle">
-                            <i class="bi bi-check-lg text-white"></i>
-                        </span>
-                    </div>
-                    <h4>{{ job_offer.user.name }}</h4>
-                    <div class="d-flex justify-content-center gap-2 mb-3">
-                        <span class="badge bg-light text-dark">
-                            <i class="bi bi-building me-1"></i> Tech
-                        </span>
-                        <span class="badge bg-light text-dark">
-                            <i class="bi bi-people me-1"></i> 150+
-                        </span>
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-eye"></i> View Profile
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-bookmark"></i> Save
-                        </button>
-                    </div>
-                </div>
-            </div>
+	<div class="container my-4">
+		<div
+			class="row">
+			<!-- Main Content -->
+			<div
+				class="col-lg-8">
+				<!-- Job Header -->
+				<div class="card mb-4 shadow-sm">
+					<div class="card-body">
+						<div class="d-flex justify-content-between align-items-start mb-3">
+							<div>
+								<h1 class="h2 mb-2">{{ job_offer.title }}</h1>
+								<div class="d-flex align-items-center gap-2 mb-2">
+									<span class="badge bg-primary">{{ job_offer.type }}</span>
+									<span class="badge bg-secondary">{{ job_offer.field }}</span>
+								</div>
+							</div>
+							<div>
+								<span class="badge bg-light text-dark border">
+									<i class="bi bi-people-fill text-primary me-1"></i>
+									{{ job_offer.getNumberOfSpots }}
+									position(s)
+								</span>
+							</div>
+						</div>
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Job Snapshot</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="bi bi-calendar text-primary me-2"></i>
-                            <strong>Posted:</strong> {{ job_offer.datePosted|date('M d, Y') }}
-                        </li>
-                        <li class="mb-2">
-                            <i class="bi bi-briefcase text-primary me-2"></i>
-                            <strong>Type:</strong> {{ job_offer.type }}
-                        </li>
-                        <li class="mb-2">
-                            <i class="bi bi-geo-alt text-primary me-2"></i>
-                            <strong>Location:</strong> {{ job_offer.address }}
-                        </li>
-                        <li class="mb-2">
-                            <i class="bi bi-cash-stack text-primary me-2"></i>
-                            <strong>Salary:</strong> $70k - $90k
-                        </li>
-                        <li>
-                            <i class="bi bi-clock text-primary me-2"></i>
-                            <strong>Deadline:</strong> May 15, 2023
-                        </li>
-                    </ul>
-                </div>
-            </div>
+						<div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+							<a href="#" class="text-decoration-none">
+								<div class="d-flex align-items-center">
+									<img src="{{ asset(job_offer.user.image ?: 'images/default-company.png') }}" class="rounded-circle me-2" width="40" alt="{{ job_offer.user.name }} logo">
+									<span class="fw-bold">{{ job_offer.user.name }}</span>
+								</div>
+							</a>
+							<span class="text-muted">{{ job_offer.address }}</span>
+						</div>
+
+						<!-- Owner Actions -->
+						{% if current_user.id_user == job_offer.user.id_user %}
+							<div class="d-flex gap-2 mb-3">
+    <a href="{{ path('app_job_offer_edit', {'id_offer': job_offer.getIdOffer()}) }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-pencil"></i>
+        Edit Job
+    </a>
+    <form method="post" action="{{ path('app_job_offer_delete', {'id_offer': job_offer.getIdOffer()}) }}" onsubmit="return confirm('Are you sure you want to delete this job offer?');">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ job_offer.getIdOffer()) }}">
+        <button type="submit" class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-trash"></i>
+            Delete Job
+        </button>
+    </form>
+
+    {% if job_offer.skillTest is defined and job_offer.skillTest %}
+        <!-- View SkillTest Modal Button -->
+        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#viewSkillTestModal">
+            <i class="bi bi-eye"></i>
+            View Skill Test
+        </button>
+    {% else %}
+        <!-- Create SkillTest Modal Button -->
+        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#createSkillTestModal">
+            <i class="bi bi-plus-circle"></i>
+            Create Skill Test
+        </button>
+    {% endif %}
+</div>
+{# Include the modal below or in a modal block #}
+{% include 'skilltest/new.html.twig' %}
+{#include 'skilltest/_show.html.twig' #}
+						{% endif %}
+
+						<div class="d-flex flex-wrap gap-2">
+							<span class="badge bg-light text-dark border">
+								<i class="bi bi-calendar text-primary me-1"></i>
+								Posted
+								{{ job_offer.getDatePosted|date('M d, Y') }}
+							</span>
+							<span class="badge bg-light text-dark border">
+								<i class="bi bi-mortarboard text-primary me-1"></i>
+								{{ job_offer.getRequiredEducation }}
+							</span>
+							<span class="badge bg-light text-dark border">
+								<i class="bi bi-briefcase text-primary me-1"></i>
+								{{ job_offer.getRequiredExperience }}
+							</span>
+							<span class="badge bg-light text-dark border">
+								<i class="bi bi-pin-map-fill text-primary me-1"></i>
+								{{ job_offer.getAddress }}
+							</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Job Details -->
+				<div class="card mb-4 shadow-sm">
+					<div class="card-header bg-light">
+						<h3 class="h5 mb-0">
+							<i class="bi bi-file-text text-primary me-2"></i>Job Description</h3>
+					</div>
+					<div class="card-body">
+						{{ job_offer.description|nl2br }}
+					</div>
+				</div>
+
+				<!-- Requirements -->
+				<div class="card mb-4 shadow-sm">
+					<div class="card-header bg-light">
+						<h3 class="h5 mb-0">
+							<i class="bi bi-list-check text-primary me-2"></i>Requirements</h3>
+					</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-md-6">
+								<h4 class="h6">
+									<i class="bi bi-mortarboard text-primary me-2"></i>Education</h4>
+								<p>{{ job_offer.getRequiredEducation }}</p>
+
+								<h4 class="h6 mt-3">
+									<i class="bi bi-briefcase text-primary me-2"></i>Experience</h4>
+								<p>{{ job_offer.getRequiredExperience }}</p>
+							</div>
+							<div class="col-md-6">
+								<h4 class="h6">
+									<i class="bi bi-tools text-primary me-2"></i>Skills</h4>
+								<div class="d-flex flex-wrap gap-2">
+									{% for skill in job_offer.skills|split(',') %}
+										{% if skill|trim %}
+											<span class="badge bg-light text-dark border">
+												<i class="bi bi-check-circle text-primary me-1"></i>
+												{{ skill|trim }}
+											</span>
+										{% endif %}
+									{% endfor %}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{% if current_user.id_user == job_offer.user.id_user %}
+					<!-- Applications List for Company -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h3 class="h5 mb-0"><i class="bi bi-people text-primary me-2"></i>Applications ({{ job_offer.applications|length }})</h3>
+        
+        <!-- Add this dropdown for quick filtering -->
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown">
+                <li><h6 class="dropdown-header">Status</h6></li>
+                <li>
+                    <a class="dropdown-item d-flex justify-content-between" href="#" data-filter="all">
+                        All Applications
+                        <span class="badge bg-secondary rounded-pill">{{ job_offer.applications|length }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex justify-content-between" href="#" data-filter="Pending">
+                        Pending
+                        <span class="badge bg-warning rounded-pill">{{ job_offer.applications|filter(app => app.status == 'Pending')|length }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex justify-content-between" href="#" data-filter="Accepted">
+                        Accepted
+                        <span class="badge bg-success rounded-pill">{{ job_offer.applications|filter(app => app.status == 'Accepted')|length }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex justify-content-between" href="#" data-filter="Rejected">
+                        Rejected
+                        <span class="badge bg-danger rounded-pill">{{ job_offer.applications|filter(app => app.status == 'Rejected')|length }}</span>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item d-flex justify-content-between" href="#" data-filter="incomplete">
+                        In Progress
+                        <span class="badge bg-secondary rounded-pill">{{ job_offer.applications|filter(app => 'Applying-' in app.status)|length }}</span>
+                    </a>
+                </li>
+            </ul>
         </div>
-
-        <!-- Main Content (1/2 width) -->
-        <div class="col-lg-6">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h1 class="h3 mb-1">{{ job_offer.title }}</h1>
-                    <div class="d-flex gap-2">
-                        <span class="badge bg-white text-primary">
-                            <i class="bi bi-star-fill me-1"></i> Featured
-                        </span>
-                        <span class="badge bg-light text-dark">
-                            <i class="bi bi-lightning-charge me-1"></i> Urgent
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-body">
-                    <div class="mb-4">
-                        <h3 class="h5"><i class="bi bi-file-text"></i> Description</h3>
-                        <p>{{ job_offer.description }}</p>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <h3 class="h5"><i class="bi bi-list-check"></i> Requirements</h3>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item">
-                                        <i class="bi bi-mortarboard text-primary me-2"></i>
-                                        {{ job_offer.requiredEducation }}
-                                    </li>
-                                    <li class="list-group-item">
-                                        <i class="bi bi-briefcase text-primary me-2"></i>
-                                        {{ job_offer.requiredExperience }}
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item">
-                                        <i class="bi bi-tools text-primary me-2"></i>
-                                        {{ job_offer.skills }}
-                                    </li>
-                                    <li class="list-group-item">
-                                        <i class="bi bi-people text-primary me-2"></i>
-                                        {{ job_offer.numberOfSpots }} openings
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle-fill"></i> 
-                        Applications functionality coming soon. Check back later!
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Sidebar (1/4 width) -->
-        <div class="col-lg-3">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Activity</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Views</span>
-                            <strong>124</strong>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-info" style="width: 75%"></div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Applications</span>
-                            <strong>18</strong>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-success" style="width: 45%"></div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Your Match</span>
-                            <strong>82%</strong>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-primary" style="width: 82%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-share"></i> Share This Job</h5>
-                </div>
-                <div class="card-body text-center">
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-outline-primary">
-                            <i class="bi bi-linkedin"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-info">
-                            <i class="bi bi-twitter"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-danger">
-                            <i class="bi bi-envelope"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary">
-                            <i class="bi bi-link-45deg"></i>
-                        </button>
-                    </div>
-                    <hr>
-                    <button class="btn btn-primary w-100">
-                        <i class="bi bi-bell"></i> Set Alert for Similar Jobs
+    </div>
+    
+    <div class="card-body">
+        {% if job_offer.applications is empty %}
+            <div class="alert alert-info mb-0">No applications yet</div>
+        {% else %}
+            <!-- Add search input -->
+            <div class="mb-3">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="applicationSearch" placeholder="Search applicants...">
+                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                        <i class="bi bi-x"></i>
                     </button>
                 </div>
             </div>
-        </div>
+            
+            <!-- Wrap applications in a container for filtering -->
+            <div id="applicationsContainer">
+                <div class="list-group list-group-flush">
+                    {% for application in job_offer.applications %}
+                        <div class="list-group-item application-item" 
+                             data-status="{{ application.status }}" 
+                             data-name="{{ application.user.name|lower }}">
+                            <!-- Your existing application item content -->
+                            <div class="d-flex align-items-start gap-3 mb-2">
+                                <img src="{{ application.user.image }}" 
+                                     class="rounded-circle border" 
+                                     width="50" 
+                                     height="50"
+                                     style="object-fit: cover;"
+                                     alt="{{ application.user.name }} profile picture">
+                                
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="h6 mb-0">{{ application.user.name }}</h5>
+                                            <small class="text-muted">Applied {{ application.dateApplication|date('M d, Y') }}</small>
+                                        </div>
+                                        <span class="badge rounded-pill 
+                                            {% if application.status == 'Pending' %}bg-warning
+                                            {% elseif application.status == 'Accepted' %}bg-success
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ application.status }}
+                                        </span>
+                                    </div>
+                                    
+                                
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center gap-2 mt-2">
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-primary" 
+                data-bs-toggle="modal" 
+                data-bs-target="#applicationModal-{{ application.application_id }}">
+            <i class="bi bi-eye"></i> View Details
+        </button>
+        {% if application.cv %}
+    <button class="btn btn-sm btn-outline-primary" 
+            data-bs-toggle="modal" 
+            data-bs-target="#cvModal-{{ application.application_id }}">
+        <i class="bi bi-file-earmark-person"></i> View CV
+    </button>
+    {% include 'application_job/_cvModal.html.twig' with {'application': application} %}
+{% endif %}
+    </div>
+    
+    {% if application.status == 'Pending' %}
+    <div class="btn-group ms-auto">
+        <form action="{{ path('app_application_job_accept', {'id': application.application_id}) }}" method="post">
+            <button type="submit" class="btn btn-sm btn-outline-success me-1">Accept</button>
+        </form>
+        <form action="{{ path('app_application_job_reject', {'id': application.application_id}) }}" method="post">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+                        </div>
+                        {% include 'application_job/_applicationModal.html.twig' with {'application': application} %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
+
+				{% elseif current_user.role == 2 %}
+					<!-- Application Process for Regular Users -->
+					<div class="card shadow-sm">
+						<div class="card-header bg-light">
+							<h3 class="h5 mb-0">
+								<i class="bi bi-send-check text-primary me-2"></i>Application Process</h3>
+						</div>
+						<div class="card-body">
+							<div class="steps">
+								<div class="step {% if has_applied[job_offer.getIdOffer()] is defined and 'Applying-' in has_applied[job_offer.getIdOffer()].status and has_applied[job_offer.getIdOffer()].status|split('-')[1] >= 1 %}completed{% endif %}">
+									<div class="step-number">1</div>
+									<div class="step-content">
+										<h5 class="h6 mb-1">Create/Select CV</h5>
+										<p class="small text-muted mb-0">Upload a new CV or select an existing one</p>
+									</div>
+								</div>
+
+								<div class="step {% if has_applied[job_offer.getIdOffer()] is defined and 'Applying-' in has_applied[job_offer.getIdOffer()].status and has_applied[job_offer.getIdOffer()].status|split('-')[1] >= 2 %}completed{% endif %}">
+									<div class="step-number">2</div>
+									<div class="step-content">
+										<h5 class="h6 mb-1">Cover Letter</h5>
+										<p class="small text-muted mb-0">Write or upload your cover letter</p>
+									</div>
+								</div>
+
+								<div class="step {% if has_applied[job_offer.getIdOffer()] is defined and 'Applying-' in has_applied[job_offer.getIdOffer()].status and has_applied[job_offer.getIdOffer()].status|split('-')[1] >= 3 %}completed{% endif %}">
+									<div class="step-number">3</div>
+									<div class="step-content">
+										<h5 class="h6 mb-1">Skill Test</h5>
+										<p class="small text-muted mb-0">Complete the required skill assessment</p>
+									</div>
+								</div>
+
+								<div class="step {% if has_applied[job_offer.getIdOffer()] is defined and 'Applying-' in has_applied[job_offer.getIdOffer()].status and has_applied[job_offer.getIdOffer()].status|split('-')[1] >= 4 %}completed{% endif %}">
+									<div class="step-number">4</div>
+									<div class="step-content">
+										<h5 class="h6 mb-1">Confirm Application</h5>
+										<p class="small text-muted mb-0">Review and submit your application</p>
+									</div>
+								</div>
+							</div>
+
+							<div class="mt-4">
+								{% if has_applied[job_offer.getIdOffer()] is defined %}
+									{% set application = has_applied[job_offer.getIdOffer()] %}
+
+									{% if 'Applying-' in application.status %}
+										<a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" class="btn btn-primary btn-lg w-100">
+											<i class="bi bi-pencil-square"></i>
+											Continue Application (Step
+											{{ application.status|split('-')[1] }}/4)
+										</a>
+									{% elseif application.status == 'Pending' %}
+										<button class="btn btn-outline-primary btn-lg w-100" data-bs-toggle="modal" data-bs-target="#applicationModal-{{ application.application_id }}">
+											<i class="bi bi-eye"></i>
+											View Application
+										</button>
+									{% elseif application.status == 'Accepted'%}
+										<button class="btn btn-outline-secondary btn-lg w-100" disabled>
+											<i class="bi bi-check-circle"></i>
+											{{ application.status }}
+										</button>
+									{% else %}
+										<button class="btn btn-outline-secondary btn-lg w-100" disabled>
+											<i class="bi bi-x-circle"></i>
+											{{ application.status }}
+										</button>
+									{% endif %}
+								{% else %}
+									<a href="{{ path('app_application_job_new', {'job_offer_id': job_offer.getIdOffer()}) }}" class="btn btn-primary btn-lg w-100">
+										<i class="bi bi-send-check"></i>
+										Start Application
+									</a>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+				{% endif %}
+			</div>
+
+			<!-- Sidebar -->
+			<div
+				class="col-lg-4">
+				<!-- Company Profile -->
+				<div class="card mb-4 shadow-sm">
+					<div class="card-header bg-light">
+						<h3 class="h5 mb-0">
+							<i class="bi bi-building text-primary me-2"></i>About the Company</h3>
+					</div>
+					<div class="card-body text-center">
+						<img src="{{ asset(job_offer.user.image ?: 'images/default-company.png') }}" class="rounded-circle border border-3 border-primary mb-3 object-fit-cover" width="120" height="120" style="object-fit: cover;" alt="{{ job_offer.user.name }} logo">
+						<h4>{{ job_offer.user.name }}</h4>
+						<p class="text-muted">{{ job_offer.field }}</p>
+
+						<div class="d-grid gap-2">
+							<button class="btn btn-outline-primary">
+								<i class="bi bi-eye"></i>
+								View Profile
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Job Actions -->
+				<div class="card shadow-sm">
+					<div class="card-header bg-light">
+						<h3 class="h5 mb-0">
+							<i class="bi bi-share text-primary me-2"></i>Share This Job</h3>
+					</div>
+					<div class="card-body">
+						<div class="btn-group w-100" role="group">
+							<button type="button" class="btn btn-outline-primary">
+								<i class="bi bi-linkedin"></i>
+							</button>
+							<button type="button" class="btn btn-outline-primary">
+								<i class="bi bi-twitter"></i>
+							</button>
+							<button type="button" class="btn btn-outline-primary">
+								<i class="bi bi-envelope"></i>
+							</button>
+							<button type="button" class="btn btn-outline-primary">
+								<i class="bi bi-link-45deg"></i>
+							</button>
+						</div>
+						<button class="btn btn-outline-secondary w-100 mt-2">
+							<i class="bi bi-printer"></i>
+							Print Job
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<style>
+		.steps {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+		}
+		.step {
+			display: flex;
+			gap: 1rem;
+			position: relative;
+		}
+		.step:not(:last-child):after {
+			content: '';
+			position: absolute;
+			left: 1.25rem;
+			top: 2.5rem;
+			bottom: -1.5rem;
+			width: 2px;
+			background-color: #e9ecef;
+		}
+		.step.completed:not(:last-child):after {
+			background-color: var(--bs-secondary);
+		}
+		.step-number {
+			width: 2.5rem;
+			height: 2.5rem;
+			border-radius: 50%;
+			background-color: #e9ecef;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: bold;
+			flex-shrink: 0;
+			z-index: 1;
+		}
+		.step.completed .step-number {
+			background-color: var(--bs-secondary);
+			color: white;
+		}
+		.step-content {
+			padding-top: 0.5rem;
+		}
+	</style>
+{% endblock %}
+{% block javascripts %}
+  
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter by status
+    const filterLinks = document.querySelectorAll('[data-filter]');
+    filterLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const filterValue = this.getAttribute('data-filter');
+            const applications = document.querySelectorAll('.application-item');
+            
+            applications.forEach(app => {
+                const status = app.getAttribute('data-status');
+                const show = filterValue === 'all' || 
+                            (filterValue === 'incomplete' && status.includes('Applying-')) || 
+                            status === filterValue;
+                
+                app.style.display = show ? '' : 'none';
+            });
+            
+            // Update active state
+            filterLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    
+    // Search functionality
+    const searchInput = document.getElementById('applicationSearch');
+    const clearSearch = document.getElementById('clearSearch');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const applications = document.querySelectorAll('.application-item');
+        
+        applications.forEach(app => {
+            const name = app.getAttribute('data-name');
+            const matchesSearch = name.includes(searchTerm);
+            
+            if (searchTerm === '' || matchesSearch) {
+                app.style.display = '';
+            } else {
+                app.style.display = 'none';
+            }
+        });
+    });
+    
+    clearSearch.addEventListener('click', function() {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+    });
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Question collection handling (existing code)
+    const collectionHolder = document.querySelector('#questions-collection-wrapper');
+    const addButton = document.querySelector('#add-question-btn');
+    let index = collectionHolder.querySelectorAll('.question-item').length;
+    const prototype = collectionHolder.dataset.prototype;
+
+    addButton.addEventListener('click', () => {
+        const newForm = prototype.replace(/__name__/g, index);
+        index++;
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString('<div>' + newForm + '</div>', 'text/html');
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('question-item');
+        wrapper.innerHTML = doc.body.firstChild.innerHTML;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn-remove';
+        btn.textContent = 'Remove';
+        btn.addEventListener('click', () => wrapper.remove());
+        wrapper.appendChild(btn);
+
+        collectionHolder.appendChild(wrapper);
+    });
+
+    
+    // AJAX form submission
+    const skillTestForm = document.querySelector('#createSkillTestModal form');
+    if (skillTestForm) {
+        skillTestForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(skillTestForm);
+            // Add job offer ID to the form data
+           
+            
+            const submitButton = skillTestForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            
+            try {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating...';
+                
+                const response = await fetch(skillTestForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success message
+                    const toast = new bootstrap.Toast(document.getElementById('successToast'));
+                    document.getElementById('toastMessage').textContent = data.message;
+                    toast.show();
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createSkillTestModal'));
+                    modal.hide();
+                    
+                    // Update UI
+                    const createBtn = document.querySelector('[data-bs-target="#createSkillTestModal"]');
+                    if (createBtn) {
+                        createBtn.outerHTML = `
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" 
+                                    data-bs-target="#viewSkillTestModal" data-skilltest-id="${data.skillTestId}">
+                                <i class="bi bi-eye"></i>
+                                View Skill Test
+                            </button>
+                        `;
+                    }
+                } else {
+                    // Show validation errors in a more user-friendly way
+                    let errorMessages = "Please fix the following errors:\n";
+                    data.errors.forEach(error => {
+                        errorMessages += `• ${error}\n`;
+                    });
+                    alert(errorMessages);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while creating the skill test');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

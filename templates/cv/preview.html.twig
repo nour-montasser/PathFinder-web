@@ -1,0 +1,260 @@
+{# templates/cv/preview.html.twig #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>{{ cv.title ?: 'My CV' }}</title>
+  <style>
+    @page { size: A4 portrait; margin: 0; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 210mm;  /* exact A4 width */
+      height: 297mm; /* exact A4 height */
+      box-sizing: border-box;
+    }
+    *, *::before, *::after { box-sizing: inherit; }
+
+    #cvPreviewContainer {
+      font-family: Georgia, 'Times New Roman', serif;
+      color: #333333;
+      line-height: 1.5;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 10mm;           /* use mm so it's consistent with A4 */
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* HEADER */
+    #headerContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .cv-header-name {
+      font-family: 'Merriweather', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #3B261D;
+      margin: 0;
+    }
+    .cv-header-role {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #555555;
+      margin: 0;
+    }
+
+    /* SECTION TITLES */
+    .cv-section-header {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #3B261D;
+      text-align: center;
+      margin: 1rem 0 0.25rem;
+    }
+
+    /* PARAGRAPH */
+    .cv-paragraph {
+      font-size: 0.875rem;
+      line-height: 1.6;
+      margin: 0 0 1rem;
+    }
+
+    /* EXPERIENCE */
+    .exp-entry {
+      margin-bottom: 1.5rem;
+    }
+    .exp-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .exp-company {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #3B261D;
+    }
+    .exp-role {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #555555;
+    }
+    .exp-meta {
+      text-align: right;
+      font-size: 0.875rem;
+      color: #555555;
+      line-height: 1.3;
+    }
+    .exp-bullets {
+      margin: 0.75rem 0 0 1rem;
+      list-style-type: disc;
+    }
+    .exp-bullets li { margin-bottom: 0.5rem; }
+
+    /* EDUCATION */
+    .edu-entry {
+      margin-bottom: 1.5rem;
+    }
+    .edu-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .edu-degree {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #3B261D;
+    }
+    .edu-institution {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #555555;
+    }
+    .edu-meta {
+      text-align: right;
+      font-size: 0.875rem;
+      color: #555555;
+      line-height: 1.3;
+    }
+
+    /* CERTIFICATES */
+    .cert-entry {
+      margin-bottom: 1.5rem;
+    }
+    .cert-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .cert-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #3B261D;
+    }
+    .cert-issuer {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #555555;
+    }
+    .cert-bullets {
+      margin: 0.75rem 0 0 1rem;
+      list-style-type: disc;
+    }
+    .cert-bullets li { margin-bottom: 0.5rem; }
+
+  </style>
+</head>
+<body>
+  <div id="cvPreviewContainer">
+
+    {# HEADER #}
+    <div id="headerContainer">
+      <h1 class="cv-header-name">{{ cv.userTitle }}</h1>
+      <h2 class="cv-header-role">{{ cv.title }}</h2>
+    </div>
+
+    {# SUMMARY #}
+    {% if cv.introduction %}
+      <div class="cv-section-header">Summary</div>
+      <div class="cv-paragraph">{{ cv.introduction }}</div>
+    {% endif %}
+
+    {# EXPERIENCE #}
+    {% set internships = cv.experiences|filter(e => e.type == 'Internship') %}
+    {% if internships|length %}
+      <div class="cv-section-header">Experience</div>
+      {% for exp in internships %}
+        <div class="exp-entry">
+          <div class="exp-main">
+            <div>
+              <div class="exp-company">{{ exp.position }}</div>
+              <div class="exp-role">{{ exp.description|split("\n")|first }}</div>
+            </div>
+            <div class="exp-meta">
+              <div>{{ exp.locationname }}</div>
+              <div>{{ exp.startdate|date('d M Y') }} – {{ exp.enddate ? exp.enddate|date('d M Y') : 'Present' }}</div>
+            </div>
+          </div>
+          {% if exp.description %}
+            <ul class="exp-bullets">
+              {% for line in exp.description|split("\n") %}
+                <li>{{ line|trim }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {# EDUCATION #}
+    {% set academics = cv.experiences|filter(e => e.type == 'Academic') %}
+    {% if academics|length %}
+      <div class="cv-section-header">Education</div>
+      {% for ed in academics %}
+        <div class="edu-entry">
+          <div class="edu-main">
+            <div>
+              <div class="edu-degree">{{ ed.position }}</div>
+              <div class="edu-institution"> {{ ed.locationName }}</div>
+            </div>
+            <div class="edu-meta">
+              <div>{{ ed.startdate|date('Y') }} – {{ ed.enddate ? ed.enddate|date('Y') : 'Present' }}</div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {# SKILLS #}
+    {% set skills = cv.skills ? (cv.skills|split(',')|map(s => s|trim)|filter(s => s)) : [] %}
+    {% if skills|length %}
+      <div class="cv-section-header">Skills</div>
+      <div class="cv-paragraph">{{ skills|join(', ') }}</div>
+    {% endif %}
+
+    {# LANGUAGES #}
+    {% if cv.languages|length %}
+      <div class="cv-section-header">Languages</div>
+      {% for lang in cv.languages %}
+        <div class="cv-paragraph">{{ lang.languagename }} – {{ lang.level }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {# CERTIFICATES #}
+    {% if cv.certificates|length %}
+      <div class="cv-section-header">Certificates</div>
+      {% for cert in cv.certificates %}
+        <div class="cert-entry">
+          <div class="cert-main">
+            <div>
+              <div class="cert-title">{{ cert.title }}</div>
+              <div class="cert-issuer">Issued by: {{ cert.issuedBy }}</div>
+            </div>
+            <div class="cert-meta">
+              <div>{{ cert.issueDate|date('d M Y') }}</div>
+            </div>
+          </div>
+          {% if cert.description %}
+            <ul class="cert-bullets">
+              {% for line in cert.description|split("\n")  %}
+                <li>{{ line|trim }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+  </div>
+</body>
+</html>

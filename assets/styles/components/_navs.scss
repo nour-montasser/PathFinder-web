@@ -1,0 +1,105 @@
+/* Navbar Container */
+.navbar-container {
+    background-color: rgba(59, 38, 29, 0.8);
+    border-radius: 0;
+    border: none;
+    padding: 0.75rem 2rem;
+}
+
+/* Larger Logo */
+.navbar-logo {
+    height: 50px;
+    transition: transform 0.3s ease;
+}
+
+.navbar-logo:hover {
+    transform: scale(1.05);
+}
+
+/* Centered Tabs with Right-to-Left Underline */
+.nav-tabs {
+    border: none;
+    font-size: 1.1rem;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: white !important;
+    position: relative;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    overflow: hidden;
+}
+
+/* Right-to-left underline animation */
+.nav-tabs .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 1.5rem; /* Start from right */
+    height: 3px;
+    background-color: white;
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover::after {
+    width: calc(100% - 3rem);
+    left: 1.5rem; /* Grow to left */
+    right: auto;
+}
+
+/* Active state (no animation) */
+.nav-tabs .nav-link.active::after {
+    content: '';
+    width: calc(100% - 3rem);
+    position: absolute;
+    bottom: 0;
+    height: 3px;
+    background-color: white;
+    left: 1.5rem;
+    transition: none;
+}
+
+.nav-tabs .nav-link.active {
+    background: linear-gradient(to top, 
+                rgba(255, 255, 255, 0.15) 0%, 
+                transparent 100%);
+}
+
+/* Profile Image Styles */
+.avatar-xl {
+    width: 56px;
+    height: 56px;
+    position: relative;
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.2);
+    transition: transform 0.3s ease;
+}
+
+/* Dropdown Styles */
+.dropdown-menu {
+    display: none;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.dropdown-menu.show {
+    display: block;
+    opacity: 1;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+body {
+    padding-top: 150px;
+}
