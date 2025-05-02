@@ -1,0 +1,29 @@
+<div class="d-flex border rounded shadow-sm p-3 mb-3 align-items-center proposal-card">
+  <img src="{{ asset('uploads/users/' ~ app.user.image) }}" 
+       alt="Profile Picture"
+       class="rounded-circle me-3"
+       style="width: 60px; height: 60px; object-fit: cover;">
+
+  <div class="flex-grow-1">
+    <div class="d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold mb-1">{{ app.user.name }}</h6>
+      <small class="text-muted fst-italic">Submitted: {{ app.service.datePosted|date('M d, Y') }}</small>
+    </div>
+
+    <p class="mb-1">{{ app.description }}</p>
+    <div class="text-muted small">💲 Price Offered: {{ app.priceOffre|format_currency('USD') }}</div>
+
+    {% if app.portfolio %}
+      <a href="{{ app.portfolio }}" target="_blank" class="small text-primary d-block mt-1">📎 Portfolio</a>
+    {% endif %}
+  </div>
+
+  <div class="ms-3 d-flex flex-column gap-1 text-center">
+    <form method="post" action="{{ path('client_accept_application', { idService: serviceoffre.idService, appId: app.idApp }) }}">
+      <button class="btn btn-outline-success btn-sm">Accept</button>
+    </form>
+    <form method="post" action="{{ path('client_reject_application', { idService: serviceoffre.idService, appId: app.idApp }) }}">
+      <button class="btn btn-outline-danger btn-sm">Reject</button>
+    </form>
+  </div>
+</div>

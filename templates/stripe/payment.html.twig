@@ -1,0 +1,19 @@
+<h2>Pay with Stripe</h2>
+
+<button id="checkout-button" class="btn btn-primary">Checkout</button>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe('{{ stripe_public_key }}');
+
+    document.getElementById("checkout-button").addEventListener("click", () => {
+        fetch("{{ path('create_checkout_session') }}", {
+            method: "POST"
+        })
+        .then(res => res.json())
+        .then(data => {
+            return stripe.redirectToCheckout({ sessionId: data.id });
+        })
+        .catch(error => console.error(error));
+    });
+</script>

@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+  <h1 class="mb-4">User Profile</h1>
+
+  {% if user %}
+    <ul class="list-group">
+      <li class="list-group-item"><strong>ID:</strong> {{ user.idUser }}</li>
+      <li class="list-group-item"><strong>Username:</strong> {{ user.username }}</li>
+      <li class="list-group-item"><strong>Email:</strong> {{ user.email }}</li>
+    </ul>
+    <a href="{{ path('app_user_logout') }}" class="btn btn-danger mt-3">Logout</a>
+  {% else %}
+    <p>No user is currently logged in.</p>
+    <a href="{{ path('app_user_login', {id: 1}) }}" class="btn btn-primary">Mock Login as User #1</a>
+  {% endif %}
+</div>
+{% endblock %}

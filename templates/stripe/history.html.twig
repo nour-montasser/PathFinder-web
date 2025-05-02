@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Payment History{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+  <h1 class="mb-4 text-brown">My Payment History</h1>
+
+  <div class="card shadow-sm p-4">
+    <div class="d-flex justify-content-between mb-3">
+      <h5 class="text-brown mb-0">Sort by:</h5>
+      <select id="sortPayments" class="form-select w-auto" style="max-width: 200px;">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="amount_high">Amount High to Low</option>
+        <option value="amount_low">Amount Low to High</option>
+      </select>
+    </div>
+
+    <div class="table-responsive">
+      <table id="paymentsTable" class="table table-hover align-middle">
+        <thead>
+          <tr class="text-brown">
+            <th>Service</th>
+            <th>Freelancer</th>
+            <th>Amount Paid</th>
+            <th>Paid On</th>
+            <th>Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payment in payments %}
+            <tr>
+              <td>{{ payment.application.service.title }}</td>
+              <td>N/A</td> {# No freelancer linked yet #}
+              <td data-amount="{{ payment.amount }}">
+                <strong>${{ payment.amount|number_format(2, '.', ',') }}</strong>
+              </td>
+              <td data-paid="{{ payment.paidAt ? payment.paidAt.timestamp : 0 }}">
+                {{ payment.paidAt|date('M d, Y') }}
+              </td>
+              <td>
+               <a href="{{ path('payment_receipt', {'id': payment.id}) }}" class="btn btn-sm brown-button">
+    View Receipt </a>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="5" class="text-center text-muted">No payments yet.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+.text-brown {
+  color: #6f4f1f;
+}
+
+.table thead th {
+  font-weight: bold;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f9f6f0;
+}
+
+.btn-outline-primary {
+  border-color: #6f4f1f;
+  color: #6f4f1f;
+}
+
+.btn-outline-primary:hover {
+  background-color: #6f4f1f;
+  color: #fff;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const sortSelect = document.getElementById('sortPayments');
+  const tableBody = document.querySelector('#paymentsTable tbody');
+
+  sortSelect.addEventListener('change', function () {
+    const rows = Array.from(tableBody.querySelectorAll('tr'));
+    const sortType = this.value;
+
+    rows.sort((a, b) => {
+      if (sortType === 'newest') {
+        return parseInt(b.querySelector('[data-paid]').dataset.paid) - parseInt(a.querySelector('[data-paid]').dataset.paid);
+      } else if (sortType === 'oldest') {
+        return parseInt(a.querySelector('[data-paid]').dataset.paid) - parseInt(b.querySelector('[data-paid]').dataset.paid);
+      } else if (sortType === 'amount_high') {
+        return parseFloat(b.querySelector('[data-amount]').dataset.amount) - parseFloat(a.querySelector('[data-amount]').dataset.amount);
+      } else if (sortType === 'amount_low') {
+        return parseFloat(a.querySelector('[data-amount]').dataset.amount) - parseFloat(b.querySelector('[data-amount]').dataset.amount);
+      }
+      return 0;
+    });
+
+    rows.forEach(row => tableBody.appendChild(row)); // Reattach in sorted order
+  });
+});
+</script>
+{% endblock %}

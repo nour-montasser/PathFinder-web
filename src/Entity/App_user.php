@@ -41,11 +41,19 @@ class App_user
 
     // Channels initiated by the user
     #[ORM\OneToMany(mappedBy: "initiator", targetEntity: Channel::class)]
+    // Channels initiated by the user
+    #[ORM\OneToMany(mappedBy: "initiator", targetEntity: Channel::class)]
     private Collection $channelsInitiated;
     
     // Channels where the user is receiver
     #[ORM\OneToMany(mappedBy: "receiver", targetEntity: Channel::class)]
+    
+    // Channels where the user is receiver
+    #[ORM\OneToMany(mappedBy: "receiver", targetEntity: Channel::class)]
     private Collection $channelsReceived;
+    
+    // Service applications: owning side in Applicationservice must use inversedBy="serviceApplications"
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: Applicationservice::class)]
     
     // Service applications: owning side in Applicationservice must use inversedBy="serviceApplications"
     #[ORM\OneToMany(mappedBy: "user", targetEntity: Applicationservice::class)]
@@ -57,7 +65,13 @@ class App_user
     
     // Job offers
     #[ORM\OneToMany(mappedBy: "user", targetEntity: Job_offer::class)]
+    
+    // Job offers
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: Job_offer::class)]
     private Collection $jobOffers;
+    
+    // Service offers
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: Serviceoffre::class)]
     
     // Service offers
     #[ORM\OneToMany(mappedBy: "user", targetEntity: Serviceoffre::class)]
@@ -65,10 +79,18 @@ class App_user
     
     // CVs
     #[ORM\OneToMany(mappedBy: "user", targetEntity: Cv::class)]
+    
+    // CVs
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: Cv::class)]
     private Collection $cvs;
     
     #[ORM\OneToMany(mappedBy: "sender", targetEntity: Message::class)]
+    
+    #[ORM\OneToMany(mappedBy: "sender", targetEntity: Message::class)]
     private Collection $sentMessages;
+    
+    // Reports sent by this user: owning side in Report should use inversedBy="sentReports"
+    #[ORM\OneToMany(mappedBy: "userSender", targetEntity: Report::class)]
     
     // Reports sent by this user: owning side in Report should use inversedBy="sentReports"
     #[ORM\OneToMany(mappedBy: "userSender", targetEntity: Report::class)]
@@ -76,7 +98,13 @@ class App_user
     
     // Reports received by this user: owning side in Report should use inversedBy="receivedReports"
     #[ORM\OneToMany(mappedBy: "userTarget", targetEntity: Report::class)]
+    
+    // Reports received by this user: owning side in Report should use inversedBy="receivedReports"
+    #[ORM\OneToMany(mappedBy: "userTarget", targetEntity: Report::class)]
     private Collection $receivedReports;
+    
+    // Test results: owning side in Test_result must use inversedBy="testResults"
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: Test_result::class)]
     
     // Test results: owning side in Test_result must use inversedBy="testResults"
     #[ORM\OneToMany(mappedBy: "user", targetEntity: Test_result::class)]
@@ -84,7 +112,11 @@ class App_user
     
     // Profile: owning side in Profile should use inversedBy="profile" (or adjust consistently)
     #[ORM\OneToOne(mappedBy: "user", targetEntity: Profile::class)]
+    
+    // Profile: owning side in Profile should use inversedBy="profile" (or adjust consistently)
+    #[ORM\OneToOne(mappedBy: "user", targetEntity: Profile::class)]
     private ?Profile $profile = null;
+    
     
     public function __construct()
     {
@@ -105,7 +137,7 @@ class App_user
     
     public function getId_user(): int
     {
-        return $this->id_user;
+        return $this->idUser;
     }
     
     public function setId_user(int $id_user): self
@@ -115,15 +147,23 @@ class App_user
     }
     
     public function getName(): string
+    
+    public function getName(): string
     {
         return $this->name;
     }
     
     public function setName(string $name): self
+    
+    public function setName(string $name): self
     {
         $this->name = $name;
         return $this;
+        $this->name = $name;
+        return $this;
     }
+    
+    public function getEmail(): string
     
     public function getEmail(): string
     {
@@ -131,10 +171,16 @@ class App_user
     }
     
     public function setEmail(string $email): self
+    
+    public function setEmail(string $email): self
     {
         $this->email = $email;
         return $this;
+        $this->email = $email;
+        return $this;
     }
+    
+    public function getPassword(): string
     
     public function getPassword(): string
     {
@@ -142,7 +188,11 @@ class App_user
     }
     
     public function setPassword(string $password): self
+    
+    public function setPassword(string $password): self
     {
+        $this->password = $password;
+        return $this;
         $this->password = $password;
         return $this;
     }
@@ -156,7 +206,11 @@ class App_user
     {
         $this->role = $role;
         return $this;
+        $this->role = $role;
+        return $this;
     }
+    
+    public function getImage(): string
     
     public function getImage(): string
     {
@@ -164,7 +218,23 @@ class App_user
     }
     
     public function setImage(string $image): self
+    
+    public function setImage(string $image): self
     {
+        $this->image = $image;
+        return $this;
+    }
+    
+    public function getChannelsInitiated(): Collection
+    {
+        return $this->channelsInitiated;
+    }
+    
+    public function getChannelsReceived(): Collection
+    {
+        return $this->channelsReceived;
+    }
+    
         $this->image = $image;
         return $this;
     }
@@ -184,50 +254,60 @@ class App_user
         return $this->serviceApplications;
     }
     
+    
     public function getJobApplications(): Collection
     {
         return $this->jobApplications;
     }
+    
     
     public function getJobOffers(): Collection
     {
         return $this->jobOffers;
     }
     
+    
     public function getServiceOffers(): Collection
     {
         return $this->serviceOffers;
     }
+    
     
     public function getCvs(): Collection
     {
         return $this->cvs;
     }
     
+    
     public function getSentMessages(): Collection
     {
         return $this->sentMessages;
     }
+    
     
     public function getSentReports(): Collection
     {
         return $this->sentReports;
     }
     
+    
     public function getReceivedReports(): Collection
     {
         return $this->receivedReports;
     }
+    
     
     public function getTestResults(): Collection
     {
         return $this->testResults;
     }
     
+    
     public function getProfile(): ?Profile
     {
         return $this->profile;
     }
+    
     
     public function setProfile(?Profile $profile): self
     {

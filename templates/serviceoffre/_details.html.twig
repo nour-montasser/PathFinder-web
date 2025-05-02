@@ -1,0 +1,114 @@
+<div class="drawer-body px-4 py-4" style="font-family: 'Segoe UI', sans-serif; max-height: 90vh; overflow-y: auto;">
+
+  <!-- Header with Title and Close Button -->
+  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <h1 class="fw-bold mb-3">{{ serviceoffre.title }}</h1>
+    
+  </div>
+
+  <!-- Title -->
+  
+  <p class="text-muted mb-3" style="font-size: 0.875rem;">Posted on {{ serviceoffre.datePosted|date('F j, Y') }}</p>
+
+  <!-- Description -->
+  <p class="service-description">{{ serviceoffre.description }}</p>
+
+ <!-- Info Row -->
+<div class="info-row d-flex flex-wrap gap-4 border-top pt-4 mb-4 text-muted">
+  <div><strong>Duration:</strong> {{ serviceoffre.duration }}</div>
+  <div><strong>Price:</strong> {{ serviceoffre.price|format_currency('USD') }}</div>
+  <div><strong>Experience Level:</strong> {{ serviceoffre.experienceLevel }}</div>
+</div>
+
+<!-- Skills -->
+{% if serviceoffre.skills %}
+  <div class="skills-list mb-5">
+    <div class="d-flex flex-wrap gap-2">
+      {% for skill in serviceoffre.skills|split(',') %}
+        <span class="skill-badge badge rounded-pill">
+          {{ skill|trim }}
+        </span>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+
+  <!-- Action -->
+  <div class="mt-5 text-end border-top pt-4">
+    <a href="{{ path('app_serviceoffre_new') }}" class="btn btn-outline-dark">
+      <i class="bi bi-plus-circle me-1"></i> Post a Service Like This
+    </a>
+  </div>
+</div>
+
+<script>
+  function closeDrawer() {
+    // Implement your drawer close logic here (e.g., hide modal, drawer slide-out, etc.)
+    document.querySelector('.drawer-body').style.display = 'none';
+  }
+</script>
+<style>
+.badge {
+  transition: background-color 0.2s ease;
+}
+.badge:hover {
+  background-color: #f0f0f0;
+}
+
+.service-details h1{
+    margin-bottom: 1rem;
+  }
+
+  .service-details p {
+    margin-bottom: 1.25rem;
+  }
+
+  .service-details .badge {
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .service-details .text-end {
+    margin-top: 2rem;
+  }
+
+  .service-description {
+  margin-top: 4rem;     /* adds space above */
+  font-size: 1.1rem;      /* increases text size */
+  line-height: 1.7;       /* makes it more readable */
+  color: #4a4a4a;         /* subtle gray tone */
+}
+
+/* Info Row Styles */
+.info-row {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-top: 4rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
+}
+
+/* Skill Badge Styling */
+.skill-badge {
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  color: #333;
+  transition: all 0.2s ease-in-out;
+}
+
+.skill-badge:hover {
+  background-color: #ececec;
+  border-color: #bbb;
+  cursor: default;
+}
+
+/* Optional bottom spacing after skills section */
+.skills-list {
+  margin-top: 4rem;
+}
+
+
+</style>

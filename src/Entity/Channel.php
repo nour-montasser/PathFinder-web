@@ -5,7 +5,10 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\App_user;
+use App\Entity\Message;
 use App\Entity\Message;
 
 #[ORM\Entity]
@@ -29,6 +32,9 @@ class Channel
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $time_created;
+    // NEW: Add the messages property
+    #[ORM\OneToMany(mappedBy: "channel", targetEntity: Message::class)]
+    private Collection $messages;
     // NEW: Add the messages property
     #[ORM\OneToMany(mappedBy: "channel", targetEntity: Message::class)]
     private Collection $messages;

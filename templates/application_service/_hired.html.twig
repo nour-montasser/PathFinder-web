@@ -1,0 +1,23 @@
+<li class="list-group-item d-flex justify-content-between align-items-center">
+  <div>
+    <strong>{{ hire.user.name }}</strong><br>
+    <small class="text-muted">💲 {{ hire.priceOffre|format_currency('USD') }}</small>
+  </div>
+
+  <div class="text-end">
+    <span class="badge bg-success">Accepted</span>
+    <div class="mt-2">
+     {% if hire.idApp %}
+  <button 
+    class="btn btn-sm btn-primary start-payment-btn"
+    data-service-id="{{ hire.idApp }}">
+    Start Payment Process
+  </button>
+{% else %}
+  <p class="text-danger small">Missing Application ID</p>
+{% endif %}
+
+
+    </div>
+  </div>
+</li>

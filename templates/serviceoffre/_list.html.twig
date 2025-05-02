@@ -1,0 +1,7 @@
+{% for service in serviceoffres %}
+  {% include 'serviceoffre/_card.html.twig' with { service: service, sessionUser: sessionUser } %}
+{% else %}
+  <div class="col-12 text-center text-muted">
+    <p>No service offers found.</p>
+  </div>
+{% endfor %}

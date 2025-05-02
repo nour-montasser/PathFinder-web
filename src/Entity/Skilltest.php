@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Entity;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -8,6 +7,10 @@ use App\Entity\Questions;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use App\Entity\Job_offer;
+use App\Entity\Questions;
 
 #[ORM\Entity]
 class Skilltest
@@ -34,6 +37,7 @@ class Skilltest
     #[Assert\LessThanOrEqual(value: 180, message: "Tests can't be longer than 180 minutes.")]
     private int $duration;
 
+    #[ORM\ManyToOne(targetEntity: Job_offer::class, inversedBy: "skillTests")]
     #[ORM\ManyToOne(targetEntity: Job_offer::class, inversedBy: "skillTests")]
     #[ORM\JoinColumn(name: "id_job_offer", referencedColumnName: "id_offer")]
     #[Assert\NotNull(message: "You must assign a Job Offer to this Skilltest.")]

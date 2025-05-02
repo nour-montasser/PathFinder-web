@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Serviceoffre;
 use App\Entity\App_user;
@@ -10,35 +12,51 @@ use App\Entity\App_user;
 class Applicationservice
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: "bigint")]
-    private int $id_app;
+    #[ORM\GeneratedValue(strategy: "IDENTITY")]
+    #[ORM\Column(name: "id_app", type: "bigint")]
+    private ?int $idApp = null;
 
     #[ORM\ManyToOne(targetEntity: Serviceoffre::class, inversedBy: "applicationservices")]
-    #[ORM\JoinColumn(name: 'id_service', referencedColumnName: 'id_service', onDelete: 'CASCADE')]
-    private Serviceoffre $service;
+    #[ORM\JoinColumn(name: "id_service", referencedColumnName: "id_service", nullable: true)]
+    private ?Serviceoffre $service = null;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class,inversedBy: "serviceApplications")]
-    #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user')]
+    #[ORM\ManyToOne(targetEntity: App_user::class, inversedBy: "serviceApplications")]
+    #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", nullable: true)]
     private App_user $user;
 
-    #[ORM\Column(type: "float")]
-    private float $price_offre;
+    #[ORM\Column(name: "price_offre", type: "float")]
+    private float $priceOffre;
 
     #[ORM\Column(type: "string", length: 25)]
-    private string $status;
+private string $status = 'pending';
 
-    #[ORM\Column(type: "boolean")]
-    private bool $rating;
 
-    public function getId_app(): int
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?int $rating = 0;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(name: "portfolio", type: 'string', length: 255, nullable: true)]
+    private ?string $portfolio = null;
+
+  
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'application')]
+    private Collection $payments;
+
+    public function __construct()
     {
-        return $this->id_app;
+        $this->payments = new ArrayCollection();
     }
 
-    public function setId_app(int $value): self
+    public function getIdApp(): ?int
     {
-        $this->id_app = $value;
+        return $this->idApp;
+    }
+
+    public function setIdApp(int $idApp): self
+    {
+        $this->idApp = $idApp;
         return $this;
     }
 
@@ -58,20 +76,20 @@ class Applicationservice
         return $this->user;
     }
 
-    public function setUser(?App_user $user): self
+    public function setUser(App_user $user): self
     {
         $this->user = $user;
         return $this;
     }
 
-    public function getPrice_offre(): float
+    public function getPriceOffre(): float
     {
-        return $this->price_offre;
+        return $this->priceOffre;
     }
 
-    public function setPrice_offre(float $value): self
+    public function setPriceOffre(float $priceOffre): self
     {
-        $this->price_offre = $value;
+        $this->priceOffre = $priceOffre;
         return $this;
     }
 
@@ -80,20 +98,77 @@ class Applicationservice
         return $this->status;
     }
 
-    public function setStatus(string $value): self
+    public function setStatus(string $status): self
     {
-        $this->status = $value;
+        $this->status = $status;
         return $this;
     }
 
-    public function getRating(): bool
+    public function getRating(): ?int
+{
+    return $this->rating;
+}
+
+public function setRating(?int $rating): self
+{
+    $this->rating = $rating;
+    return $this;
+}
+
+
+    public function getDescription(): ?string
     {
-        return $this->rating;
+        return $this->description;
     }
 
-    public function setRating(bool $value): self
+    public function setDescription(?string $description): self
     {
-        $this->rating = $value;
+        $this->description = $description;
         return $this;
     }
-}   
+
+    public function getPortfolio(): ?string
+    {
+        return $this->portfolio;
+    }
+
+    public function setPortfolio(?string $portfolio): self
+    {
+        $this->portfolio = $portfolio;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): static
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setApplication($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): static
+    {
+        if ($this->payments->removeElement($payment)) {
+            // set the owning side to null (unless already changed)
+            if ($payment->getApplication() === $this) {
+                $payment->setApplication(null);
+            }
+        }
+
+        return $this;
+    }
+
+
+
+
+}

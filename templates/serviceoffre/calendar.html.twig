@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Calendar{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {# FullCalendar basic CSS #}
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
+    {# SweetAlert2 CSS (for modals) #}
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {# FullCalendar + SweetAlert2 from CDN #}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {# Your compiled custom calendar.js where you control calendar behavior #}
+    {{ encore_entry_script_tags('calendar') }}
+{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <h1 class="text-brown mb-4"> My Calendar</h1>
+
+    <div id="calendar"></div>
+</div>
+
+<style>
+    #calendar {
+        background-color: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        margin-top: 20px;
+        transition: all 0.3s ease;
+    }
+
+    /* Smooth hover effect */
+    #calendar:hover {
+        box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    }
+
+    .swal2-popup {
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}

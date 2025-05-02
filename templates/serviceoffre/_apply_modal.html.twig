@@ -1,0 +1,154 @@
+
+<div class="application-modal-wrapper">
+  <div class="application-modal-box">
+    <div class="modal-header mb-4">
+      <h4 class="modal-title">Apply to: <strong>{{ serviceoffre.title }}</strong></h4>
+      <button class="close-btn" onclick="closeCustomModal()">×</button>
+    </div>
+
+    {{ form_start(form, {
+      action: path('app_serviceoffre_apply', { idService: serviceoffre.idService }),
+      attr: {
+        id: 'applicationForm',
+        class: 'application-form'
+      }
+    }) }}
+
+    <!-- Description -->
+<div class="form-group mb-4">
+  <label for="application_description" class="form-label">Your Proposal</label>
+  {% set errorClass = form_errors(form.description) ? 'is-invalid' : '' %}
+  {{ form_widget(form.description, {
+    attr: {
+      class: 'form-control input-lg ' ~ errorClass,
+      rows: 4,
+      placeholder: 'Briefly explain your approach for this project...'
+    }
+  }) }}
+  <div class="text-danger mt-1">
+    {{ form_errors(form.description) }}
+  </div>
+</div>
+
+<!-- Price Offer -->
+<div class="form-group mb-4">
+  <label for="application_priceOffre" class="form-label">Your Price Offer ($)</label>
+  {% set errorClass = form_errors(form.priceOffre) ? 'is-invalid' : '' %}
+  {{ form_widget(form.priceOffre, {
+    attr: {
+      class: 'form-control input-md ' ~ errorClass,
+      placeholder: 'e.g. 150.00'
+    }
+  }) }}
+  <div class="text-danger mt-1">
+    {{ form_errors(form.priceOffre) }}
+  </div>
+  <div class="small text-muted mt-1">This is the price you offer for completing this service.</div>
+</div>
+
+<!-- Portfolio -->
+<div class="form-group mb-4">
+  <label for="application_portfolio" class="form-label">Portfolio Link <span class="text-muted">(optional)</span></label>
+  {% set errorClass = form_errors(form.portfolio) ? 'is-invalid' : '' %}
+  {{ form_widget(form.portfolio, {
+    attr: {
+      class: 'form-control ' ~ errorClass,
+      placeholder: 'https://your-portfolio.com'
+    }
+  }) }}
+  <div class="text-danger mt-1">
+    {{ form_errors(form.portfolio) }}
+  </div>
+</div>
+
+
+    <div class="form-group mt-4 d-flex justify-content-end">
+      <button type="submit" class="btn btn-purple" id="submitApplicationBtn">
+        Submit Application
+        <span id="applySpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+      </button>
+    </div>
+
+    {{ form_end(form) }}
+  </div>
+</div>
+
+<style>
+.application-modal-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1055;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.application-modal-box {
+  background: #fff;
+  width: 100%;
+  max-width: 650px;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  position: relative;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-btn {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  font-size: 1.25rem;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  color: #444;
+}
+
+.input-lg {
+  height: 120px;
+  resize: vertical;
+}
+
+.input-md {
+  height: 45px;
+}
+
+.btn-purple {
+  background-color: #6f4f1f;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-purple:hover {
+  background-color: #6f4f1f;
+}
+</style>
+<script>
+function closeCustomModal() {
+  const modal = document.querySelector('.application-modal-wrapper');
+  if (modal) modal.remove();
+}
+</script>

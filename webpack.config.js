@@ -11,6 +11,8 @@ Encore
 
     // Main JS & CSS files
     .addEntry('app', './assets/app.js')
+    .addEntry('calendar', './assets/calendar.js')
+
 
 
 

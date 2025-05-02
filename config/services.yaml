@@ -6,6 +6,9 @@
 parameters:
     openrouter.api_key: '%env(OPENROUTER_API_KEY)%'
     geonames_username: 'nourmontasser' # Add this to your .env file
+    # Environment-based parameters
+    app.ai_api_key: '%env(AI_API_KEY)%'
+    app.ai_api_url: '%env(AI_API_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -23,6 +26,18 @@ services:
             - '../src/Kernel.php'
 
     App\Service\AiAssistantService:
+    App\Service\AIDescriptionGenerator:
+        arguments:
+            $deepseekApiKey: '%env(AI_API_KEY)%'
+            $apiUrl: '%env(AI_API_URL)%' 
+        # Register PriceEstimationSubscriber and inject the AIDescriptionGenerator
+    App\EventSubscriber\PriceEstimationSubscriber:
+        arguments:
+            $aiDescriptionGenerator: '@App\Service\AIDescriptionGenerator'
+        tags:
+            - { name: 'kernel.event_subscriber' }
+    App\Service\CurrencyConverter: ~
+
     # add more service definitions when explicit configuration is needed
     App\Service\LightcastTokenService: ~
     # please note that last definitions always *replace* previous ones

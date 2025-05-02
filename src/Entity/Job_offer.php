@@ -6,7 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\App_user;
-use App\Entity\Application_job;
+use App\Entity\Application_Job;
 use App\Entity\Skilltest;
 
 #[ORM\Entity]

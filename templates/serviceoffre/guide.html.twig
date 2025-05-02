@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pathfinder - Freelance{% endblock %}
+
+{% block body %}
+<div class="container py-5" style="background-color: #F8F9FA; border-radius: 20px;">
+  <!-- Intro Section -->
+  <div class="text-center mb-5">
+    <h1 class="fw-bold text-brown" style="font-family: 'Poppins', sans-serif; font-size: 2.5rem;">How to Get Started</h1>
+    <p class="text-muted" style="font-family: 'Inter', sans-serif; font-size: 1.1rem;">Follow these simple steps to find the perfect Job for you.</p>
+  </div>
+
+  <!-- Guide Steps with 3D Cartoon Illustrations -->
+  <div class="row text-center justify-content-center mb-5">
+    <div class="col-md-4 mb-4">
+      <div class="step-illustration">
+        <img src="{{ asset('images/browse.svg') }}" alt="Browse Services" style="height: 180px; transition: transform 0.3s ease;" />
+      </div>
+      <h5 class="fw-bold mt-3" style="font-family: 'Poppins', sans-serif; font-size: 1.3rem;">1. Browse Services</h5>
+      <p class="text-muted" style="font-family: 'Inter', sans-serif;">Explore a variety of Freelance Opportunities.</p>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="step-illustration">
+        <img src="{{ asset('images/apply.svg') }}" alt="Apply" style="height: 180px; transition: transform 0.3s ease;" />
+      </div>
+      <h5 class="fw-bold mt-3" style="font-family: 'Poppins', sans-serif; font-size: 1.3rem;">2. Submit Application</h5>
+      <p class="text-muted" style="font-family: 'Inter', sans-serif;">Apply to the service that fits your talent best.</p>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="step-illustration">
+        <img src="{{ asset('images/hire.svg') }}" alt="Hire Collaborate" style="height: 180px; transition: transform 0.3s ease;" />
+      </div>
+      <h5 class="fw-bold mt-3" style="font-family: 'Poppins', sans-serif; font-size: 1.3rem;">3. Get Hired & Collaborate</h5>
+      <p class="text-muted" style="font-family: 'Inter', sans-serif;">Get Hired by a Client and start working together seamlessly.</p>
+    </div>
+  </div>
+
+  <!-- Skip Guide -->
+  <div class="text-center mb-5">
+    <a href="{{ path('app_serviceoffre_index') }}" class="btn btn-outline-brown px-4 rounded-pill fw-semibold" style="font-family: 'Inter', sans-serif; font-size: 1rem;">Skip Guide</a>
+  </div>
+
+  <!-- Browse By Category -->
+  <div class="px-4">
+    <h2 class="text-center fw-bold text-brown mb-4" style="font-family: 'Poppins', sans-serif; font-size: 2rem;">Browse Services by Category</h2>
+    <div class="row justify-content-center">
+      {% for field in fields %}
+        <div class="col-md-3 mb-4">
+          <a href="{{ path('app_serviceoffre_index') }}?field={{ field }}" class="text-decoration-none">
+            <div class="category-card card text-center shadow-sm border-0 p-4 h-100" style="background-color: #fff; border-radius: 12px; transition: all 0.3s ease;">
+              <h6 class="fw-bold mb-0" style="font-family: 'Poppins', sans-serif; font-size: 1.1rem; color: #6f4f1f;">{{ field }}</h6>
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+  
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #F8F9FA;
+  }
+  
+  .text-brown {
+    color: #6f4f1f;
+  }
+
+  .btn-outline-brown {
+    border-color: #6f4f1f;
+    color: #6f4f1f;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-brown:hover {
+    background-color: #6f4f1f;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(111, 79, 31, 0.2);
+  }
+  
+  .step-illustration:hover img {
+    transform: scale(1.1) translateY(-5px);
+  }
+  
+  .category-card:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 10px 20px rgba(111, 79, 31, 0.15) !important;
+    background-color: #f8f3eb !important;
+  }
+  
+  .category-card {
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+{% endblock %}

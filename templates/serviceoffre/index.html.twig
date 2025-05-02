@@ -1,0 +1,1065 @@
+{% extends 'base.html.twig' %}
+{% block title %}Service Offers{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-5" style="background-color: #F8F9FA; min-height: 100vh;">
+  <div class="container">
+
+    <!-- Top Search Bar -->
+  <div class="col-md-6">
+  <div class="position-relative enhanced-search-container">
+    <img src="{{ asset('uploads/users/logo.png.png') }}" alt="Search Logo" class="search-icon">
+    <input type="text" class="form-control enhanced-search-input ps-5" id="searchInput" placeholder="Search services…" />
+  </div>
+</div>
+
+<div class="currency-converter-box p-3 bg-white rounded shadow-sm" style="max-width: 430px;">
+  
+    <h2>Currency Converter</h2>
+    <div class="input-group">
+      <select id="currencySelector" class="form-select">
+        {% for code, name in currencies %}
+          <option value="{{ code }}">{{ name }} ({{ code }})</option>
+        {% endfor %}
+      </select>
+      <button type="button" class="btn btn-primary" onclick="convertCurrency()">Convert</button>
+    </div>
+
+    <div id="conversionResult" class="mt-3">
+  
+      <p><strong>Converted:</strong> <span id="convertedPrice">Select a currency</span></p>
+    </div>
+  
+</div>
+
+
+
+    <div class="row">
+<!-- Sidebar Filters -->
+<div class="col-md-4 sidebar-filters px-4 py-4 rounded shadow-sm" style="background-color: #ffffff;">
+  
+  <!-- Client Tools Section -->
+  <div class="sidebar d-flex flex-column py-4">
+  <ul class="nav flex-column">
+    <li class="nav-item mb-2">
+      <a href="{{ path('app_serviceoffre_dashboard') }}" class="nav-link sidebar-link {% if app.request.pathinfo starts with path('app_serviceoffre_dashboard') %}active{% endif %}">
+  <i class="bi bi-speedometer2"></i>
+  <span>Dashboard</span>
+</a>
+
+<a href="{{ path('stripe_payment_history') }}" class="nav-link sidebar-link {% if app.request.pathinfo starts with path('stripe_payment_history') %}active{% endif %}">
+  <i class="bi bi-credit-card-2-front"></i>
+  <span>Payment History</span>
+</a>
+
+<a href="{{ path('calendar_page') }}" class="nav-link sidebar-link {% if app.request.pathinfo starts with path('calendar_page') %}active{% endif %}">
+  <i class="bi bi-calendar3"></i>
+  <span>Manage Calendar</span>
+</a>
+
+<a href="#" class="nav-link sidebar-link">
+  <i class="bi bi-pencil-square"></i>
+  <span>Task Tracker</span>
+</a>
+
+    </li>
+  </ul>
+</div>
+
+
+
+  <!-- Find Your Service -->
+  <h5 class="mb-4 fw-bold text-brown"><i class="bi bi-search me-2"></i> Find Your Ideal Service</h5>
+
+  <div class="mb-4">
+    <label class="form-label">Field</label>
+    <select id="filterField" class="form-select">
+      <option value="">All Fields</option>
+      {% for field in fields %}
+        <option value="{{ field }}">{{ field }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-4">
+    <label class="form-label">Skills</label>
+    <select id="filterSkills" class="form-select">
+      <option value="">All Categories</option>
+      {% for skill in skills %}
+        <option value="{{ skill }}">{{ skill }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-4">
+    <label class="form-label">Duration</label>
+    {% for option in ['less than 1 month', '1 to 3 months', '3 to 6 months', 'more than 6 months'] %}
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="duration[]" value="{{ option }}" id="duration_{{ loop.index }}">
+        <label class="form-check-label" for="duration_{{ loop.index }}">{{ option }}</label>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div>
+    <label class="form-label">Price</label>
+    {% for option in ['Less than $100', '$100 to $500', '$500 to $1K', '$1K+'] %}
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="price[]" value="{{ option }}" id="price_{{ loop.index }}">
+        <label class="form-check-label" for="price_{{ loop.index }}">{{ option }}</label>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+      <!-- Service Listings -->
+      <div class="col-md-9 px-5">
+      
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+          <div class="dropdown">
+            <button class="btn dropdown-toggle text-dark fw-bold fs-4 border-0 bg-transparent shadow-none"
+                    type="button" id="listingDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              {% if app.request.query.get('my_jobs') %}
+                My Services Only
+              {% else %}
+                Service Listings
+              {% endif %}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="listingDropdown">
+              <li><a class="dropdown-item" href="{{ path('app_serviceoffre_index') }}">All Services</a></li>
+              <li><a class="dropdown-item" href="{{ path('app_serviceoffre_index', { 'my_jobs': 1 }) }}">My Services Only</a></li>
+            </ul>
+          </div>
+
+          <select id="sortSelect" class="form-select w-auto" style="max-width: 200px;">
+            <option value="oldest">Sort by: Oldest</option>
+            <option value="newest">Sort by: Newest</option>
+            <option value="relevance">Sort by: Relevance</option>
+          </select>
+        </div>
+
+        <div id="serviceList" class="row gy-4">
+          {% for service in serviceoffres %}
+            {% include 'serviceoffre/_card.html.twig' with { service: service, sessionUser: sessionUser } %}
+          {% else %}
+            <div class="col-12 text-center text-muted">
+              <p>No service offers found.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Styles -->
+<style>
+body {
+  font-family: "Inter", sans-serif;
+}
+.search-pill input.form-control {
+  border-radius: 50px;
+  height: 44px;
+  font-size: 15px;
+  background-color: #fff;
+  border: 1px solid #ced4da;
+}
+.search-pill .input-group-text {
+  border-radius: 50px 0 0 50px;
+  font-size: 18px;
+  background-color: #fff;
+  border: 1px solid #ced4da;
+  border-right: none;
+}
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #3B261D;
+}
+.form-check-input {
+  accent-color: #3B261D;
+  width: 16px;
+  height: 16px;
+  margin-top: 4px;
+}
+.badge {
+  font-size: 12px;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  padding: 6px 12px;
+}
+
+
+.badge {
+  font-size: 0.75rem;
+  background-color: #FFFFFF ;
+  color: #5e5e5e;
+  border: 1px solid #ddd;
+}
+.enhanced-search-bar {
+ 
+
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+  border-radius: 50px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.enhanced-search-bar input {
+  border: none;
+  box-shadow: none;
+  font-size: 0.95rem;
+}
+
+.enhanced-search-bar input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.enhanced-search-input {
+  border-radius: 999px;
+  padding: 10px 20px;
+  padding-left: 50px !important;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: all 0.3s ease-in-out;
+  height: 45px;
+}
+
+.enhanced-search-input:focus {
+  border-color: #6f4f1f;
+  outline: none;
+  box-shadow: 0 0 0 0.15rem rgba(111, 79, 31, 0.2);
+}
+
+
+
+.enhanced-search-container {
+  max-width: 70%;
+  width: 100%;
+  margin-left: -220px; /* Reset override */
+}
+
+
+
+/* Move filter card closer to the edge */
+
+
+.sidebar-filters {
+  margin-left: -200px; /* Move left (adjust value if needed) */
+
+  max-width: 800px; /* or any desired width */
+  margin-top: 50px;
+
+
+}
+
+ @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+  
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #F8F9FA;
+  }
+  
+  .text-brown {
+    color: #3B261D;
+  }
+  
+  .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+  }
+  
+  .description-content {
+    font-size: 1.05rem;
+    color: #4a4a4a;
+  }
+  
+  .description-content p {
+    margin-bottom: 1.2rem;
+  }
+  
+  .badge {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  
+  .sticky-top {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+
+  .btn-db {
+  background-color: #6f4f1f;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-db:hover {
+  background-color: #5a3d17;
+  text-decoration: none;
+}
+
+.sidebar {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 25px 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  min-height: 200px;
+  width: 110%;
+  transition: all 0.3s ease-in-out;
+  margin-left: -20px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #453129;
+  border-radius: 10px;
+  transition: all 0.25s ease-in-out;
+  background: transparent;
+  position: relative;
+}
+
+.nav-link i {
+  font-size: 1.3rem;
+  transition: color 0.25s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  background-color: #453129;
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(111, 79, 31, 0.2);
+  transform: translateX(5px);
+}
+
+.nav-link:hover i,
+.nav-link.active i {
+  color: #ffffff;
+}
+
+.nav-link span {
+  transition: color 0.3s ease;
+}
+
+/* Nice press-in effect */
+.nav-link:active {
+  transform: scale(0.98);
+}
+
+/* Sidebar overall feel when hovering */
+.sidebar:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.currency-converter-box {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 10px;
+     margin-left: -200px;
+    
+   
+}
+</style>
+
+<!-- Drawer container -->
+<div id="serviceDrawer" class="service-drawer position-fixed top-0 end-0 bg-white shadow"
+     style="width: 50%; height: 100vh; z-index: 1050; transform: translateX(100%); transition: transform 0.3s ease-out;">
+  <div class="d-flex justify-content-between align-items-center border-bottom p-4">
+    <h5 class="m-0 fw-bold">Service Details</h5>
+    <button class="btn btn-sm btn-close" onclick="closeDrawer()"></button>
+  </div>
+  <div id="drawerContent" class="p-4" style="overflow-y: auto; height: calc(100% - 60px);"></div>
+</div>
+
+<!-- Overlay for the drawer -->
+<div id="drawerOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark"
+     style="opacity: 0; z-index: 1040; pointer-events: none; transition: opacity 0.3s ease;"></div>
+
+<script>
+  function openDrawer(id) {
+    const drawer = document.getElementById('serviceDrawer');
+    const overlay = document.getElementById('drawerOverlay');
+    const content = document.getElementById('drawerContent');
+
+    overlay.style.pointerEvents = 'auto';
+    overlay.style.opacity = '0.5';
+
+    fetch(`/serviceoffre/${id}/drawer`, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.text())
+    .then(html => {
+      content.innerHTML = html;
+      drawer.style.transform = 'translateX(0)';
+      document.body.style.overflow = 'hidden';
+      drawer.style.display = 'block';
+    })
+    .catch(error => {
+      console.error('Erreur de chargement du drawer :', error);
+      content.innerHTML = `<div class="alert alert-danger">Erreur lors du chargement des détails.</div>`;
+    });
+  }
+
+  function closeDrawer() {
+    const drawer = document.getElementById('serviceDrawer');
+    const overlay = document.getElementById('drawerOverlay');
+    
+    drawer.style.transform = 'translateX(100%)';
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+    document.body.style.overflow = '';
+
+    setTimeout(() => {
+      document.getElementById('drawerContent').innerHTML = '';
+    }, 300);
+  }
+
+  document.getElementById('drawerOverlay')?.addEventListener('click', closeDrawer);
+</script>
+
+ <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if all required elements exist
+    const filterField = document.getElementById('filterField');
+    const filterSkills = document.getElementById('filterSkills');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const serviceList = document.getElementById('serviceList');
+
+    if (!filterField || !filterSkills || !searchInput || !sortSelect || !serviceList) {
+        console.error('One or more required elements are missing from the DOM');
+        return;
+    }
+
+    const applyFilters = () => {
+        const params = new URLSearchParams();
+        
+        // Add filters only if they have values
+        if (filterField.value) params.append('field', filterField.value);
+        if (filterSkills.value) params.append('skills', filterSkills.value);
+        if (searchInput.value) params.append('search', searchInput.value);
+        if (sortSelect.value) params.append('sort', sortSelect.value);
+
+        // Add array parameters
+        document.querySelectorAll('input[name="duration[]"]:checked').forEach(cb => {
+            params.append('durations[]', cb.value);
+        });
+
+        document.querySelectorAll('input[name="price[]"]:checked').forEach(cb => {
+            params.append('prices[]', cb.value);
+        });
+
+        console.log('Fetching with params:', params.toString());
+
+        fetch("{{ path('app_serviceoffre_filter') }}?" + params.toString(), {
+            headers: { 
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.error || 'Network error'); });
+            }
+            return response.text();
+        })
+        .then(html => {
+            serviceList.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            serviceList.innerHTML = `
+                <div class="alert alert-danger">
+                    Error: ${error.message}
+                </div>
+            `;
+        });
+    };
+
+    // Set up event listeners
+    [filterField, filterSkills, searchInput, sortSelect].forEach(el => {
+        el.addEventListener('change', applyFilters);
+    });
+
+    document.querySelectorAll('input[name="duration[]"], input[name="price[]"]').forEach(el => {
+        el.addEventListener('change', applyFilters);
+    });
+
+    // Debounce search input
+    let searchDebounce;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(applyFilters, 300);
+    });
+});
+
+
+</script>
+
+<!-- + Button -->
+<div class="add-service-btn-container">
+  <button type="button" class="btn btn-brown rounded-circle" onclick="openFormDrawer()" aria-label="Add New Service">
+    <span class="btn-icon" style="font-size: 2rem; color: white;">+</span>
+  </button>
+</div>
+
+<!-- Side Drawer for the Form -->
+<div id="formDrawer" style="
+  position: fixed;
+  top: 0;
+  right: -50%;
+  width: 50%;
+  height: 100%;
+  background-color: #F8F9FA;
+  color: #3B261D;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+  overflow-y: auto;
+  transition: right 0.3s;
+  z-index: 9999;
+  padding: 20px;">
+  
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="m-0" style="color: #3B261D;">Create New Service Offer</h3>
+    <button class="btn btn-sm btn-secondary" onclick="closeFormDrawer()">Close</button>
+  </div>
+  {{ form_start(form) }}
+
+<!-- Title -->
+<div class="mb-3">
+  {{ form_label(form.title, 'Title', {'label_attr': {'class': 'form-label'}}) }}
+  {{ form_widget(form.title, {
+    'attr': {
+      'class': 'form-control',
+      'placeholder': 'Enter job title',
+      'id': 'serviceoffre_title',
+      'aria-describedby': 'titleHelp'
+    }
+  }) }}
+</div>
+
+<!-- Description -->
+<div class="mb-3">
+  {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+
+  {% set errorClass = form_errors(form.description) ? 'is-invalid' : '' %}
+  {{ form_widget(form.description, {
+    'attr': {
+      'class': 'form-control ' ~ errorClass,
+      'rows': 4,
+      'placeholder': 'Describe your service'
+    }
+  }) }}
+
+  {% if form_errors(form.description) %}
+    <div class="text-danger mt-1">
+      {{ form_errors(form.description) }}
+    </div>
+  {% endif %}
+
+  <!-- AI Buttons -->
+  <div class="d-flex gap-2 mt-2">
+    <button type="submit" name="generate_description" value="1" class="btn btn-outline-primary btn-sm">
+      <i class="fas fa-robot me-1"></i> Generate with AI
+    </button>
+
+    <button type="submit" name="generate_price" value="1" class="btn btn-outline-success btn-sm">
+      Estimate a Price with AI
+    </button>
+  </div>
+
+  <small id="descHelp" class="form-text text-muted">Describe your service in detail</small>
+</div>
+{% if generatedDescription is defined and generatedDescription %}
+  <div class="alert alert-info mt-2">
+    <strong>AI Suggested Description:</strong><br>
+    <div class="border rounded p-2 mt-1 bg-white">{{ generatedDescription|raw }}</div>
+    <button type="button" class="btn btn-outline-primary btn-sm mt-2"
+            onclick="document.getElementById('{{ form.description.vars.id }}').value = `{{ generatedDescription|escape('js') }}`">
+      Use this description
+    </button>
+  </div>
+{% endif %}
+
+{% if generatedPrice is defined and generatedPrice %}
+  <div class="alert alert-success mt-2">
+    <strong>AI Estimated Price:</strong> €{{ generatedPrice }}
+  </div>
+{% endif %}
+
+
+<!-- Price Field -->
+<div class="mb-3">
+  {{ form_label(form.price) }}
+  {{ form_widget(form.price, {'attr': {'class': 'form-control'}}) }}
+</div>
+
+<!-- Price Estimation -->
+<div class="mb-3">
+  {{ form_label(form.price_estimation, 'Price (Estimated)', {'label_attr': {'class': 'form-label'}}) }}
+  {{ form_widget(form.price_estimation, {
+    'attr': {
+      'class': 'form-control',
+      'readonly': true
+    }
+  }) }}
+</div>
+
+<!-- Field -->
+<div class="mb-3">
+  {{ form_label(form.field, 'Field', {'label_attr': {'class': 'form-label'}}) }}
+  {{ form_widget(form.field, {'attr': {'class': 'form-control'}}) }}
+</div>
+
+<!-- Dates -->
+<div class="row">
+  <div class="col mb-3">
+    {{ form_label(form.startDate, 'Start Date', {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.startDate, {'attr': {'class': 'form-control'}}) }}
+  </div>
+  <div class="col mb-3">
+    {{ form_label(form.endDate, 'End Date', {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.endDate, {'attr': {'class': 'form-control'}}) }}
+  </div>
+</div>
+
+<!-- Education -->
+<div class="mb-3">
+  {{ form_label(form.required_education, 'Education', {'label_attr': {'class': 'form-label'}}) }}
+  {{ form_widget(form.required_education, {'attr': {'class': 'form-control'}}) }}
+</div>
+
+<!-- Experience Level -->
+<div class="mb-3">
+  {{ form_label(form.experience_level, 'Experience Level', {'label_attr': {'class': 'form-label'}}) }}
+  {{ form_widget(form.experience_level, {'attr': {'class': 'form-control'}}) }}
+  <small class="form-text text-muted" style="color: #9B7B58;">
+    ⚡ AI-based price will appear after field & level selection.
+  </small>
+</div>
+
+<!-- Skills -->
+<div class="mb-3">
+  {{ form_label(form.skills, 'Skills', {'label_attr': {'class': 'form-label'}}) }}
+
+  {% set skillsErrorClass = form_errors(form.skills) ? 'is-invalid' : '' %}
+  {{ form_widget(form.skills, {'attr': {'class': 'form-control ' ~ skillsErrorClass}}) }}
+
+  {% if form_errors(form.skills) %}
+    <div class="text-danger mt-1">
+      {{ form_errors(form.skills) }}
+    </div>
+  {% endif %}
+</div>
+
+<!-- Status -->
+{% if form.status is defined %}
+  <div class="mb-3">
+    {{ form_label(form.status, 'Status', {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.status, {'attr': {'class': 'form-control'}}) }}
+  </div>
+{% endif %}
+
+<!-- Validation Errors -->
+{% if isFormOpen and not form.vars.valid %}
+  <div class="alert alert-danger">
+    Please correct the errors in the form.
+  </div>
+{% endif %}
+
+<!-- Submit -->
+<button type="submit" class="btn-submit">Save</button>
+
+{{ form_end(form) }}
+
+
+<!-- Styles for the + button -->
+<style>
+
+.custom-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-modal-content {
+  background-color: #F8F9FA;
+  color: #3B261D;
+  width: 500px;
+  max-width: 90%;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-weight: 600;
+  color: #3B261D;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #3B261D;
+  cursor: pointer;
+  line-height: 1;
+}
+
+
+.btn-brown {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+}
+
+.btn-brown:hover {
+  background-color: #5a6268;
+}
+
+.btn-generate-desc {
+  background-color: #8B4513;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.btn-generate-desc:hover {
+  background-color: #A0522D;
+  box-shadow: 0 0 8px rgba(139, 69, 19, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-generate-desc:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+#serviceoffre_description {
+  min-height: 120px;
+  width: 100%;
+}
+
+.spinner-border {
+  vertical-align: -0.125em;
+}
+  .add-service-btn-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 999;
+  }
+
+  .btn-brown {
+    background-color: #6f4f1f;
+    border: none;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 70px;
+    height: 70px;
+    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .btn-brown:hover {
+    transform: scale(1.15);
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .btn-brown:focus {
+    outline: none;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Drawer for the form */
+  #formDrawer {
+    position: fixed;
+    top: 0;
+    right: -50%;
+    width: 50%;
+    height: 100%;
+    background-color: #F5EDE1;
+    color: #3B261D;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    transition: right 0.3s;
+    z-index: 9999;
+    padding: 20px;
+  }
+
+  .card {
+  transition: all 0.3s ease-in-out;
+  border-radius: 20px;
+  background-color: #fff;
+  border: 1px solid rgb(234, 213, 111);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  width: 100%;             /* Fit the container */
+  padding: 2rem;           /* Balanced spacing */
+  font-size: 1.05rem;
+  min-height: 200px;       /* Make the card longer */
+}
+
+
+.card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+.card:hover {
+  border-color: #F8F9FA;
+}
+.skill-tag {
+  transition: background 0.2s ease;
+}
+
+.skill-tag:hover {
+  background-color: #d0e2ff;
+}
+
+.filter-box {
+   background-color: #FFFFFF !important;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+}
+.skill-tag {
+  background-color: #f1f3f5;
+  color: #4f4f4f;
+  padding: 4px 12px;
+  font-size: 13px;
+  border-radius: 50px;
+  margin: 4px;
+  display: inline-block;
+}
+.skill-tag:hover {
+  background-color: #e0e0e0;
+  cursor: pointer;
+}
+
+
+/* Form Submit Button - The Save button */
+  .btn-submit {
+    background-color: #6f4f1f;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    display: inline-block;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 1.1rem;
+  }
+
+  .btn-submit:hover {
+    background-color: #8d6a3c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
+
+  .notification-bubble {
+  position: fixed;
+  top: 130px;
+  right: 30px;
+  background-color: #e74c3c;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 30px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  font-size: 15px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.notification-bubble:hover {
+  transform: scale(1.05);
+  background-color: #c0392b;
+}
+
+.notification-bubble i {
+  font-size: 1.2rem;
+}
+
+.character-counter {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 4px;
+}
+
+
+    .spinner-border {
+        vertical-align: middle;
+    }
+    .card {
+        border-left: 3px solid #0d6efd;
+    }
+
+.list-group-item a:hover {
+  color: #6f4f1f;
+  transform: translateX(2px);
+  transition: all 0.2s ease-in-out;
+}
+
+</style>
+
+<!-- Script to open/close the form drawer -->
+<script>
+  function openFormDrawer() {
+    document.getElementById('formDrawer').style.right = '0';
+    // Delay the script execution to wait for DOM render
+setTimeout(() => {
+    const fields = drawer.querySelectorAll('input[minlength], textarea[minlength]');
+
+    fields.forEach(field => {
+      const minLength = parseInt(field.getAttribute('minlength'));
+      if (!minLength) return;
+
+      // Prevent duplicate counters
+      if (field.nextElementSibling && field.nextElementSibling.classList.contains('character-counter')) return;
+
+      const counter = document.createElement('small');
+      counter.className = 'character-counter text-muted';
+      counter.style.display = 'block';
+      counter.style.marginTop = '0.5rem';
+
+      field.parentNode.insertBefore(counter, field.nextSibling);
+
+      const updateCounter = () => {
+        const currentLength = field.value.length;
+        counter.textContent = `${currentLength} / ${minLength} characters`;
+
+        if (currentLength < minLength) {
+          field.setCustomValidity(`Minimum ${minLength} characters required`);
+          counter.style.color = 'red';
+        } else {
+          field.setCustomValidity('');
+          counter.style.color = 'green';
+        }
+      };
+
+      updateCounter();
+      field.addEventListener('input', updateCounter);
+    });
+  }, 100);
+  }
+
+  function closeFormDrawer() {
+    document.getElementById('formDrawer').style.right = '-50%'; // Slide the drawer out
+  }
+
+ 
+ document.addEventListener('DOMContentLoaded', function() {
+    // Watch for changes in required fields
+    const triggerFields = ['#serviceoffre_field', '#serviceoffre_experience_level'];
+    
+    triggerFields.forEach(fieldId => {
+        const field = document.querySelector(fieldId);
+        if (field) {
+            field.addEventListener('change', function() {
+                // Trigger form submission to activate the subscriber
+                const form = this.closest('form');
+                if (form) {
+                    // Create a temporary submit button
+                    const tempSubmit = document.createElement('button');
+                    tempSubmit.type = 'submit';
+                    tempSubmit.style.display = 'none';
+                    form.appendChild(tempSubmit);
+                    tempSubmit.click();
+                    form.removeChild(tempSubmit);
+                }
+            });
+        }
+    });
+});
+
+
+
+</script>
+
+
+
+
+
+{% if newAppCount > 0 and firstServiceWithNewApps %}
+  <a href="{{ path('app_serviceoffre_manage', { idService: firstServiceWithNewApps.idService }) }}" class="notification-bubble text-white text-decoration-none">
+    <i class="bi bi-bell-fill me-2"></i>
+    You have <strong>{{ newAppCount }}</strong> new application{{ newAppCount > 1 ? 's' : '' }}
+  </a>
+{% endif %}
+
+
+
+
+
+
+{% endblock %}

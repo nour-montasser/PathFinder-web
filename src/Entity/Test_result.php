@@ -31,6 +31,7 @@ class Test_result
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE", nullable: false)]
     #[Assert\NotNull(message: "Result must be assigned to a user.")]
     private App_user $user;
+    
 
     #[ORM\ManyToOne(targetEntity: Skilltest::class)]
     #[ORM\JoinColumn(name: "id_test", referencedColumnName: "id_test", onDelete: "CASCADE", nullable: false)]
