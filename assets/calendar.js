@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
       center: 'title',
       right: 'dayGridMonth,timeGridWeek,timeGridDay',
     },
-    events: '/your-calendar-events-endpoint', // ✅ Must match your Symfony route
+    events: '/your-calendar-events-endpoint', 
 
     dateClick: async function (info) {
       const { value: formValues } = await Swal.fire({
@@ -41,14 +41,14 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('start', info.dateStr);
         formData.append('end', info.dateStr);
         if (formValues.file) {
-          formData.append('file', formValues.file); // optional file upload
+          formData.append('file', formValues.file); 
         }
 
         try {
           const response = await fetch('/calendar-event-create', {
             method: 'POST',
             headers: {
-              'X-Requested-With': 'XMLHttpRequest' // Important for Symfony
+              'X-Requested-With': 'XMLHttpRequest' 
             },
             body: formData
           });
