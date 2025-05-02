@@ -2,7 +2,8 @@
 
 namespace App\Form;
 
-use App\Entity\JobOffer;
+
+use App\Entity\Job_offer;
 use App\Entity\Skilltest;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -20,10 +21,7 @@ class SkilltestType extends AbstractType
             ->add('description')
             ->add('duration')
             ->add('score_required')
-            ->add('jobOffer', EntityType::class, [
-                'class' => JobOffer::class,
-                'choice_label' => fn (JobOffer $jobOffer) => $jobOffer->getTitle(),
-            ])
+
             ->add('questions', CollectionType::class, [
                 'entry_type' => QuestionsType::class,
                 'entry_options' => ['label' => false],

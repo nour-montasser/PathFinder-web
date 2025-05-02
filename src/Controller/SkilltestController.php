@@ -2,10 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Job_offer;
 use App\Service\AiAssistantService;
 use App\Repository\SkilltestRepository;
 use App\Entity\Test_result;
-use App\Entity\AppUser;
+use App\Entity\App_user;
 use App\Entity\Skilltest;
 use App\Entity\Questions;
 use App\Form\SkilltestType;
@@ -18,35 +19,54 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Knp\Snappy\Pdf;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Gos\Bundle\WebSocketBundle\Pusher\PusherInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
-#[Route('/skilltest')]
-final class SkilltestController extends AbstractController
-{
- //   private PusherInterface $pusher;
 
- ////   public function __construct(PusherInterface $pusher)
-  ///  {
-   ////     $this->pusher = $pusher;
-  ///  }
+#[Route('/skilltest')]
+final class SkilltestController extends BaseController
+{
+    //   private PusherInterface $pusher;
+
+    ////   public function __construct(PusherInterface $pusher)
+    ///  {
+    ////     $this->pusher = $pusher;
+    ///  }
 
     #[Route('/', name: 'app_skilltest_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        $skilltests = $entityManager->getRepository(Skilltest::class)->findAll();
+
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
+
+        $skilltests = $entityManager->createQueryBuilder()
+            ->select('s')
+            ->from(Skilltest::class, 's')
+            ->join('s.jobOffer', 'j')
+            ->where('j.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
 
         return $this->render('skilltest/index.html.twig', [
             'skilltests' => $skilltests,
         ]);
     }
 
-    #[Route('/new', name: 'app_skilltest_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/new/{jobOfferId}', name: 'app_skilltest_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager, int $jobOfferId): Response
     {
+        $jobOffer = $entityManager->getRepository(Job_offer::class)->find($jobOfferId);
+
+        if (!$jobOffer) {
+            throw $this->createNotFoundException('JobOffer not found.');
+        }
+
         $skilltest = new Skilltest();
+        $skilltest->setJobOffer($jobOffer);
+
         $form = $this->createForm(SkilltestType::class, $skilltest);
         $form->handleRequest($request);
 
@@ -55,24 +75,23 @@ final class SkilltestController extends AbstractController
                 $question->setSkillTest($skilltest);
                 $entityManager->persist($question);
             }
+
             $entityManager->persist($skilltest);
             $entityManager->flush();
-            $this->pusher->push([
-                'message' => 'A new SkillTest has been created!',
-                'title' => $skilltest->getTitle(),
-                'id' => $skilltest->getId(),
-            ], 'skilltest_channel');
 
-            return $this->redirectToRoute('app_skilltest_index');
-        }
+            return $this->redirectToRoute('app_job_offer_show', [
+                'id_offer' => $jobOffer->getIdOffer(),
+            ]);        }
 
         return $this->render('skilltest/new.html.twig', [
-            'skilltestForm' => $form->createView()
+            'skilltestForm' => $form->createView(),
         ]);
     }
 
-    #[Route('/{id}', name: 'app_skilltest_show')]
-    public function show(SkilltestRepository $repo, $id): Response
+
+
+    #[Route('/{id}', name: 'app_skilltest_show', methods: ['GET'])]
+    public function show(SkilltestRepository $repo, int $id): Response
     {
         $skilltest = $repo->findSkilltestWithQuestions($id);
 
@@ -85,33 +104,57 @@ final class SkilltestController extends AbstractController
         ]);
     }
 
-    #[Route('/skilltest/{id}/edit', name: 'app_skilltest_edit')]
-    public function edit(Request $request, Skilltest $skilltest, EntityManagerInterface $em): Response
+
+    #[Route('/{id}/edit/{jobOfferId}', name: 'app_skilltest_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Skilltest $skilltest, EntityManagerInterface $entityManager, int $jobOfferId): Response
     {
+        $jobOffer = $entityManager->getRepository(Job_offer::class)->find($jobOfferId);
+
+        if (!$jobOffer) {
+            throw $this->createNotFoundException('JobOffer not found.');
+        }
+
+        $skilltest->setJobOffer($jobOffer); // ensure it's correctly assigned
+
         $form = $this->createForm(SkilltestType::class, $skilltest);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-            $this->addFlash('success', '✅ SkillTest updated successfully!');
-            return $this->redirectToRoute('app_skilltest_show', ['id' => $skilltest->getId()]);
+            foreach ($skilltest->getQuestions() as $question) {
+                $question->setSkillTest($skilltest);
+                $entityManager->persist($question);
+            }
+
+            $entityManager->flush();
+
+            return $this->redirectToRoute('app_job_offer_show', [
+                'id_offer' => $jobOffer->getIdOffer()
+            ]);
         }
 
         return $this->render('skilltest/edit.html.twig', [
             'form' => $form->createView(),
-            'skilltest' => $skilltest,
         ]);
     }
+
 
     #[Route('/skilltest/{id}', name: 'app_skilltest_delete', methods: ['POST'])]
     public function delete(Skilltest $skilltest, EntityManagerInterface $em, Request $request): Response
     {
+        // Get the related JobOffer before deleting the SkillTest
+        $jobOffer = $skilltest->getJobOffer();
+
         if ($this->isCsrfTokenValid('delete' . $skilltest->getId(), $request->request->get('_token'))) {
             $em->remove($skilltest);
             $em->flush();
         }
-        return $this->redirectToRoute('app_skilltest_index');
+
+        // Redirect to the job offer show page
+        return $this->redirectToRoute('app_job_offer_show', [
+            'id_offer' => $jobOffer->getIdOffer(),
+        ]);
     }
+
 
     #[Route('/questions/{id}', name: 'app_questions_delete', methods: ['POST'])]
     public function deleteQuestion($id, EntityManagerInterface $em, Request $request): Response
@@ -140,7 +183,7 @@ final class SkilltestController extends AbstractController
         PaginatorInterface $paginator
     ): Response
     {
-        $user = $em->getRepository(AppUser::class)->find(1);
+        $user = $em->getRepository(App_user::class)->find(1);
         if (!$user) {
             throw $this->createNotFoundException('User not found.');
         }
@@ -288,7 +331,7 @@ final class SkilltestController extends AbstractController
     #[Route('/skilltest/{id}/pdf', name: 'app_skilltest_pdf')]
     public function downloadPdf(Skilltest $skilltest, EntityManagerInterface $em, Pdf $knpSnappy): Response
     {
-        $user = $em->getRepository(AppUser::class)->find(1);
+        $user = $em->getRepository(App_user::class)->find(1);
 
         if (!$user) {
             throw $this->createNotFoundException("User not found.");

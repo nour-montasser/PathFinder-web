@@ -27,10 +27,10 @@ class Test_result
     #[Assert\NotNull]
     private bool $status;
 
-    #[ORM\ManyToOne(targetEntity: AppUser::class)]
+    #[ORM\ManyToOne(targetEntity: App_user::class)]
     #[ORM\JoinColumn(name: "id_user", referencedColumnName: "id_user", onDelete: "CASCADE", nullable: false)]
     #[Assert\NotNull(message: "Result must be assigned to a user.")]
-    private AppUser $user;
+    private App_user $user;
 
     #[ORM\ManyToOne(targetEntity: Skilltest::class)]
     #[ORM\JoinColumn(name: "id_test", referencedColumnName: "id_test", onDelete: "CASCADE", nullable: false)]
@@ -77,12 +77,12 @@ class Test_result
         $this->status = $value;
     }
 
-    public function getUser(): AppUser
+    public function getUser(): App_user
     {
         return $this->user;
     }
 
-    public function setUser(AppUser $user): void
+    public function setUser(App_user $user): void
     {
         $this->user = $user;
     }

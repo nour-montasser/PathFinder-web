@@ -28,7 +28,6 @@ services:
     # please note that last definitions always *replace* previous ones
     App\Service\GeonamesService:
         arguments:
-            $openrouterApiKey: '%openrouter.api_key%'
             $geonamesUsername: '%geonames_username%'
 
     App\Service\ApplicationMailer:

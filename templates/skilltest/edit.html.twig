@@ -126,10 +126,7 @@
             {{ form_widget(form.score_required, {'attr': {'class': 'form-control'}}) }}
         </div>
 
-        <div class="form-group">
-            {{ form_label(form.jobOffer, null, {'label_attr': {'class': 'form-label'}}) }}
-            {{ form_widget(form.jobOffer, {'attr': {'class': 'form-control'}}) }}
-        </div>
+
 
         <h2 class="section-title mt-4">Questions</h2>
 
@@ -168,7 +165,9 @@
         {{ form_end(form) }}
     </div>
 
-    <a href="{{ path('app_skilltest_index') }}" class="back-link">← Back to Skilltests</a>
+    <a href="{{ path('app_job_offer_show', {'id_offer': form.vars.data.jobOffer.idOffer}) }}" class="back-link">
+        ← Back to Job Offer
+    </a>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
