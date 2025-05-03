@@ -22,7 +22,7 @@ use App\Repository\ApplicationserviceRepository; // Add the correct namespace fo
 use App\Service\CurrencyConverter; // Ensure this is the correct namespace for the CurrencyConverter class
 
 #[Route('/serviceoffre')]
-final class ServiceoffreController extends AbstractController
+final class ServiceoffreController extends BaseController
 {
     #[Route('/', name: 'app_serviceoffre_index', methods: ['GET', 'POST'])]
 public function index(
@@ -31,9 +31,13 @@ public function index(
     AIDescriptionGenerator $aiGenerator,
     CurrencyConverter $currencyConverter
 ): Response {
-    $sessionUser = $this->getSessionUser($request, $entityManager);
+   
     $showOnlyMyJobs = $request->query->getBoolean('my_jobs');
-    $user = $showOnlyMyJobs ? $sessionUser : null;
+
+    $this->ensureUserSession();
+    $user = $showOnlyMyJobs ? $this->getCurrentUser() :null;
+    $showOnlyMyJobs=false;
+    
 
     $serviceoffres = $user
         ? $entityManager->getRepository(Serviceoffre::class)->findBy(['user' => $user])
@@ -148,7 +152,7 @@ public function index(
                 $serviceoffre->setDuration('more than 6 months');
             }
 
-            $serviceoffre->setUser($sessionUser);
+            $serviceoffre->setUser($user);
             try {
                 $entityManager->persist($serviceoffre);
                 $entityManager->flush();
@@ -222,7 +226,7 @@ public function index(
         'form' => $form->createView(),
         'fields' => $fields ?? [],
         'skills' => $skills ?? [],
-        'sessionUser' => $sessionUser,
+        'sessionUser' => $user,
         'newAppCount' => $newAppCount,
         'firstServiceWithNewApps' => $firstServiceWithNewApps,
         'isFormOpen' => $isFormOpen,
@@ -305,8 +309,9 @@ public function index(
                 $form->get('endDate')->addError(new FormError("La date de fin doit être postérieure à la date de début."));
             }
 
-            $sessionUser = $this->getSessionUser($request, $entityManager);
-            $serviceoffre->setUser($sessionUser);
+            $this->ensureUserSession();
+    $user = $this->getCurrentUser();
+            $serviceoffre->setUser($user);
 
             $entityManager->persist($serviceoffre);
             $entityManager->flush();
@@ -331,7 +336,8 @@ public function index(
         $form->handleRequest($request);
     
         if ($form->isSubmitted() && $form->isValid()) {
-            $user = $this->getSessionUser($request, $em);
+            $this->ensureUserSession();
+    $user = $this->getCurrentUser();
             if ($user) {
                 $application->setUser($user);
             }
@@ -431,11 +437,12 @@ public function filter(
         $sort = $request->query->get('sort') ?? 'newest';
 
         $serviceoffres = $repository->filterServices($field, $skills, $searchTerm, $durations, $prices, $sort);
-        $sessionUser = $this->getSessionUser($request, $em); // ✅ add this line
+        $this->ensureUserSession();
+    $user = $this->getCurrentUser();
 
         return $this->render('serviceoffre/_list.html.twig', [
             'serviceoffres' => $serviceoffres,
-            'sessionUser' => $sessionUser // ✅ pass this in
+            'sessionUser' => $user // ✅ pass this in
         ]);
     } catch (\Exception $e) {
         $logger->error('Filter error: ' . $e->getMessage());
@@ -456,12 +463,8 @@ public function filter(
     #[Route('/{idService}/manage', name: 'app_serviceoffre_manage', methods: ['GET'])]
 public function manage(Serviceoffre $serviceoffre, Request $request, EntityManagerInterface $em): Response
 {
-    $sessionUser = $this->getSessionUser($request, $em);
-
-    if (!$sessionUser || $sessionUser->getIdUser() !== $serviceoffre->getUser()->getIdUser()) {
-        // Redirect or throw access denied if not the owner
-        return $this->redirectToRoute('app_serviceoffre_index');
-    }
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
 
     $applications = $serviceoffre->getApplicationservices();
     $hired = array_filter($applications->toArray(), fn($app) => $app->getStatus() === 'accepted');
@@ -471,7 +474,7 @@ public function manage(Serviceoffre $serviceoffre, Request $request, EntityManag
         'applications' => $applications,
         'hired' => $hired,
         'stripe_public_key' => $_ENV['STRIPE_PUBLIC_KEY'],
-        'sessionUser' => $sessionUser,
+        'sessionUser' => $user,
 
 
     ]);
@@ -485,19 +488,20 @@ public function guide(Request $request, EntityManagerInterface $em): Response
         ->select('DISTINCT s.field')
         ->getQuery()
         ->getSingleColumnResult();
-
-    $sessionUser = $this->getSessionUser($request, $em);
-
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
     return $this->render('serviceoffre/guide.html.twig', [
         'fields' => $fields,
-        'sessionUser' => $sessionUser,
+        'sessionUser' => $user,
     ]);
 }
 
 #[Route('/dashboard/freelancers', name: 'app_serviceoffre_dashboard')]
 public function freelancerDashboard(ApplicationserviceRepository $appRepo, EntityManagerInterface $em, Request $request): Response
 {
-    $sessionUserId = $request->getSession()->get('mock_user_id');
+    $this->ensureUserSession();
+    $user = $this->getCurrentUser();
+    $sessionUserId = $user->getId_user(); // Assuming getId_user() returns the ID of the user
 
     if (!$sessionUserId) {
         throw $this->createAccessDeniedException('No client logged in.');
@@ -506,18 +510,19 @@ public function freelancerDashboard(ApplicationserviceRepository $appRepo, Entit
     $applications = $appRepo->createQueryBuilder('a')
         ->join('a.service', 's')
         ->join('s.user', 'client') // JOIN the client owning the service
-        ->where('client.idUser = :clientId')
+        ->where('client.id_user = :clientId')
         ->andWhere('a.status = :status')
         ->setParameter('clientId', $sessionUserId) // 🛠 set each parameter separately
         ->setParameter('status', 'paid')
         ->getQuery()
         ->getResult();
 
-    $sessionUser = $this->getSessionUser($request, $em);
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
 
     return $this->render('serviceoffre/dashboard.html.twig', [
         'applications' => $applications,
-        'sessionUser' => $sessionUser
+        'sessionUser' => $user
     ]);
 }
 

@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-class StripeController extends AbstractController
+class StripeController extends BaseController
 {
     #[Route('/create-checkout-session/{id}', name: 'stripe_checkout_session')]
     public function createCheckoutSession(
@@ -36,12 +36,10 @@ class StripeController extends AbstractController
         $service = $application->getService();
         $amount = $application->getPriceOffre();
 
-        $sessionUserId = $request->getSession()->get('mock_user_id');
-        $user = $em->getRepository(App_user::class)->find($sessionUserId);
+        $this->ensureUserSession();
+    $user = $this->getCurrentUser();
 
-        if (!$user) {
-            return new JsonResponse(['error' => 'User not authenticated'], 401);
-        }
+
 
         Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
 
@@ -61,7 +59,7 @@ class StripeController extends AbstractController
             'mode' => 'payment',
             'metadata' => [
                 'application_id' => $application->getIdApp(),
-                'user_id' => $user->getIdUser(),
+                'user_id' => $user->getId_user(),
             ],
             'success_url' => $this->generateUrl('payment_success', [], UrlGeneratorInterface::ABSOLUTE_URL) . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => $this->generateUrl('app_serviceoffre_manage', [
@@ -137,7 +135,9 @@ class StripeController extends AbstractController
     #[Route('/payment/history', name: 'stripe_payment_history')]
     public function paymentHistory(EntityManagerInterface $em, Request $request): Response
     {
-        $sessionUserId = $request->getSession()->get('mock_user_id');
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
+        $sessionUserId = $user->getId_user();
         $user = $em->getRepository(App_user::class)->find($sessionUserId);
 
         if (!$user) {

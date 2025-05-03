@@ -29,7 +29,123 @@
 		</div>
 
 		{{ encore_entry_script_tags('app') }}
-		{% block javascripts %}{% endblock %}
+		 <!-- Bootstrap Modal Placeholder -->
+  <div class="modal fade" id="applyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded shadow-sm border-0" style="background-color: #F5EDE1;">
+        <div id="applyModalContent">
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{ encore_entry_script_tags('app') }}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+  {% block javascripts %}{% endblock %}
+
+  <script>
+  function closeCustomModal() {
+    const modal = document.querySelector('.application-modal-wrapper');
+    if (modal) modal.remove();
+  }
+
+  function showToastSuccess(message) {
+    const toast = document.createElement('div');
+    toast.classList.add('toast-success');
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.remove();
+    }, 4000);
+  }
+
+  document.addEventListener('submit', function (e) {
+    if (e.target && e.target.id === 'applicationForm') {
+      e.preventDefault();
+
+      const form = e.target;
+      const spinner = document.getElementById('applySpinner');
+      const button = document.getElementById('submitApplicationBtn');
+
+      if (spinner) spinner.classList.remove('d-none');
+      if (button) button.setAttribute('disabled', 'true');
+
+      fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        credentials: 'same-origin',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(async res => {
+        const contentType = res.headers.get('content-type');
+
+        // Handle JSON response
+        if (res.ok && contentType && contentType.includes('application/json')) {
+          const data = await res.json();
+          if (data.success) {
+            closeCustomModal();
+            confetti();
+            showToastSuccess('🎉 Application submitted successfully!');
+          } else {
+            throw new Error('Application submission failed');
+          }
+        }
+        // Handle HTML (form re-rendered with errors)
+        else {
+          const html = await res.text();
+          document.getElementById('applyModalContent').innerHTML = html;
+        }
+      })
+      .catch((error) => {
+        console.error('Submission error:', error);
+        form.insertAdjacentHTML('beforeend', `
+          <div class="alert alert-danger mt-3">
+            ⚠️ Something went wrong. Please try again.
+          </div>
+        `);
+      })
+      .finally(() => {
+        if (spinner) spinner.classList.add('d-none');
+        if (button) button.removeAttribute('disabled');
+      });
+    }
+  });
+
+  // Optional: Character counters for maxLength inputs
+  document.addEventListener('DOMContentLoaded', () => {
+    const fields = document.querySelectorAll('input[maxlength], textarea[maxlength]');
+
+    fields.forEach(field => {
+      const maxLength = parseInt(field.getAttribute('maxlength'));
+      if (!maxLength) return;
+
+      const counter = document.createElement('small');
+      counter.className = 'character-counter text-muted';
+      counter.style.display = 'block';
+      counter.style.marginTop = '0.5rem';
+
+      field.parentNode.insertBefore(counter, field.nextSibling);
+
+      const updateCounter = () => {
+        const currentLength = field.value.length;
+        counter.textContent = `${currentLength} / ${maxLength}`;
+        counter.style.color = currentLength > maxLength ? 'red' : '#6c757d';
+        field.setCustomValidity(currentLength > maxLength ? 'Character limit exceeded' : '');
+      };
+
+      updateCounter();
+      field.addEventListener('input', updateCounter);
+    });
+  });
+</script>
+
+  
 	</body>
 
 </html>

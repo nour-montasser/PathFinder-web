@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-class CalendarController extends AbstractController
+class CalendarController extends BaseController
 {
     #[Route('/calendar', name: 'calendar_page')]
     public function calendarPage(): \Symfony\Component\HttpFoundation\Response

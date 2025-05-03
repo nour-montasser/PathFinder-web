@@ -25,7 +25,7 @@ class AppUserController extends AbstractController
         // Reset session and store the new mock user ID
         $session = $request->getSession();
         $session->clear(); // Clear any previous session data
-        $session->set('mock_user_id', $user->getIdUser());
+        $session->set('mock_user_id', $user->getId_user()());
 
         return $this->redirectToRoute('app_serviceoffre_index');
     }
