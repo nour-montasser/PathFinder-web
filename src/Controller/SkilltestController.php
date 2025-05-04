@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
+use App\Entity\ApplicationJob;
 
 
 #[Route('/skilltest')]
@@ -183,10 +184,8 @@ final class SkilltestController extends BaseController
         PaginatorInterface $paginator
     ): Response
     {
-        $user = $em->getRepository(App_user::class)->find(1);
-        if (!$user) {
-            throw $this->createNotFoundException('User not found.');
-        }
+        $this->ensureUserSession();
+        $user = $this->getCurrentUser();
 
         $testResult = $em->getRepository(Test_result::class)->findOneBy([
             'user' => $user,
@@ -256,20 +255,39 @@ final class SkilltestController extends BaseController
                 }
             }
 
-            $percentage = ($score / max(1, $total)) * 100;
-            $status = $score >= $skilltest->getScoreRequired();
+           // In the POST handling section of the take action, after calc// In the POST handling section after calculating score:
+$percentage = ($score / max(1, $total)) * 100;
+$status = $score >= $skilltest->getScoreRequired();
 
-            $newResult = new Test_result();
-            $newResult->setUser($user);
-            $newResult->setTest($skilltest);
-            $newResult->setDate(new \DateTime());
-            $newResult->setResult($percentage);
-            $newResult->setStatus($status);
+$newResult = new Test_result();
+$newResult->setUser($user);
+$newResult->setTest($skilltest);
+$newResult->setDate(new \DateTime());
+$newResult->setResult($percentage);
+$newResult->setStatus($status);
 
-            $em->persist($newResult);
-            $em->flush();
+$em->persist($newResult);
 
-            $form = $this->createForm(TestresultType::class, $newResult);
+// Find and update the related application
+$applicationRepo = $em->getRepository(ApplicationJob::class);
+$application = $applicationRepo->findOneBy([
+    'user' => $user,
+    'jobOffer' => $skilltest->getJobOffer(),
+    'status' => 'Applying-3' // Currently on step 3
+]);
+
+// In SkilltestController.php - Inside the POST handler
+if ($application) {
+    if (!$status) {
+        $application->setStatus('Rejected');
+        $application->setDateApplication(new \DateTime());
+        $em->flush();
+    }
+}
+
+$em->flush(); // Flush the test result if no application was found
+
+$form = $this->createForm(TestresultType::class, $newResult);
 
             return $this->render('skilltest/result.html.twig', [
                 'score' => $score,
@@ -331,7 +349,11 @@ final class SkilltestController extends BaseController
     #[Route('/skilltest/{id}/pdf', name: 'app_skilltest_pdf')]
     public function downloadPdf(Skilltest $skilltest, EntityManagerInterface $em, Pdf $knpSnappy): Response
     {
-        $user = $em->getRepository(App_user::class)->find(1);
+        $this->ensureUserSession();
+$user = $this->getCurrentUser();
+if (!$user) {
+    throw $this->createNotFoundException('User not found.');
+}
 
         if (!$user) {
             throw $this->createNotFoundException("User not found.");

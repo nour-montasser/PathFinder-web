@@ -18,7 +18,7 @@ class Message
     #[ORM\Column(type: "text", length: 500)]
     private string $content ;
 
-    #[ORM\ManyToOne(targetEntity: App_user::class,inversedBy:"sentMessages")]
+    #[ORM\ManyToOne(targetEntity: App_user::class)]
     #[ORM\JoinColumn(name: "id_user_sender", referencedColumnName: "id_user", onDelete: "CASCADE")]
     private App_user $sender;
 

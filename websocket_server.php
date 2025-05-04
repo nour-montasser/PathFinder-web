@@ -351,12 +351,13 @@ $connectionParams = [
     'dbname' => 'pathfinder',
     'user' => 'root',
     'password' => '',
-    'host' => '127.0.0.1',
-    'port' => 3307,
+    'host' => '192.168.1.27',
+    'port' => 3306,
     'driver' => 'pdo_mysql',
     'charset' => 'utf8mb4',
     'serverVersion' => '10.4.28-MariaDB'
 ];
+
 
 $connection = DriverManager::getConnection($connectionParams, $config);
 

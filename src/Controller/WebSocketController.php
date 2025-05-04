@@ -20,7 +20,7 @@ class WebSocketController extends AbstractController
     $loop = Factory::create();
     $connector = new Connector($loop);
     
-    $connector('ws://192.168.1.198:8082')
+    $connector('ws://192.168.1.28:8082')
         ->then(function($conn) use ($message, $channelId, $userId) {
             $data = [
                 'type' => 'message',

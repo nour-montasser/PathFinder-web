@@ -132,6 +132,7 @@ if ($form->isSubmitted() && $form->isValid()) {
     }
     
     $content = $message->getContent();
+    
     if (str_starts_with($content, '/pathfinderAI')) {
         $prompt = trim(substr($content, strlen('/pathfinderAI')));
         
