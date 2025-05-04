@@ -1,1 +1,52 @@
 {% extends 'base.html.twig' %}
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block body %}
+<div class="welcome-banner">
+    <h4 class="mb-0">Welcome, Administrator!</h4>
+</div>
+
+<div class="page-title">
+    <h1>Dashboard</h1>
+    <button class="btn-outline-panel">Admin Panel</button>
+</div>
+
+<!-- Stats cards -->
+<div class="row">
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="stats-card blue">
+            <div class="icon">
+                <i class="bi bi-person"></i>
+            </div>
+            <h6>JOB SEEKERS</h6>
+            <div class="count">{{ user_count }}</div>
+            <i class="bi bi-person-fill bg-icon"></i>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="stats-card green">
+            <div class="icon">
+                <i class="bi bi-building"></i>
+            </div>
+            <h6>ENTERPRISES</h6>
+            <div class="count">{{ enterprise_count }}</div>
+            <i class="bi bi-building bg-icon"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Admin info card -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="m-0">Admin Dashboard</h5>
+    </div>
+    <div class="card-body">
+        <h5 class="mb-3">Welcome to the PathFinder Admin Dashboard</h5>
+        <p>Use the sidebar to navigate to different sections.</p>
+        <p>From here you can manage users, view statistics, and monitor platform activity.</p>
+    </div>
+</div>
+{% endblock %} 

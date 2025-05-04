@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row vh-100 justify-content-center align-items-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="register-container p-4 shadow-lg rounded-3 bg-white">
+                <h2 class="text-center mb-4">Sign Up</h2>
+                <p class="text-center text-muted mb-4">Create your account to get started.</p>
+
+                {# Display flash messages #}
+                {% for message in app.flashes('error') %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                {% endfor %}
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+
+                <form action="{{ path('app_register') }}" method="POST">
+                    <div class="form-group position-relative has-icon-left mb-4">
+                        <input type="text" name="name" value="{{ app.request.get('name') }}" class="form-control form-control-xl" placeholder="Username">
+                        <div class="form-control-icon">
+                            <i class="bi bi-person"></i>
+                        </div>
+                    </div>
+                    <div class="form-group position-relative has-icon-left mb-4">
+                        <input type="text" name="email" value="{{ app.request.get('email') }}" class="form-control form-control-xl" placeholder="Email">
+                        <div class="form-control-icon">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+                    </div>
+                    <div class="form-group position-relative has-icon-left mb-4">
+                        <input type="password" name="password" class="form-control form-control-xl" placeholder="Password">
+                        <div class="form-control-icon">
+                            <i class="bi bi-shield-lock"></i>
+                        </div>
+                    </div>
+                    <div class="form-group position-relative has-icon-left mb-4">
+                        <input type="password" name="confirm_password" class="form-control form-control-xl" placeholder="Confirm Password">
+                        <div class="form-control-icon">
+                            <i class="bi bi-shield-lock"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label class="form-label">I am a:</label>
+                        <div class="d-flex gap-4 mt-2">
+                            <div class="form-check">
+                                <input type="radio" name="role" value="1" id="role_jobseeker" class="form-check-input" checked>
+                                <label for="role_jobseeker" class="form-check-label">Job Seeker</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" name="role" value="2" id="role_enterprise" class="form-check-input">
+                                <label for="role_enterprise" class="form-check-label">Enterprise</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block btn-lg shadow-sm w-100 mt-4">Sign Up</button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted">Already have an account?</p>
+                    <a href="{{ path('app_login') }}" class="btn btn-outline-primary btn-lg w-100">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Log In
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

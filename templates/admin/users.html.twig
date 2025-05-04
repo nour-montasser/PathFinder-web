@@ -1,1 +1,177 @@
 {% extends 'base.html.twig' %}
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Admin - Users Management{% endblock %}
+
+{% block body %}
+<div class="welcome-banner">
+    <h4 class="mb-0">User Management</h4>
+</div>
+
+<div class="page-title">
+    <h1>Users</h1>
+    <button class="btn-outline-panel">Admin Panel</button>
+</div>
+
+<!-- Users table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="m-0">User List</h5>
+        <div>
+            <a href="{{ path('admin_users_pdf') }}" class="btn btn-sm btn-danger">
+                <i class="bi bi-file-earmark-pdf me-1"></i> PDF Export
+            </a>
+            <button class="btn btn-sm btn-success ms-2">
+                <i class="bi bi-file-earmark-excel me-1"></i> Excel Export
+            </button>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Search and Filter -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" id="userSearch" class="form-control border-start-0" placeholder="Search users...">
+                </div>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end">
+                <div class="d-flex align-items-center">
+                    <label class="me-2 text-nowrap">Filter by role:</label>
+                    <select id="roleFilter" class="form-select form-select-sm" style="width: 140px;">
+                        <option value="all">All Roles</option>
+                        <option value="1">Job Seekers</option>
+                        <option value="2">Enterprises</option>
+                        <option value="3">Admins</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th class="text-end" style="width: 150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="user-row" data-role="{{ user.role }}">
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.role == 1 %}
+                                <span class="badge bg-primary">Job Seeker</span>
+                            {% elseif user.role == 2 %}
+                                <span class="badge bg-success">Enterprise</span>
+                            {% elseif user.role == 3 %}
+                                <span class="badge bg-danger">Admin</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group">
+                                <a href="{{ path('admin_user_view', {'id': user.id_user}) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ path('admin_user_edit', {'id': user.id_user}) }}" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id_user }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Delete Modal for each user -->
+                            <div class="modal fade" id="deleteUserModal{{ user.id_user }}" tabindex="-1" aria-labelledby="deleteUserModal{{ user.id_user }}Label" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteUserModal{{ user.id_user }}Label">Confirm Deletion</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-start">
+                                            Are you sure you want to delete <strong>{{ user.name }}</strong>? This action cannot be undone.
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <a href="{{ path('admin_user_delete', {'id': user.id_user}) }}" class="btn btn-danger">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Empty state message when no results found -->
+        <div id="noResults" class="text-center py-4 d-none">
+            <i class="bi bi-search fs-1 text-muted"></i>
+            <p class="mt-2 mb-0">No users found matching your search criteria.</p>
+            <button id="clearSearch" class="btn btn-sm btn-outline-primary mt-3">Clear Search</button>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const userSearch = document.getElementById('userSearch');
+        const roleFilter = document.getElementById('roleFilter');
+        const clearSearch = document.getElementById('clearSearch');
+        const userRows = document.querySelectorAll('.user-row');
+        const noResults = document.getElementById('noResults');
+        
+        // Function to filter users based on search and role filter
+        function filterUsers() {
+            const searchTerm = userSearch.value.toLowerCase();
+            const roleValue = roleFilter.value;
+            let visibleCount = 0;
+            
+            userRows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                const email = row.cells[1].textContent.toLowerCase();
+                const userRole = row.dataset.role;
+                
+                const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+                const matchesRole = roleValue === 'all' || userRole === roleValue;
+                
+                if (matchesSearch && matchesRole) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Show or hide the "no results" message
+            if (visibleCount === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
+            }
+        }
+        
+        // Event listeners
+        userSearch.addEventListener('input', filterUsers);
+        roleFilter.addEventListener('change', filterUsers);
+        
+        clearSearch.addEventListener('click', function() {
+            userSearch.value = '';
+            roleFilter.value = 'all';
+            filterUsers();
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %} 

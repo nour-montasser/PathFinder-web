@@ -77,12 +77,12 @@ class Profile
         return $this;
     }
 
-    public function getCurrent_occupation(): string
+    public function getCurrentOccupation(): string
     {
         return $this->current_occupation;
     }
 
-    public function setCurrent_occupation(string $current_occupation): self
+    public function setCurrentOccupation(string $current_occupation): self
     {
         $this->current_occupation = $current_occupation;
         return $this;

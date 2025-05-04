@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition Login</title>
+    <style>
+        #webcam-feed {
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            display: block;
+        }
+        #status {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-top: 10px;
+        }
+        #check-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #error-message {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Face Recognition Login</h1>
+
+<video id="webcam-feed" autoplay></video>
+
+<div id="status">
+    <p>No face detected yet</p>
+</div>
+
+<button id="check-button" style="display: none;">Submit</button>
+<div id="error-message"></div>
+
+<script>
+    // Set up webcam
+    const video = document.getElementById('webcam-feed');
+    const statusDiv = document.getElementById('status');
+    const checkButton = document.getElementById('check-button');
+    const errorMessageDiv = document.getElementById('error-message');
+    let detectedName = '';
+
+    // Access webcam and show on video element
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            statusDiv.innerHTML = "Error: Unable to access webcam.";
+        });
+
+    // Capture a frame when the face is detected
+    function captureFrame() {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        const imageData = canvas.toDataURL('image/jpeg');
+
+        // Send image data to the Flask API
+        fetch('http://127.0.0.1:5000/recognize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ image: imageData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                detectedName = data.name;
+                console.log("Detected name = ", detectedName); // log
+                statusDiv.innerHTML = `Face detected: ${detectedName}`;
+                checkButton.style.display = 'block'; // Show the "Submit" button
+                errorMessageDiv.innerHTML = ''; // Clear any previous error message
+
+                // Call the check user route after detecting the name
+                checkUser(detectedName);
+            } else {
+                statusDiv.innerHTML = "No face detected.";
+                checkButton.style.display = 'none'; // Hide the button if no face detected
+            }
+        })
+        .catch(err => {
+            statusDiv.innerHTML = "Error: Recognition server not available.";
+        });
+    }
+
+    // Call captureFrame every 3 seconds for real-time updates
+    setInterval(captureFrame, 3000);
+
+    // Check user details after detection
+    function checkUser(detectedName) {
+        fetch('/check-user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'detected_name': detectedName // Pass the detected name
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.user_found) {
+                console.log('User Details:', data.user_details); // Log the user details
+                statusDiv.innerHTML = `User found: ${data.user_details.name}`;
+            } else {
+                console.log('User not found.');
+                statusDiv.innerHTML = 'User not found';
+            }
+        })
+        .catch(error => {
+            console.error('Error checking user:', error);
+            statusDiv.innerHTML = `An error occurred: ${error.message || JSON.stringify(error)}`;
+        });
+    }
+
+    checkButton.addEventListener('click', function () {
+        fetch('/login-user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'detected_name': detectedName // Pass the detected user ID
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Log session data to the browser console
+            console.log('Session Data:', data.session_data);
+
+            if (data.login_success) {
+                window.location.href = "/profile"; // Redirect after successful login
+            } else {
+                errorMessageDiv.innerHTML = 'Login failed. Please try again.';
+            }
+        })
+        .catch(error => {
+            console.error('Error during login:', error);
+            errorMessageDiv.innerHTML = `An error occurred: ${error.message || JSON.stringify(error)}`;
+        });
+    });
+
+
+</script>
+
+</body>
+</html>

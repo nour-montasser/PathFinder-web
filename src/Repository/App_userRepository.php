@@ -13,5 +13,18 @@ class App_userRepository extends ServiceEntityRepository
         parent::__construct($registry, App_user::class);
     }
 
-    // Add custom methods as needed
+    public function nourfindCredentials(string $email, string $plainPassword): ?App_user
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.email = :email')
+            ->andWhere('u.password = :password')
+            ->setParameter('email', $email)
+            ->setParameter('password', $plainPassword)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+    
+    
+    
+    
 }
