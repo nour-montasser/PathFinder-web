@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Serviceoffre;
 use App\Entity\Applicationservice;
 use App\Entity\App_user;
-use App\Form\ServiceoffreType;
+use App\Form\ServiceOffreType;
 use App\Form\ApplicationserviceType;
 use App\Repository\ServiceoffreRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -47,7 +47,7 @@ public function index(
     $serviceoffre->setDatePosted(new \DateTime());
     $serviceoffre->setDescription(''); // Initialize with empty string to prevent null
 
-    $form = $this->createForm(ServiceoffreType::class, $serviceoffre);
+    $form = $this->createForm(ServiceOffreType::class, $serviceoffre);
     $form->handleRequest($request);
    
     
@@ -242,7 +242,7 @@ public function index(
     #[Route('/{idService}/edit', name: 'app_serviceoffre_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Serviceoffre $serviceoffre, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(ServiceoffreType::class, $serviceoffre);
+        $form = $this->createForm(ServiceOffreType::class, $serviceoffre);
         $form->handleRequest($request);
     
         if ($form->isSubmitted() && $form->isValid()) {
@@ -284,7 +284,7 @@ public function index(
     {
         $serviceoffre = new Serviceoffre();
         $serviceoffre->setDatePosted(new \DateTime());
-        $form = $this->createForm(ServiceoffreType::class, $serviceoffre);
+        $form = $this->createForm(ServiceOffreType::class, $serviceoffre);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

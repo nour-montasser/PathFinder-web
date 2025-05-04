@@ -28,7 +28,7 @@ use Psr\Log\LoggerInterface;
 class loginController extends BaseController
 {
     protected EntityManagerInterface $entityManager;
-    protected RequestStack $requestStack;
+    protected ?RequestStack $requestStack;
     private $connection;
     private $mailer;
     private $logger;
@@ -86,7 +86,7 @@ class loginController extends BaseController
                     $session->set('user_image', $existingAdmin->getImage());
                     
                     $this->addFlash('success', 'Welcome, Administrator!');
-                    return $this->redirectToRoute('admin_dashboard');
+                    return $this->redirectToRoute('app_serviceoffre_dashboard');
                 } else {
                     $error = 'Invalid admin password.';
                 }
@@ -107,10 +107,15 @@ class loginController extends BaseController
                     // Check if user is admin (role 3)
                     if ($user->getRole() == 3) {
                         $this->addFlash('success', 'Welcome, Administrator!');
-                        return $this->redirectToRoute('admin_dashboard');
-                    } else {
+                        return $this->redirectToRoute('app_serviceoffre_dashboard');
+                    } else if ($user->getRole() == 1) {
+                        // Enterprise role = 1
                         $this->addFlash('success', 'Welcome back, ' . $user->getName() . '!');
-                        return $this->redirectToRoute('app_home');
+                        return $this->redirectToRoute('app_job_offer_dashboard');
+                    } else {
+                        // Job seeker role = 2
+                        $this->addFlash('success', 'Welcome back, ' . $user->getName() . '!');
+                        return $this->redirectToRoute('app_serviceoffre_dashboard');
                     }
                 } else {
                     $error = 'Invalid email or password.';
@@ -146,6 +151,7 @@ class loginController extends BaseController
             $name = trim($request->request->get('name'));
             $password = $request->request->get('password');
             $confirmPassword = $request->request->get('confirm_password');
+            $role = $request->request->get('role', 2); // Default to job seeker (role 2) if not set
     
             // Validation
             if (!$email || !$name || !$password || !$confirmPassword) {
@@ -182,7 +188,7 @@ class loginController extends BaseController
                 $user->setEmail($email);
                 $user->setName($name);
                 $user->setPassword(password_hash($password, PASSWORD_BCRYPT));
-                $user->setRole(1); // Set default role to 1 for all users
+                $user->setRole($role); // Use the role from the form
                 $user->setImage('default.png');
     
                 $this->entityManager->persist($user);

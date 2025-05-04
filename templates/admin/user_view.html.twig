@@ -1,245 +1,98 @@
 {% extends 'admin/base.html.twig' %}
 
-{% block title %}View User - {{ user.name }}{% endblock %}
+{% block title %}User Details{% endblock %}
 
 {% block body %}
 <div class="welcome-banner">
-    <h4 class="mb-0">User Details</h4>
+    <h4 class="mb-0">User Management</h4>
 </div>
 
 <div class="page-title">
-    <h1>{{ user.name }}</h1>
-    <div>
-        <a href="{{ path('admin_users') }}" class="btn btn-outline-secondary btn-sm me-2">
-            <i class="bi bi-arrow-left"></i> Back to Users
-        </a>
-        <a href="{{ path('admin_user_edit', {'id': user.id_user}) }}" class="btn btn-warning btn-sm">
-            <i class="bi bi-pencil"></i> Edit User
-        </a>
-    </div>
+    <h1>User Details</h1>
+    <a href="{{ path('admin_users') }}" class="btn-outline-panel">
+        <i class="bi bi-arrow-left"></i> Back to Users
+    </a>
 </div>
 
-<div class="row">
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="m-0">Profile</h5>
-            </div>
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    {% if user.image and user.image != 'default.png' %}
-                        <img src="{{ asset('uploads/users/' ~ user.image) }}" alt="{{ user.name }}" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
-                    {% else %}
-                        <div class="user-avatar-placeholder rounded-circle mx-auto" style="width: 150px; height: 150px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #adb5bd;">
-                            <i class="bi bi-person"></i>
-                        </div>
-                    {% endif %}
-                </div>
-                
-                <h5 class="font-weight-bold">{{ user.name }}</h5>
-                <p class="text-muted">
-                    {% if user.role == 1 %}
-                        <span class="badge bg-primary">Job Seeker</span>
-                    {% elseif user.role == 2 %}
-                        <span class="badge bg-success">Enterprise</span>
-                    {% elseif user.role == 3 %}
-                        <span class="badge bg-danger">Admin</span>
-                    {% endif %}
-                </p>
-            </div>
-        </div>
+<div class="card">
+    <div class="card-header">
+        <h5 class="m-0">{{ user.name }}</h5>
     </div>
-    
-    <div class="col-md-8 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="m-0">User Information</h5>
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-4 fw-bold">ID:</div>
-                    <div class="col-md-8">{{ user.id_user }}</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-4 fw-bold">Name:</div>
-                    <div class="col-md-8">{{ user.name }}</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-4 fw-bold">Email:</div>
-                    <div class="col-md-8">{{ user.email }}</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-4 fw-bold">Role:</div>
-                    <div class="col-md-8">
-                        {% if user.role == 1 %}
-                            Job Seeker
-                        {% elseif user.role == 2 %}
-                            Enterprise
-                        {% elseif user.role == 3 %}
-                            Administrator
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        {% if user.image and user.image != 'default.png' %}
+                            <img src="{{ asset('uploads/users/' ~ user.image) }}" alt="{{ user.name }}" 
+                                 class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="user-avatar-placeholder mb-3 mx-auto" 
+                                 style="width: 150px; height: 150px; background-color: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-person" style="font-size: 4rem; color: #aaa;"></i>
+                            </div>
                         {% endif %}
+                        <h5>{{ user.name }}</h5>
+                        <p class="text-muted">
+                            {% if user.role == 2 %}
+                                <span class="badge" style="background-color: #8B4513;">Job Seeker</span>
+                            {% elseif user.role == 1 %}
+                                <span class="badge bg-success">Enterprise</span>
+                            {% elseif user.role == 3 %}
+                                <span class="badge bg-danger">Admin</span>
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
-                {# <div class="row mb-3">
-                    <div class="col-md-4 fw-bold">Authentication Method:</div>
-                    <div class="col-md-8">
-                        {% if user.getAuthMethod() %}
-                            {{ user.getAuthMethod()|capitalize }}
-                        {% else %}
-                            Standard
-                        {% endif %}
-                    </div> #}
+            </div>
+            
+            <div class="col-md-8 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="m-0">User Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%;">ID</th>
+                                    <td>{{ user.id_user }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email</th>
+                                    <td>{{ user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Role</th>
+                                    <td>
+                                        {% if user.role == 2 %}
+                                            Job Seeker
+                                        {% elseif user.role == 1 %}
+                                            Enterprise
+                                        {% elseif user.role == 3 %}
+                                            Administrator
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mt-3">
+            <a href="{{ path('admin_user_edit', {'id': user.id_user}) }}" class="btn btn-warning">
+                <i class="bi bi-pencil me-1"></i> Edit User
+            </a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+                <i class="bi bi-trash me-1"></i> Delete User
+            </button>
         </div>
     </div>
 </div>
 
-{% if user.role == 1 %}
-<!-- Job Seeker specific section -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="m-0">Job Applications</h5>
-    </div>
-    <div class="card-body">
-        {% if user.jobApplications is not empty %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Job Title</th>
-                            <th>Applied Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for application in user.jobApplications %}
-                            <tr>
-                                <td>{{ application.id }}</td>
-                                <td>{{ application.job_offer.title }}</td>
-                                <td>{{ application.date|date('Y-m-d') }}</td>
-                                <td>
-                                    {% if application.status == 'pending' %}
-                                        <span class="badge bg-warning">Pending</span>
-                                    {% elseif application.status == 'accepted' %}
-                                        <span class="badge bg-success">Accepted</span>
-                                    {% elseif application.status == 'rejected' %}
-                                        <span class="badge bg-danger">Rejected</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="text-muted">No job applications found.</p>
-        {% endif %}
-    </div>
-</div>
-
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="m-0">CV List</h5>
-    </div>
-    <div class="card-body">
-        {% if user.cvs is not empty %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Created Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cv in user.cvs %}
-                            <tr>
-                                <td>{{ cv.id }}</td>
-                                <td>{{ cv.title }}</td>
-                                <td>{{ cv.created_at|date('Y-m-d') }}</td>
-                                <td>
-                                    <a href="#" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye"></i> View
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="text-muted">No CVs found.</p>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
-
-{% if user.role == 2 %}
-<!-- Enterprise specific section -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="m-0">Job Offers</h5>
-    </div>
-    <div class="card-body">
-        {% if user.jobOffers is not empty %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Posted Date</th>
-                            <th>Applications</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for jobOffer in user.jobOffers %}
-                            <tr>
-                                <td>{{ jobOffer.id }}</td>
-                                <td>{{ jobOffer.title }}</td>
-                                <td>{{ jobOffer.created_at|date('Y-m-d') }}</td>
-                                <td>{{ jobOffer.applications|length }}</td>
-                                <td>
-                                    {% if jobOffer.status == 'active' %}
-                                        <span class="badge bg-success">Active</span>
-                                    {% elseif jobOffer.status == 'closed' %}
-                                        <span class="badge bg-secondary">Closed</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="text-muted">No job offers found.</p>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
-
-<div class="d-flex justify-content-between">
-    <div>
-        <button class="btn btn-secondary" onclick="history.back()">
-            <i class="bi bi-arrow-left"></i> Back
-        </button>
-    </div>
-    <div>
-        <a href="{{ path('admin_user_edit', {'id': user.id_user}) }}" class="btn btn-warning">
-            <i class="bi bi-pencil"></i> Edit User
-        </a>
-        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
-            <i class="bi bi-trash"></i> Delete User
-        </button>
-    </div>
-</div>
-
-<!-- Delete User Modal -->
+<!-- Delete Modal -->
 <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -248,13 +101,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete {{ user.name }}? This action cannot be undone.
+                Are you sure you want to delete <strong>{{ user.name }}</strong>? This action cannot be undone.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="{{ path('admin_user_delete', {'id': user.id_user}) }}" class="btn btn-danger">Confirm Delete</a>
+                <a href="{{ path('admin_user_delete', {'id': user.id_user}) }}" class="btn btn-danger">Delete</a>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %} 

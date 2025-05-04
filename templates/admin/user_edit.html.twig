@@ -1,139 +1,55 @@
 {% extends 'admin/base.html.twig' %}
 
-{% block title %}Edit User - {{ user.name }}{% endblock %}
+{% block title %}Edit User{% endblock %}
 
 {% block body %}
 <div class="welcome-banner">
-    <h4 class="mb-0">Edit User</h4>
+    <h4 class="mb-0">User Management</h4>
 </div>
 
 <div class="page-title">
-    <h1>{{ user.name }}</h1>
-    <div>
-        <a href="{{ path('admin_user_view', {'id': user.id_user}) }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-eye"></i> View User
-        </a>
-    </div>
+    <h1>Edit User</h1>
+    <a href="{{ path('admin_users') }}" class="btn-outline-panel">
+        <i class="bi bi-arrow-left"></i> Back to Users
+    </a>
 </div>
 
-<div class="card mb-4">
+<div class="card">
     <div class="card-header">
-        <h5 class="m-0">Edit User Information</h5>
+        <h5 class="m-0">Edit {{ user.name }}</h5>
     </div>
     <div class="card-body">
-        <form action="{{ path('admin_user_edit', {'id': user.id_user}) }}" method="POST" enctype="multipart/form-data">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="name" class="form-label">Name</label>
-                    <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="role" class="form-label">Role</label>
-                    <select class="form-select" id="role" name="role">
-                        <option value="1" {% if user.role == 1 %}selected{% endif %}>Job Seeker</option>
-                        <option value="2" {% if user.role == 2 %}selected{% endif %}>Enterprise</option>
-                        <option value="3" {% if user.role == 3 %}selected{% endif %}>Administrator</option>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="profile_image" class="form-label">Profile Image</label>
-                    <input type="file" class="form-control" id="profile_image" name="profile_image">
-                    {% if user.image %}
-                        <div class="form-text">Current image: {{ user.image }}</div>
-                    {% endif %}
-                </div>
+        <form action="{{ path('admin_user_edit', {'id': user.id_user}) }}" method="post">
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
             </div>
             
             <div class="mb-3">
-                <label for="new_password" class="form-label">New Password (leave blank to keep current)</label>
-                <input type="password" class="form-control" id="new_password" name="new_password">
-                <div class="form-text">Only fill this if you want to change the user's password.</div>
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
             </div>
             
-            <h5 class="mt-4 mb-3">Additional Settings</h5>
-            
-            <div class="row">
-                {% if user.role == 1 %}
-                <!-- Job Seeker specific options -->
-                <div class="col-md-6 mb-3">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="enable_job_alerts" name="enable_job_alerts" checked>
-                        <label class="form-check-label" for="enable_job_alerts">Enable Job Alerts</label>
-                    </div>
-                </div>
-                {% elseif user.role == 2 %}
-                <!-- Enterprise specific options -->
-                <div class="col-md-6 mb-3">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="verify_enterprise" name="verify_enterprise" checked>
-                        <label class="form-check-label" for="verify_enterprise">Verify Enterprise</label>
-                    </div>
-                </div>
-                {% endif %}
-                
-                <div class="col-md-6 mb-3">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="active_account" name="active_account" checked>
-                        <label class="form-check-label" for="active_account">Active Account</label>
-                    </div>
-                </div>
+            <div class="mb-3">
+                <label for="role" class="form-label">Role</label>
+                <select class="form-select" id="role" name="role" required>
+                    <option value="1" {% if user.role == 1 %}selected{% endif %}>Enterprise</option>
+                    <option value="2" {% if user.role == 2 %}selected{% endif %}>Job Seeker</option>
+                    <option value="3" {% if user.role == 3 %}selected{% endif %}>Administrator</option>
+                </select>
             </div>
             
-            <div class="d-flex justify-content-between mt-4">
-                <a href="{{ path('admin_user_view', {'id': user.id_user}) }}" class="btn btn-secondary">
-                    <i class="bi bi-x-circle"></i> Cancel
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save"></i> Save Changes
-                </button>
+            <div class="mb-3">
+                <label for="password" class="form-label">New Password (leave blank to keep current)</label>
+                <input type="password" class="form-control" id="password" name="password">
+                <div class="form-text">Minimum 6 characters. Leave empty to keep current password.</div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ path('admin_user_view', {'id': user.id_user}) }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
             </div>
         </form>
-    </div>
-</div>
-
-<div class="card mb-4">
-    <div class="card-header bg-danger text-white">
-        <h5 class="m-0">Danger Zone</h5>
-    </div>
-    <div class="card-body">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h5>Delete User Account</h5>
-                <p class="text-muted mb-0">Once you delete a user account, there is no going back. Please be certain.</p>
-            </div>
-            <div class="col-md-4 text-end">
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
-                    <i class="bi bi-trash"></i> Delete User
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Delete User Modal -->
-<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteUserModalLabel">Confirm Deletion</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete {{ user.name }}? This action cannot be undone.</p>
-                <p>All associated data including job applications, CVs, and messages will be permanently removed.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="{{ path('admin_user_delete', {'id': user.id_user}) }}" class="btn btn-danger">Confirm Delete</a>
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %} 

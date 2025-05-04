@@ -55,7 +55,7 @@
                         
                         <div class="mb-3">
                             <label for="account_type" class="form-label">Account Type</label>
-                            <input type="text" class="form-control" id="account_type" value="{% if user.role == 1 %}Job Seeker{% elseif user.role == 2 %}Enterprise{% elseif user.role == 3 %}Administrator{% endif %}" disabled>
+                            <input type="text" class="form-control" id="account_type" value="{% if user.role == 1 %}Enterprise{% elseif user.role == 2 %}Job Seeker{% elseif user.role == 3 %}Administrator{% endif %}" disabled>
                         </div>
                         
                         <hr class="my-4" id="password">

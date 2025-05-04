@@ -112,7 +112,7 @@
                                 Active Jobs</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_jobs }}</div>
                             <div class="progress progress-thin mt-2">
-                                <div class="progress-bar bg-success" style="width: {{ (stats.active_jobs/stats.total_jobs)*100 }}%"></div>
+                                <div class="progress-bar bg-success" style="width: {{ stats.total_jobs > 0 ? (stats.active_jobs/stats.total_jobs)*100 : 0 }}%"></div>
                             </div>
                         </div>
                         <div class="col-auto">

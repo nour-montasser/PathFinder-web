@@ -49,11 +49,11 @@
                                     <input type="file" class="form-control" id="image" name="image" accept="image/*">
                                 </div>
                                 
-                                <p class="badge bg-{{ user.role == 1 ? 'primary' : (user.role == 2 ? 'success' : 'danger') }} text-white">
+                                <p class="badge bg-{{ user.role == 1 ? 'success' : (user.role == 2 ? 'primary' : 'danger') }} text-white">
                                     {% if user.role == 1 %}
-                                        Job Seeker
-                                    {% elseif user.role == 2 %}
                                         Enterprise
+                                    {% elseif user.role == 2 %}
+                                        Job Seeker
                                     {% elseif user.role == 3 %}
                                         Administrator
                                     {% endif %}
@@ -84,7 +84,7 @@
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Account Type</label>
-                                    <input type="text" class="form-control" value="{% if user.role == 1 %}Job Seeker{% elseif user.role == 2 %}Enterprise{% elseif user.role == 3 %}Administrator{% endif %}" disabled>
+                                    <input type="text" class="form-control" value="{% if user.role == 1 %}Enterprise{% elseif user.role == 2 %}Job Seeker{% elseif user.role == 3 %}Administrator{% endif %}" disabled>
                                 </div>
                                 
                                 <div class="d-grid gap-2 mt-4">

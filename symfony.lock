@@ -67,9 +67,11 @@
         },
         "files": [
             "./config/packages/knp_snappy.yaml"
-            "version": "1.20",
-            "ref": "1ff300d8c030f55c99219cc55050b97a695af3f6"
-        },
+        ]
+    },
+    "knpuniversity/oauth2-client-bundle": {
+        "version": "1.20",
+        "ref": "1ff300d8c030f55c99219cc55050b97a695af3f6",
         "files": [
             "./config/packages/knpu_oauth2_client.yaml"
         ]

@@ -20,20 +20,63 @@ use App\Entity\Cv;
 
 use Symfony\Component\HttpFoundation\RequestStack;
 
+use Dompdf\Dompdf;  // Add this line
+use Dompdf\Options;  // Add this line
+use App\Entity\App_user;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/admin')]
 class AdminController extends BaseController
 {
+    private $slugger;
+    
+    public function __construct(
+        EntityManagerInterface $entityManager, 
+        RequestStack $requestStack,
+        SluggerInterface $slugger = null
+    ) {
+        parent::__construct($entityManager, $requestStack);
+        $this->slugger = $slugger;
+    }
+
     #[Route('/dashboard', name: 'admin_dashboard')]
     public function dashboard(): Response
     {
-        return $this->render('admin/dashboard.html.twig');
+        // Count job seekers (role 2)
+        $jobSeekerCount = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(u)')
+            ->from('App\Entity\App_user', 'u')
+            ->where('u.role = :role')
+            ->setParameter('role', 2)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Count enterprises (role 1)
+        $enterpriseCount = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(u)')
+            ->from('App\Entity\App_user', 'u')
+            ->where('u.role = :role')
+            ->setParameter('role', 1)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $this->render('admin/dashboard.html.twig', [
+            'user_count' => $jobSeekerCount,
+            'enterprise_count' => $enterpriseCount
+        ]);
     }
 
     #[Route('/users', name: 'admin_users')]
     public function users(): Response
     {
-        return $this->render('admin/users.html.twig');
+        // Get all users
+        $users = $this->entityManager->getRepository(App_user::class)->findBy([], ['id_user' => 'DESC']);
+        
+        return $this->render('admin/users.html.twig', [
+            'users' => $users
+        ]);
     }
 
     #[Route('/cvs', name: 'admin_cvs')]
@@ -197,253 +240,6 @@ public function searchFeedbacks(Request $request, FeedbackRepository $feedbackRe
 
     return new JsonResponse($feedbacksArray);
 }
-}
-use Dompdf\Dompdf;  // Add this line
-use Dompdf\Options;  // Add this line
-use App\Entity\App_user;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\String\Slugger\SluggerInterface;
-
-#[Route('/admin', name: 'admin_')]
-class AdminController extends BaseController
-{
-    private $slugger;
-    
-    public function __construct(
-        EntityManagerInterface $entityManager, 
-        RequestStack $requestStack,
-        SluggerInterface $slugger = null
-    ) {
-        parent::__construct($entityManager, $requestStack);
-        $this->slugger = $slugger;
-    }
-
-    #[Route('/dashboard', name: 'dashboard')]
-    public function dashboard(): Response
-    {
-        // Check if user is logged in and is admin
-        $session = $this->requestStack->getSession();
-        $userId = $session->get('user_id');
-        $userRole = $session->get('user_role');
-        
-        if (!$userId || $userRole != 3) { // 3 will be our admin role
-            $this->addFlash('error', 'Access denied. Admin privileges required.');
-            return $this->redirectToRoute('app_login');
-        }
-        
-        // Get counts for dashboard stats
-        $userCount = $this->entityManager->getRepository(App_user::class)->count(['role' => 1]); // Job seekers
-        $enterpriseCount = $this->entityManager->getRepository(App_user::class)->count(['role' => 2]); // Enterprises
-        
-        return $this->render('admin/dashboard.html.twig', [
-            'user_count' => $userCount,
-            'enterprise_count' => $enterpriseCount,
-        ]);
-    }
-    
-    #[Route('/users', name: 'users')]
-    public function users(): Response
-    {
-        // Check if user is logged in and is admin
-        $session = $this->requestStack->getSession();
-        $userId = $session->get('user_id');
-        $userRole = $session->get('user_role');
-        
-        if (!$userId || $userRole != 3) {
-            $this->addFlash('error', 'Access denied. Admin privileges required.');
-            return $this->redirectToRoute('app_login');
-        }
-        
-        // Get all users
-        $users = $this->entityManager->getRepository(App_user::class)->findBy([], ['id_user' => 'DESC']);
-        
-        return $this->render('admin/users.html.twig', [
-            'users' => $users,
-        ]);
-    }
-    
-    #[Route('/users/view/{id}', name: 'user_view')]
-    public function viewUser(int $id): Response
-    {
-        // Check if user is logged in and is admin
-        $session = $this->requestStack->getSession();
-        $userId = $session->get('user_id');
-        $userRole = $session->get('user_role');
-        
-        if (!$userId || $userRole != 3) {
-            $this->addFlash('error', 'Access denied. Admin privileges required.');
-            return $this->redirectToRoute('app_login');
-        }
-        
-        // Find the user
-        $user = $this->entityManager->getRepository(App_user::class)->find($id);
-        
-        if (!$user) {
-            $this->addFlash('error', 'User not found.');
-            return $this->redirectToRoute('admin_users');
-        }
-        
-        return $this->render('admin/user_view.html.twig', [
-            'user' => $user,
-        ]);
-    }
-    
-    #[Route('/users/edit/{id}', name: 'user_edit', methods: ['GET', 'POST'])]
-    public function editUser(Request $request, int $id): Response
-    {
-        // Check if user is logged in and is admin
-        $session = $this->requestStack->getSession();
-        $userId = $session->get('user_id');
-        $userRole = $session->get('user_role');
-        
-        if (!$userId || $userRole != 3) {
-            $this->addFlash('error', 'Access denied. Admin privileges required.');
-            return $this->redirectToRoute('app_login');
-        }
-        
-        // Find the user
-        $user = $this->entityManager->getRepository(App_user::class)->find($id);
-        
-        if (!$user) {
-            $this->addFlash('error', 'User not found.');
-            return $this->redirectToRoute('admin_users');
-        }
-        
-        // Handle form submission
-        if ($request->isMethod('POST')) {
-            $name = $request->request->get('name');
-            $email = $request->request->get('email');
-            $role = $request->request->get('role');
-            $newPassword = $request->request->get('new_password');
-            
-            // Update user information
-            $user->setName($name);
-            $user->setEmail($email);
-            $user->setRole((int)$role);
-            
-            // Update password if provided
-            if ($newPassword) {
-                $user->setPassword(password_hash($newPassword, PASSWORD_BCRYPT));
-            }
-            
-            // Handle profile image upload
-            $profileImage = $request->files->get('profile_image');
-            if ($profileImage instanceof UploadedFile) {
-                $originalFilename = pathinfo($profileImage->getClientOriginalName(), PATHINFO_FILENAME);
-                $originalExtension = pathinfo($profileImage->getClientOriginalName(), PATHINFO_EXTENSION);
-                $safeFilename = $this->slugger ? $this->slugger->slug($originalFilename) : strtolower(str_replace(' ', '_', $originalFilename));
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $originalExtension;
-                
-                try {
-                    // Make sure upload directory exists
-                    $uploadDir = 'uploads/users';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0777, true);
-                    }
-                    
-                    $profileImage->move(
-                        $uploadDir,
-                        $newFilename
-                    );
-                    $user->setImage($newFilename);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Failed to upload profile image: ' . $e->getMessage());
-                }
-            }
-            
-            // Save changes
-            $this->entityManager->flush();
-            
-            $this->addFlash('success', 'User updated successfully.');
-            return $this->redirectToRoute('admin_user_view', ['id' => $user->getId_user()]);
-        }
-        
-        return $this->render('admin/user_edit.html.twig', [
-            'user' => $user,
-        ]);
-    }
-    
-    #[Route('/users/delete/{id}', name: 'user_delete')]
-    public function deleteUser(int $id): Response
-    {
-        // Check if user is logged in and is admin
-        $session = $this->requestStack->getSession();
-        $userId = $session->get('user_id');
-        $userRole = $session->get('user_role');
-        
-        if (!$userId || $userRole != 3) {
-            $this->addFlash('error', 'Access denied. Admin privileges required.');
-            return $this->redirectToRoute('app_login');
-        }
-        
-        // Find the user
-        $user = $this->entityManager->getRepository(App_user::class)->find($id);
-        
-        if (!$user) {
-            $this->addFlash('error', 'User not found.');
-            return $this->redirectToRoute('admin_users');
-        }
-        
-        // Prevent deleting yourself
-        if ($user->getId_user() === $userId) {
-            $this->addFlash('error', 'You cannot delete your own account.');
-            return $this->redirectToRoute('admin_users');
-        }
-        
-        // Delete user
-        $username = $user->getName(); // Store for flash message
-        $this->entityManager->remove($user);
-        $this->entityManager->flush();
-        
-        $this->addFlash('success', "User '{$username}' has been deleted successfully.");
-        return $this->redirectToRoute('admin_users');
-    }
-
-
-
-/*    #[Route('/users/pdf', name: 'users_pdf')]
-    public function generateUsersPdf(): Response
-    {
-        // Check if user is logged in and is admin
-        $session = $this->requestStack->getSession();
-        $userId = $session->get('user_id');
-        $userRole = $session->get('user_role');
-        
-        if (!$userId || $userRole != 3) {
-            $this->addFlash('error', 'Access denied. Admin privileges required.');
-            return $this->redirectToRoute('app_login');
-        }
-        
-        // Get all users
-        $users = $this->entityManager->getRepository(App_user::class)->findBy([], ['id_user' => 'DESC']);
-        
-        // Generate HTML content for PDF
-        $html = $this->renderView('admin/pdf/users_pdf.html.twig', [
-            'users' => $users,
-            'date' => new \DateTime(),
-        ]);
-        
-        // Return response that will be handled by a PDF library
-        // In a real implementation, you would use a library like Dompdf, TCPDF, or wkhtmltopdf
-        // For now, we'll just return the HTML with appropriate headers for demonstration
-        $response = new Response($html);
-        // $response->headers->set('Content-Type', 'application/pdf');
-        $response->headers->set('Content-Type', 'text/html');  // Set content type to HTML
-        $response->headers->set('Content-Disposition', 'attachment; filename="zebu.html"');
-        
-        // Note: In a real implementation, you would convert $html to PDF here
-        // $pdfContent = $this->convertHtmlToPdf($html);
-        // $response->setContent($pdfContent);
-        
-        return $response;
-    }*/
-
 
     #[Route('/users/pdf', name: 'users_pdf')]
     public function generateUsersPdf(): Response
@@ -493,7 +289,53 @@ class AdminController extends BaseController
         );
     }
 
-
-
+    #[Route('/user/view/{id}', name: 'admin_user_view')]
+    public function viewUser(int $id): Response
+    {
+        $user = $this->entityManager->getRepository(App_user::class)->find($id);
+        
+        if (!$user) {
+            $this->addFlash('error', 'User not found.');
+            return $this->redirectToRoute('admin_users');
+        }
+        
+        return $this->render('admin/user_view.html.twig', [
+            'user' => $user
+        ]);
+    }
     
+    #[Route('/user/edit/{id}', name: 'admin_user_edit')]
+    public function editUser(int $id, Request $request): Response
+    {
+        $user = $this->entityManager->getRepository(App_user::class)->find($id);
+        
+        if (!$user) {
+            $this->addFlash('error', 'User not found.');
+            return $this->redirectToRoute('admin_users');
+        }
+        
+        // Here you would normally handle the form submission for editing
+        // For now, we'll just render the template
+        
+        return $this->render('admin/user_edit.html.twig', [
+            'user' => $user
+        ]);
+    }
+    
+    #[Route('/user/delete/{id}', name: 'admin_user_delete')]
+    public function deleteUser(int $id): Response
+    {
+        $user = $this->entityManager->getRepository(App_user::class)->find($id);
+        
+        if (!$user) {
+            $this->addFlash('error', 'User not found.');
+            return $this->redirectToRoute('admin_users');
+        }
+        
+        $this->entityManager->remove($user);
+        $this->entityManager->flush();
+        
+        $this->addFlash('success', 'User deleted successfully.');
+        return $this->redirectToRoute('admin_users');
+    }
 } 
