@@ -231,7 +231,14 @@
   font-size: 0.875rem;                     /* 14px */
   line-height: 1.6;
 }
-
+.cv-header-contact {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.675rem;     /* 14px */
+  color: #555;
+  margin-top: 0.5rem;
+  text-align: center;
+  line-height: 1.5;
+}
 
     `;
     const styleTag = document.createElement('style');
@@ -391,6 +398,18 @@ function updateHeaderSection() {
         role.textContent = title;
         out.appendChild(role);
     }
+        // Contact Info (NEW)
+        const phone = window.USER_PHONE || '';
+        const email = window.USER_EMAIL || '';
+        const location = window.USER_LOCATION || '';
+        const age = window.USER_AGE || ''
+    
+        const contact = document.createElement('div');
+        contact.className = 'cv-header-contact';
+        contact.innerHTML = `
+          ${phone} • ${email} • ${location} • ${age}
+        `;
+        out.appendChild(contact);
 }
 
 function updateSummarySection() {

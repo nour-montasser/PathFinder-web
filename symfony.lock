@@ -39,6 +39,8 @@
         ]
     },
     "google/apiclient": {
+        "version": "2.12"
+    },
     "endroid/qr-code-bundle": {
         "version": "5.0.2"
     },
