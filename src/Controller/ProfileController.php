@@ -77,8 +77,8 @@ final class ProfileController extends BaseController
                     
                     if (!in_array($originalExtension, $allowedExtensions)) {
                         $this->addFlash('error', 'The image must be a JPG, JPEG, PNG or GIF file.');
-                    } elseif ($profileImage->getSize() > 2000000) { // 2MB max size
-                        $this->addFlash('error', 'The image size cannot exceed 2MB.');
+                    } elseif ($profileImage->getSize() > 5000000) { // 2MB max size
+                        $this->addFlash('error', 'The image size cannot exceed 5MB.');
                     } else {
                         $originalFilename = pathinfo($profileImage->getClientOriginalName(), PATHINFO_FILENAME);
                         $safeFilename = $this->slugger ? $this->slugger->slug($originalFilename) : strtolower(str_replace(' ', '_', $originalFilename));
