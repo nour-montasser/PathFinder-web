@@ -219,7 +219,7 @@ final class SkilltestController extends BaseController
             }
 
             return $this->render('skilltest/result.html.twig', [
-                'score' => $testResult->getResult(),
+                'score' => round(($testResult->getResult() / 100) * count($skilltest->getQuestions())),
                 'total' => max(1, count($skilltest->getQuestions())),
                 'percentage' => $testResult->getResult(),
                 'passed' => $passed,
@@ -257,7 +257,7 @@ final class SkilltestController extends BaseController
 
            // In the POST handling section of the take action, after calc// In the POST handling section after calculating score:
 $percentage = ($score / max(1, $total)) * 100;
-$status = $score >= $skilltest->getScoreRequired();
+$status = $percentage >= $skilltest->getScoreRequired();
 
 $newResult = new Test_result();
 $newResult->setUser($user);

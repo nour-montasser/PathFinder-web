@@ -21,7 +21,7 @@
 			{% include "includes/navbar.html.twig" %}
 
 
-			<div id="main-content" style="{% if current_user is defined and current_user is not null and current_user.role == 3 %}margin-left: 250px;{% endif %} padding: 20px;"> {% block body %}{% endblock %}
+			<div id="main-content" style="{% if current_user is defined and current_user is not null and current_user.role == 3 %}margin-left: 250px;{% endif %} "> {% block body %}{% endblock %}
 				{% include "includes/footer.html.twig" %}
 			</div>
 
@@ -45,6 +45,8 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
   {% block javascripts %}{% endblock %}
+            {{ encore_entry_script_tags('app') }}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
 
   <script>
   function closeCustomModal() {

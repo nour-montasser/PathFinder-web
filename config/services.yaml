@@ -10,6 +10,7 @@ parameters:
     app.ai_api_key: '%env(AI_API_KEY)%'
     app.ai_api_url: '%env(AI_API_URL)%'
 
+
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -26,6 +27,9 @@ services:
             - '../src/Kernel.php'
 
     App\Service\AiAssistantService:
+        arguments:
+            $openrouterApiKey: '%openrouter.api_key%'
+        
     App\Service\AIDescriptionGenerator:
         arguments:
             $deepseekApiKey: '%env(AI_API_KEY)%'
