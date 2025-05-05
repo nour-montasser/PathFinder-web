@@ -1,151 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link rel="icon" href="{{ asset('build/images/logo/pathfinder_logo_compass.png.png') }}" type="image/png">
-		<title>
-			{% block title %}Pathfinder
-			{% endblock %}
-		</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ asset('build/images/logo/pathfinder_logo_compass.png.png') }}" type="image/png">
+    <title>{% block title %}Pathfinder{% endblock %}</title>
+
     <script src="https://cdn.ckeditor.com/ckeditor5/38.0.1/classic/ckeditor.js"></script>
+    {{ encore_entry_link_tags('app') }}
+    {% block styles %}{% endblock %}
+</head>
 
-		{{ encore_entry_link_tags('app') }}
-		{% block styles %}{% endblock %}
-	</head>
+<body>
+<div id="app">
 
-	<body>
-		<div id="app">
+    {% include "includes/navbar.html.twig" %}
 
-			{% include "includes/navbar.html.twig" %}
+    <div id="main-content"
+        <div id="main-content" style="{% if current_user.role == 3 %}margin-left: 220px;{% endif %} padding: 20px;">
 
-
-			<div id="main-content" style="{% if current_user.role == 3 %}margin-left: 250px;{% endif %} padding: 20px;"> {% block body %}{% endblock %}
-				{% include "includes/footer.html.twig" %}
-			</div>
-
-
-		</div>
-
-		{{ encore_entry_script_tags('app') }}
-		 <!-- Bootstrap Modal Placeholder -->
-  <div class="modal fade" id="applyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content rounded shadow-sm border-0" style="background-color: #F5EDE1;">
-        <div id="applyModalContent">
-          
-        </div>
-      </div>
+        {% block body %}{% endblock %}
+        {% include "includes/footer.html.twig" %}
     </div>
-  </div>
 
-  {{ encore_entry_script_tags('app') }}
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</div>
 
-  {% block javascripts %}{% endblock %}
+{{ encore_entry_script_tags('app') }}
 
-  <script>
-  function closeCustomModal() {
-    const modal = document.querySelector('.application-modal-wrapper');
-    if (modal) modal.remove();
-  }
+<!-- Bootstrap Modal Placeholder -->
+<div class="modal fade" id="applyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded shadow-sm border-0" style="background-color: #F5EDE1;">
+            <div id="applyModalContent"></div>
+        </div>
+    </div>
+</div>
 
-  function showToastSuccess(message) {
-    const toast = document.createElement('div');
-    toast.classList.add('toast-success');
-    toast.innerText = message;
-    document.body.appendChild(toast);
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
-    setTimeout(() => {
-      toast.remove();
-    }, 4000);
-  }
+{% block javascripts %}{% endblock %}
 
-  document.addEventListener('submit', function (e) {
-    if (e.target && e.target.id === 'applicationForm') {
-      e.preventDefault();
-
-      const form = e.target;
-      const spinner = document.getElementById('applySpinner');
-      const button = document.getElementById('submitApplicationBtn');
-
-      if (spinner) spinner.classList.remove('d-none');
-      if (button) button.setAttribute('disabled', 'true');
-
-      fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form),
-        credentials: 'same-origin',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-      .then(async res => {
-        const contentType = res.headers.get('content-type');
-
-        // Handle JSON response
-        if (res.ok && contentType && contentType.includes('application/json')) {
-          const data = await res.json();
-          if (data.success) {
-            closeCustomModal();
-            confetti();
-            showToastSuccess('🎉 Application submitted successfully!');
-          } else {
-            throw new Error('Application submission failed');
-          }
-        }
-        // Handle HTML (form re-rendered with errors)
-        else {
-          const html = await res.text();
-          document.getElementById('applyModalContent').innerHTML = html;
-        }
-      })
-      .catch((error) => {
-        console.error('Submission error:', error);
-        form.insertAdjacentHTML('beforeend', `
-          <div class="alert alert-danger mt-3">
-            ⚠️ Something went wrong. Please try again.
-          </div>
-        `);
-      })
-      .finally(() => {
-        if (spinner) spinner.classList.add('d-none');
-        if (button) button.removeAttribute('disabled');
-      });
+<script>
+    function closeCustomModal() {
+        const modal = document.querySelector('.application-modal-wrapper');
+        if (modal) modal.remove();
     }
-  });
 
-  // Optional: Character counters for maxLength inputs
-  document.addEventListener('DOMContentLoaded', () => {
-    const fields = document.querySelectorAll('input[maxlength], textarea[maxlength]');
+    function showToastSuccess(message) {
+        const toast = document.createElement('div');
+        toast.classList.add('toast-success');
+        toast.innerText = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
 
-    fields.forEach(field => {
-      const maxLength = parseInt(field.getAttribute('maxlength'));
-      if (!maxLength) return;
+    document.addEventListener('submit', function (e) {
+        if (e.target && e.target.id === 'applicationForm') {
+            e.preventDefault();
 
-      const counter = document.createElement('small');
-      counter.className = 'character-counter text-muted';
-      counter.style.display = 'block';
-      counter.style.marginTop = '0.5rem';
+            const form = e.target;
+            const spinner = document.getElementById('applySpinner');
+            const button = document.getElementById('submitApplicationBtn');
 
-      field.parentNode.insertBefore(counter, field.nextSibling);
+            spinner?.classList.remove('d-none');
+            button?.setAttribute('disabled', 'true');
 
-      const updateCounter = () => {
-        const currentLength = field.value.length;
-        counter.textContent = `${currentLength} / ${maxLength}`;
-        counter.style.color = currentLength > maxLength ? 'red' : '#6c757d';
-        field.setCustomValidity(currentLength > maxLength ? 'Character limit exceeded' : '');
-      };
-
-      updateCounter();
-      field.addEventListener('input', updateCounter);
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(async res => {
+                    const contentType = res.headers.get('content-type');
+                    if (res.ok && contentType?.includes('application/json')) {
+                        const data = await res.json();
+                        if (data.success) {
+                            closeCustomModal();
+                            confetti();
+                            showToastSuccess('🎉 Application submitted successfully!');
+                        } else {
+                            throw new Error('Application submission failed');
+                        }
+                    } else {
+                        const html = await res.text();
+                        document.getElementById('applyModalContent').innerHTML = html;
+                    }
+                })
+                .catch((error) => {
+                    console.error('Submission error:', error);
+                    form.insertAdjacentHTML('beforeend', `
+                        <div class="alert alert-danger mt-3">
+                            ⚠️ Something went wrong. Please try again.
+                        </div>
+                    `);
+                })
+                .finally(() => {
+                    spinner?.classList.add('d-none');
+                    button?.removeAttribute('disabled');
+                });
+        }
     });
-  });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('input[maxlength], textarea[maxlength]').forEach(field => {
+            const maxLength = parseInt(field.getAttribute('maxlength'));
+            if (!maxLength) return;
+
+            const counter = document.createElement('small');
+            counter.className = 'character-counter text-muted';
+            counter.style.display = 'block';
+            counter.style.marginTop = '0.5rem';
+            field.parentNode.insertBefore(counter, field.nextSibling);
+
+            const updateCounter = () => {
+                const currentLength = field.value.length;
+                counter.textContent = `${currentLength} / ${maxLength}`;
+                counter.style.color = currentLength > maxLength ? 'red' : '#6c757d';
+                field.setCustomValidity(currentLength > maxLength ? 'Character limit exceeded' : '');
+            };
+
+            updateCounter();
+            field.addEventListener('input', updateCounter);
+        });
+    });
 </script>
 
-  
-	</body>
+</body>
 
 </html>
