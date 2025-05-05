@@ -18,6 +18,9 @@ Encore
 
     // Split vendor chunks (useful for performance)
     .splitEntryChunks()
+
+    // enables the Symfony UX Stimulus bridge (used in assets/bootstrap.js)
+    .enableStimulusBridge('./assets/controllers.json')
     .enableSingleRuntimeChunk()
 
     // Clean up before build

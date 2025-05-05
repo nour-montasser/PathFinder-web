@@ -32,7 +32,8 @@
                             <div class="col-md-4 text-center mb-4">
                                 <div class="mb-3">
                                     {% if user.image and user.image != 'default.png' %}
-                                        <img src="{{ asset('uploads/users/' ~ user.image) }}" 
+<img src="{{  user.image }}" alt="{{ user.name }}"
+
                                              alt="{{ user.name }}" 
                                              class="rounded-circle img-thumbnail" 
                                              style="width: 150px; height: 150px; object-fit: cover;">

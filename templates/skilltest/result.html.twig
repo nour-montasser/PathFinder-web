@@ -29,8 +29,8 @@
 				</div>
 				<div class="col">
 					<h5 class="text-muted">Status</h5>
-					<p class="fs-3 fw-semibold {% if passed %}text-success{% else %}text-danger{% endif %}">
-						{% if passed %}
+					<p class="fs-3 fw-semibold {% if passedBoolean %}text-success{% else %}text-danger{% endif %}">
+						{% if passedBoolean %}
 							✅ Passed
 						{% else %}
 							❌ Failed

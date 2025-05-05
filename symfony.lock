@@ -5,7 +5,7 @@
             "repo": "github.com/symfony/recipes",
             "branch": "main",
             "version": "2.10",
-            "ref": "c170ded8fc587d6bd670550c43dafcf093762245"
+            "ref": "d1778a69711a9b06bb4e202977ca6c4a0d16933d"
         },
         "files": [
             "./config/packages/doctrine.yaml",
@@ -26,6 +26,9 @@
             "./migrations/.gitignore"
         ]
     },
+    "endroid/qr-code-bundle": {
+        "version": "5.0.2"
+    },
     "friendsofsymfony/ckeditor-bundle": {
         "version": "2.6",
         "recipe": {
@@ -39,10 +42,6 @@
         ]
     },
     "google/apiclient": {
-    "endroid/qr-code-bundle": {
-        "version": "5.0.2"
-    },
-    "knpuniversity/oauth2-client-bundle": {
         "version": "2.18",
         "recipe": {
             "repo": "github.com/symfony/recipes-contrib",
@@ -70,8 +69,13 @@
         ]
     },
     "knpuniversity/oauth2-client-bundle": {
-        "version": "1.20",
-        "ref": "1ff300d8c030f55c99219cc55050b97a695af3f6",
+        "version": "2.18",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "1.20",
+            "ref": "1ff300d8c030f55c99219cc55050b97a695af3f6"
+        },
         "files": [
             "./config/packages/knpu_oauth2_client.yaml"
         ]
@@ -183,7 +187,7 @@
         ]
     },
     "symfony/maker-bundle": {
-        "version": "1.62",
+        "version": "1.63",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
@@ -269,7 +273,7 @@
         ]
     },
     "symfony/stimulus-bundle": {
-        "version": "2.23",
+        "version": "2.24",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
@@ -312,7 +316,7 @@
         "version": "v2.24.0"
     },
     "symfony/ux-turbo": {
-        "version": "2.23",
+        "version": "2.24",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
@@ -363,7 +367,7 @@
             "repo": "github.com/symfony/recipes",
             "branch": "main",
             "version": "2.0",
-            "ref": "20af60d17dc26c2f2b67f8ee1038cd2da1ca8fb3"
+            "ref": "9ef5412a4a2a8415aca3a3f2b4edd3866aab9a19"
         },
         "files": [
             "./assets/app.js",
@@ -374,6 +378,6 @@
         ]
     },
     "twig/extra-bundle": {
-        "version": "v3.20.0"
+        "version": "v3.21.0"
     }
 }
