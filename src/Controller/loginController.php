@@ -114,8 +114,8 @@ class loginController extends BaseController
                         return $this->redirectToRoute('app_job_offer_dashboard');
                     } else {
                         // Job seeker role = 2
-                        $this->addFlash('success', 'Welcome back, ' . $user->getName() . '!');
-                        return $this->redirectToRoute('app_serviceoffre_dashboard');
+                        $this->addFlash('success', message: 'Welcome back, ' . $user->getName() . '!');
+                        return $this->redirectToRoute('app_home');
                     }
                 } else {
                     $error = 'Invalid email or password.';
@@ -189,7 +189,7 @@ class loginController extends BaseController
                 $user->setName($name);
                 $user->setPassword(password_hash($password, PASSWORD_BCRYPT));
                 $user->setRole($role); // Use the role from the form
-                $user->setImage('default.png');
+                $user->setImage('build\images\faces\default_profile.jpeg');
     
                 $this->entityManager->persist($user);
                 $this->entityManager->flush();
