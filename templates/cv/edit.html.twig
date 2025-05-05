@@ -656,4 +656,23 @@ URL.revokeObjectURL(url);
 }).catch(err => alert(err.message));
 });
 });
+window.LOGGED_IN_NAME = {{ cv.user.name|title|json_encode|raw }};
+window.USER_PHONE = '+216' + {{ cv.user.profile.phone|title|json_encode|raw }};
+  window.USER_EMAIL = {{ cv.user.email|json_encode|raw }};
+  window.USER_LOCATION = {{ cv.user.profile.address|title|json_encode|raw }};
+  window.USER_BIRTHDAY = {{ cv.user.profile.birthday|date('Y-m-d')|json_encode|raw }};
+  if (window.USER_BIRTHDAY) {
+  const birthDate = new Date(window.USER_BIRTHDAY);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const hasHadBirthdayThisYear =
+    today.getMonth() > birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
+
+  if (!hasHadBirthdayThisYear) age--;
+
+  window.USER_AGE = age + ' Years Old';
+} else {
+  window.USER_AGE = '';
+}
 </script>{% endblock %}

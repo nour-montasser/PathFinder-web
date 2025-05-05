@@ -42,6 +42,12 @@
         ]
     },
     "google/apiclient": {
+        "version": "2.12"
+    },
+    "endroid/qr-code-bundle": {
+        "version": "5.0.2"
+    },
+    "knpuniversity/oauth2-client-bundle": {
         "version": "2.18",
         "recipe": {
             "repo": "github.com/symfony/recipes-contrib",

@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  const fields = document.querySelectorAll('input[maxlength], textarea[maxlength]');
+
   if (hiddenInput && hiddenInput.value.trim()) {
     hiddenInput.value.split(',')
       .map(s => s.trim())
@@ -379,54 +379,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .forEach(s => addSkillTag(s));
   }
 
-  fields.forEach(field => {
-    const maxLength = field.getAttribute('maxlength');
-
-    // Create a small element to display the character count.
-    const counter = document.createElement('small');
-    counter.className = 'character-counter';
-    counter.style.display = 'block';
-    counter.style.marginTop = '0.5rem';
-
-    // Insert the counter element immediately after the field.
-    field.parentNode.insertBefore(counter, field.nextSibling);
-
-    // Function to update the counter text and validation.
-    const updateCounter = () => {
-      const currentLength = field.value.length;
-      counter.textContent = `${currentLength} / ${maxLength}`;
-
-      if (currentLength > maxLength) {
-        field.setCustomValidity('Character limit exceeded');
-        counter.style.color = 'red';
-      } else {
-        field.setCustomValidity('');
-        counter.style.color = '';
-      }
-    };
-
-    // Initial update.
-    updateCounter();
-
-    // Update counter on input events.
-    field.addEventListener('input', () => {
-
-      updateCounter();
-      const text = field.value.trim();
-
-      // Skip if the field is empty
-      if (text.length === 0) return;
-
-      // Clear the previous timeout
-      clearTimeout(debounceTimeout);
-
-      // Set a new timeout for 1 second
-      debounceTimeout = setTimeout(() => {
-        // Send the text to the backend to check grammar
-        checkGrammar(text, field);
-      }, 1000); // 1000 ms = 1 second
-    });
-  });
   // Create or get a hidden file input for certificate file upload.
   let hiddenFileInput = document.getElementById('certificateFileInput');
   if (!hiddenFileInput) {
