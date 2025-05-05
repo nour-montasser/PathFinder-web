@@ -176,6 +176,8 @@ git push origin feature/your-feature
 
 Developed as part of the coursework at **Esprit School of Engineering**.
 Inspired by professional platforms like **LinkedIn** and **Upwork**.
+This project was brought to you by the help of **Chat GPT, DEEPSEEK, CLAUDE, GITHUB COPILOT, GROK**
+We would like to thank our tutors **Mr. Mehdy Ben Romdhane** and **Mr. Mourad Aouini**.
 
 ## License
 
@@ -187,3 +189,5 @@ Licensed under the **MIT License**. See `LICENSE`.
 esprit-school-of-engineering job-application freelance symfony php mysql skill-tests chat recruitment platform
 ```
 
+## Made By
+THE ONE AND ONLY DIVAAAAS8
