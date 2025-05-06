@@ -20,13 +20,29 @@
     <div id="main-content"
         <div id="main-content" style="{% if current_user.role == 3 %}margin-left: 220px;{% endif %} padding: 20px;">
 
-        {% block body %}{% endblock %}
-        {% include "includes/footer.html.twig" %}
+
+			<div id="main-content" style="{% if current_user is defined and current_user is not null and current_user.role == 3 %}margin-left: 250px;{% endif %} "> {% block body %}{% endblock %}
+				{% include "includes/footer.html.twig" %}
+			</div>
+
+
+		</div>
+
+		{{ encore_entry_script_tags('app') }}
+		 <!-- Bootstrap Modal Placeholder -->
+  <div class="modal fade" id="applyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded shadow-sm border-0" style="background-color: #F5EDE1;">
+        <div id="applyModalContent">
+          
+        </div>
+      </div>
     </div>
 
 </div>
 
 {{ encore_entry_script_tags('app') }}
+
 
 <!-- Bootstrap Modal Placeholder -->
 <div class="modal fade" id="applyModal" tabindex="-1" aria-hidden="true">

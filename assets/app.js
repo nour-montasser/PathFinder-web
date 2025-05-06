@@ -4,8 +4,9 @@ import './styles/app.scss'; // Your SCSS file
 import './bootstrap.js'; // Stimulus initialization (if using)
 
 // Import other JS files
-import './js/main';
-import './js/vendors';
+import './js/main.js';
+
+import './js/vendors.js';
 
 import 'chart.js/auto';     
 

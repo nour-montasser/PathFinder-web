@@ -46,7 +46,7 @@ class AppUserController extends AbstractController
     }
 
 
-    #[Route('/logout', name: 'app_logout')]
+    #[Route('/profile/logout', name: 'app_user_profile_logout')]
     public function logout(Request $request): Response
     {
         $request->getSession()->invalidate();

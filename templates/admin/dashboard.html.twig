@@ -1,1 +1,184 @@
 {% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block body %}
+    <style>
+        /* Welcome Banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .welcome-banner h4 {
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        /* Page Title */
+        .page-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0;
+            color: #2d3748;
+        }
+        
+        .btn-outline-panel {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-panel:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Stats Cards */
+        .stats-card {
+            position: relative;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            overflow: hidden;
+            height: 100%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-card.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        .stats-card.success {
+            background: linear-gradient(135deg, var(--success), var(--success-dark));
+        }
+        
+        .stats-card .icon {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-card h6 {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+        
+        .stats-card .count {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: gray;
+        }
+        
+        .stats-card .bg-icon {
+            position: absolute;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            font-size: 4rem;
+            opacity: 0.2;
+        }
+        
+        /* Admin Info Card */
+        .admin-card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+        
+        .admin-card .card-header {
+            background: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .admin-card .card-header h5 {
+            font-weight: 600;
+            margin: 0;
+            color: #2d3748;
+        }
+        
+        .admin-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .admin-card .card-body h5 {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .admin-card .card-body p {
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+
+
+
+<div class="container-fluid ms-5">
+    <div class="welcome-banner">
+        <h4 class="mb-0">Welcome, Administrator!</h4>
+    </div>
+
+    <div class="page-title">
+        <h1>Dashboard</h1>
+        <button class="btn-outline-panel">Admin Panel</button>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="row">
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="stats-card primary">
+                <div class="icon">
+                    <i class="bi bi-person"></i>
+                </div>
+                <h6>JOB SEEKERS</h6>
+                <div class="count">{{ user_count }}</div>
+                <i class="bi bi-person-fill bg-icon"></i>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="stats-card success">
+                <div class="icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <h6>ENTERPRISES</h6>
+                <div class="count">{{ enterprise_count }}</div>
+                <i class="bi bi-building bg-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin info card -->
+    <div class="card admin-card">
+        <div class="card-header">
+            <h5 class="m-0">Admin Dashboard</h5>
+        </div>
+        <div class="card-body">
+            <h5 class="mb-3">Welcome to the PathFinder Admin Dashboard</h5>
+            <p>Use the sidebar to navigate to different sections.</p>
+            <p>From here you can manage users, view statistics, and monitor platform activity.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

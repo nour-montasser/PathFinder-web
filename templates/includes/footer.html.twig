@@ -1,4 +1,4 @@
-{% if current_user.role != 3 %}
+{% if current_user is defined and current_user is not null and current_user.role != 3 %}
 	<footer class="text-white py-5" style="background-color: rgba(59, 38, 29, 0.95);">
 		<div class="container">
 			<div

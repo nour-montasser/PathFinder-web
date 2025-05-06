@@ -255,36 +255,36 @@ public function edit(Request $request, ApplicationJob $application, EntityManage
 
     $jobOffer = $application->getJobOffer();
     $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
-
     $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
+
+    // Add skill test check (new logic)
+    $skillTest = $entityManager->getRepository(Skilltest::class)->findOneBy(['jobOffer' => $jobOffer]);
+    $hasSkillTest = $skillTest !== null;
 
     $form = $this->createForm(ApplicationJobType::class, $application, [
         'available_cvs' => $userCvs,
-        'current_step' => $currentStep
-
+        'current_step' => $currentStep,
+        'has_skill_test' => $hasSkillTest // Added
     ]);
+
     $form->handleRequest($request);
     
     if ($form->isSubmitted() && $form->isValid()) {
         $requestedStep = (int) $request->request->get('current_step', 1);
         $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
         $action = $request->request->get('action', 'next');
+
+        // Handle cover letter creation (existing logic)
         if ($currentStep === 1 && $action === 'next') {
-            // Create cover letter if not exists
             if (!$application->getCoverletter()) {
                 $coverLetter = new Coverletter();
-                $coverLetter->setSubject('');
-                $coverLetter->setContent('');
-                
-                // Set the association properly
-                $coverLetter->setApplication($application); // Set this first
-                $application->setCoverletter($coverLetter); // Then set the reverse
-                
+                $coverLetter->setApplication($application);
+                $application->setCoverletter($coverLetter);
                 $entityManager->persist($coverLetter);
             }
         }
         
-        // Only process cover letter data when on step 2
+        // Process cover letter data (existing logic)
         if ($currentStep === 2) {
             $coverLetterData = $form->get('coverletter')->getData();
             if ($coverLetterData) {
@@ -296,23 +296,35 @@ public function edit(Request $request, ApplicationJob $application, EntityManage
                 $coverLetter->setContent($content);
             }
         }
-        // Handle final submission
+
+        // Handle skill test step (step 3)
+if ($currentStep === 3 && $action === 'next' && $hasSkillTest) {
+    $testResult = $entityManager->getRepository(Test_result::class)->findOneBy([
+        'user' => $user,
+        'test' => $skillTest
+    ]);
+
+    if (!$testResult->getStatus()) {
+        $application->setStatus('Rejected');
+        $entityManager->flush();
+        $this->addFlash('error', 'Your application was rejected because you failed the required skill test.');
+        return $this->redirectToRoute('app_application_job_index');
+    }
+}
+
+        // Handle final submission (existing logic)
         if ($currentStep === 4 && $request->request->get('submit_final')) {
             $application->setStatus('Pending');
             $application->setDateApplication(new \DateTime());
             $entityManager->flush();
-            
             $this->addFlash('success', 'Application submitted successfully!');
             return $this->redirectToRoute('app_application_job_index');
         }
 
-        // Normal step navigation
-        $action = $request->request->get('action', 'next');
-        if ($action === 'next') {
-            $nextStep = min($currentStep + 1, 4); // Max step is 4
-        } else {
-            $nextStep = max($currentStep - 1, 1); // Min step is 1
-        }
+        // Normal step navigation (existing logic)
+        $nextStep = ($action === 'next') 
+            ? min($currentStep + 1, $hasSkillTest ? 4 : 3)
+            : max($currentStep - 1, 1);
 
         $application->setStatus('Applying-' . $nextStep);
         $entityManager->flush();
@@ -322,28 +334,21 @@ public function edit(Request $request, ApplicationJob $application, EntityManage
         ]);
     }
     
-    $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
-    
-    // Pre-fill cover letter fields if they exist
-    $coverLetterData = [
-        'subject' => '',
-        'content' => ''
-    ];
-    
-    if ($application->getCoverletter()) {
-        $coverLetterData = [
-            'subject' => $application->getCoverletter()->getSubject(),
-            'content' => $application->getCoverletter()->getContent()
-        ];
-    }
-    
+    // Existing template rendering with added skill test variables
     return $this->render('application_job/new.html.twig', [
         'form' => $form->createView(),
         'job_offer' => $jobOffer,
         'current_step' => $currentStep,
         'application' => $application,
-        'cover_letter' => $coverLetterData,
-        'is_editing' => true
+        'cover_letter' => [
+            'subject' => $application->getCoverletter()?->getSubject() ?? '',
+            'content' => $application->getCoverletter()?->getContent() ?? ''
+        ],
+        'is_editing' => true,
+        // New variables for skill test
+        'has_skill_test' => $hasSkillTest,
+        'skill_test' => $skillTest,
+        'test_result_repository' => $entityManager->getRepository(Test_result::class)
     ]);
 }   
 

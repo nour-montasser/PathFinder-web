@@ -358,6 +358,7 @@ $connectionParams = [
     'serverVersion' => '10.4.28-MariaDB'
 ];
 
+
 $connection = DriverManager::getConnection($connectionParams, $config);
 
 $entityManager = new EntityManager($connection, $config);

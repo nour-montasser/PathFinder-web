@@ -38,6 +38,12 @@ class App_user
 
     #[ORM\Column(type: "string", length: 255)]
     private string $image;
+    
+    // #[ORM\Column(type: "string", length: 50, nullable: true)]
+    // private ?string $auth_method = null;
+    
+    // #[ORM\Column(type: "string", length: 255, nullable: true)]
+    // private ?string $google_id = null;
 
     // Channels initiated by the user
     #[ORM\OneToMany(mappedBy: "initiator", targetEntity: Channel::class)]
@@ -168,6 +174,28 @@ class App_user
         $this->image = $image;
         return $this;
     }
+    
+    // public function getAuthMethod(): ?string
+    // {
+    //     return $this->auth_method;
+    // }
+    
+    // public function setAuthMethod(?string $auth_method): self
+    // {
+    //     $this->auth_method = $auth_method;
+    //     return $this;
+    // }
+    
+    // public function getGoogleId(): ?string
+    // {
+    //     return $this->google_id;
+    // }
+    
+    // public function setGoogleId(?string $google_id): self
+    // {
+    //     $this->google_id = $google_id;
+    //     return $this;
+    // }
     
     public function getChannelsInitiated(): Collection
     {
