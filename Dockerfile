@@ -16,7 +16,8 @@ COPY . .
 RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
 
 # Install dependencies (this time, all files are available)
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install
+
 
 # Apache override (if needed)
 COPY ./docker/vhost.conf /etc/apache2/sites-available/000-default.conf
