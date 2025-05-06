@@ -114,7 +114,8 @@
 </div>
 
       <!-- Service Listings -->
-      <div class="col-md-9 px-5">
+      <div class="col-md-9 px-5 service-right-column">
+
       
         <div class="d-flex justify-content-between align-items-center mb-3">
 
@@ -393,6 +394,11 @@ body {
     
    
 }
+
+.service-right-column {
+  margin-top: -240px;
+}
+
 </style>
 
 <!-- Drawer container -->
@@ -596,47 +602,43 @@ document.addEventListener('DOMContentLoaded', function() {
       <i class="fas fa-robot me-1"></i> Generate with AI
     </button>
 
-    <button type="submit" name="generate_price" value="1" class="btn btn-outline-success btn-sm">
-      Estimate a Price with AI
-    </button>
+   
   </div>
 
   <small id="descHelp" class="form-text text-muted">Describe your service in detail</small>
 </div>
 {% if generatedDescription is defined and generatedDescription %}
-  <div class="alert alert-info mt-2">
-    <strong>AI Suggested Description:</strong><br>
-    <div class="border rounded p-2 mt-1 bg-white">{{ generatedDescription|raw }}</div>
-    <button type="button" class="btn btn-outline-primary btn-sm mt-2"
-            onclick="document.getElementById('{{ form.description.vars.id }}').value = `{{ generatedDescription|escape('js') }}`">
-      Use this description
-    </button>
+  <div class="card shadow-sm mt-4 border-0">
+    <div class="card-header bg-gradient bg-info text-white d-flex justify-content-between align-items-center">
+      <span><i class="fas fa-lightbulb me-2"></i>AI Suggested Description</span>
+      <span class="badge bg-light text-dark">Review & Accept</span>
+    </div>
+    <div class="card-body bg-light">
+      <div class="description-preview p-3 border rounded bg-white text-dark" style="font-size: 0.95rem;">
+        {{ generatedDescription|raw }}
+      </div>
+
+      <div class="mt-3 d-flex justify-content-end gap-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="rejectDescriptionBox()">
+  <i class="fas fa-times"></i> Reject
+</button>
+<button type="button" class="btn btn-primary btn-sm" onclick="acceptDescription('{{ form.description.vars.id }}', `{{ generatedDescription|escape('js') }}`)">
+  <i class="fas fa-check"></i> Use this Description
+</button>
+
+      </div>
+    </div>
   </div>
 {% endif %}
 
-{% if generatedPrice is defined and generatedPrice %}
-  <div class="alert alert-success mt-2">
-    <strong>AI Estimated Price:</strong> €{{ generatedPrice }}
-  </div>
-{% endif %}
 
 
-<!-- Price Field -->
-<div class="mb-3">
-  {{ form_label(form.price) }}
-  {{ form_widget(form.price, {'attr': {'class': 'form-control'}}) }}
-</div>
+
+
+
+
 
 <!-- Price Estimation -->
-<div class="mb-3">
-  {{ form_label(form.price_estimation, 'Price (Estimated)', {'label_attr': {'class': 'form-label'}}) }}
-  {{ form_widget(form.price_estimation, {
-    'attr': {
-      'class': 'form-control',
-      'readonly': true
-    }
-  }) }}
-</div>
 
 <!-- Field -->
 <div class="mb-3">
@@ -666,9 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="mb-3">
   {{ form_label(form.experience_level, 'Experience Level', {'label_attr': {'class': 'form-label'}}) }}
   {{ form_widget(form.experience_level, {'attr': {'class': 'form-control'}}) }}
-  <small class="form-text text-muted" style="color: #9B7B58;">
-    ⚡ AI-based price will appear after field & level selection.
-  </small>
+
 </div>
 
 <!-- Skills -->
@@ -691,6 +691,21 @@ document.addEventListener('DOMContentLoaded', function() {
     {{ form_label(form.status, 'Status', {'label_attr': {'class': 'form-label'}}) }}
     {{ form_widget(form.status, {'attr': {'class': 'form-control'}}) }}
   </div>
+{% endif %}
+
+<!-- Price Field -->
+<div class="mb-3">
+  {{ form_label(form.price) }}
+  {{ form_widget(form.price, {'attr': {'class': 'form-control'}}) }}
+   <button type="submit" name="generate_price" value="1" class="btn btn-outline-success btn-sm">
+      Estimate a Price with AI
+    </button>
+</div>
+
+{% if generatedPrice is defined and generatedPrice %}
+  <small class="text-muted mt-1" style="display: block;">
+    💡 <strong>AI Suggested Price:</strong> {{ generatedPrice }}
+  </small>
 {% endif %}
 
 <!-- Validation Errors -->
@@ -969,6 +984,11 @@ document.addEventListener('DOMContentLoaded', function() {
   transform: translateX(2px);
   transition: all 0.2s ease-in-out;
 }
+.bg-success-subtle {
+  background-color: #e6f4ea !important;
+  transition: background 0.4s ease;
+}
+
 
 </style>
 
@@ -1018,29 +1038,26 @@ setTimeout(() => {
   }
 
  
- document.addEventListener('DOMContentLoaded', function() {
-    // Watch for changes in required fields
-    const triggerFields = ['#serviceoffre_field', '#serviceoffre_experience_level'];
-    
-    triggerFields.forEach(fieldId => {
-        const field = document.querySelector(fieldId);
-        if (field) {
-            field.addEventListener('change', function() {
-                // Trigger form submission to activate the subscriber
-                const form = this.closest('form');
-                if (form) {
-                    // Create a temporary submit button
-                    const tempSubmit = document.createElement('button');
-                    tempSubmit.type = 'submit';
-                    tempSubmit.style.display = 'none';
-                    form.appendChild(tempSubmit);
-                    tempSubmit.click();
-                    form.removeChild(tempSubmit);
-                }
-            });
-        }
-    });
-});
+
+
+function acceptDescription(descriptionFieldId, descriptionText) {
+  const textarea = document.getElementById(descriptionFieldId);
+  if (textarea) {
+    textarea.value = descriptionText;
+    textarea.focus();
+    textarea.classList.add('bg-success-subtle');
+  }
+
+  // Remove the suggested description card
+  const suggestionCard = document.querySelector('.card.shadow-sm.mt-4');
+  if (suggestionCard) suggestionCard.remove();
+}
+
+
+  function rejectDescriptionBox() {
+    const card = document.querySelector('.card.shadow-sm.mt-4');
+    if (card) card.remove();
+  }
 
 
 

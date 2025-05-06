@@ -32,17 +32,19 @@ public function index(
     CurrencyConverter $currencyConverter
 ): Response {
    
-    $showOnlyMyJobs = $request->query->getBoolean('my_jobs');
+   
 
-    $this->ensureUserSession();
-    $user = $showOnlyMyJobs ? $this->getCurrentUser() :null;
-    $showOnlyMyJobs=false;
-    
+  // ✅ Always ensure the session user is available
+  $this->ensureUserSession();
+  $user = $this->getCurrentUser();
 
-    $serviceoffres = $user
-        ? $entityManager->getRepository(Serviceoffre::class)->findBy(['user' => $user])
-        : $entityManager->getRepository(Serviceoffre::class)->findAll();
+  // Filter logic (for listing)
+  $showOnlyMyJobs = $request->query->getBoolean('my_jobs');
+  $serviceoffres = $showOnlyMyJobs
+      ? $entityManager->getRepository(Serviceoffre::class)->findBy(['user' => $user])
+      : $entityManager->getRepository(Serviceoffre::class)->findAll();
 
+      
     $serviceoffre = new Serviceoffre();
     $serviceoffre->setDatePosted(new \DateTime());
     $serviceoffre->setDescription(''); // Initialize with empty string to prevent null
@@ -114,8 +116,7 @@ public function index(
             try {
                 $price = $aiGenerator->generatePriceEstimation($title, $description, $field, $experienceLevel);
                 if ($price !== null) {
-                    $serviceoffre->setPriceEstimation($price);
-                    $form->get('price_estimation')->setData($price);
+                    $serviceoffre->setPriceEstimation($price); 
                     $this->addFlash('success', 'Price estimation generated: €' . $price);
                 } else {
                     $this->addFlash('warning', 'AI could not generate a price.');
@@ -232,6 +233,7 @@ public function index(
         'isFormOpen' => $isFormOpen,
         'generatedDescription' => $serviceoffre->getDescription(),
         'generatedPrice' => $serviceoffre->getPriceEstimation(),
+
         'currencies' => $currencies,
         
     ]);

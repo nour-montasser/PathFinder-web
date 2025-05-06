@@ -20,7 +20,10 @@ class ServiceOffreType extends AbstractType
     {
         $builder
             ->add('title')
-            ->add('description')
+            ->add('description', null, [
+    'required' => false,
+])
+
             ->add('field', ChoiceType::class, [
                 'label' => 'Field',
                 'choices' => [
@@ -39,14 +42,10 @@ class ServiceOffreType extends AbstractType
             ->add('price', MoneyType::class, [
                 'label' => 'Price',
                 'currency' => 'EUR',
-                'required' => true, // ❗ Price is now mandatory
+                'required' => false,
                 'attr' => ['class' => 'form-control'],
             ])
-            ->add('price_estimation', NumberType::class, [
-                'label' => 'Price (Estimated)',
-                'required' => false, // 💡 Optional
-                'attr' => ['readonly' => true, 'class' => 'form-control'],
-            ])
+
             ->add('required_education')
             ->add('skills')
             ->add('experience_level', ChoiceType::class, [
@@ -77,18 +76,8 @@ class ServiceOffreType extends AbstractType
                     new Assert\NotBlank(['message' => 'End date is required.']),
                 ],
                 'attr' => ['min' => (new \DateTime())->format('Y-m-d')],
-            ])
-            ->add('generateDescription', SubmitType::class, [
-                'label' => 'Generate with AI',
-                'attr' => [
-                    'formnovalidate' => 'formnovalidate',
-                    'class' => 'btn btn-secondary',
-                ],
-            ])
-            ->add('generatePrice', SubmitType::class, [
-                'label' => 'Estimate Price with AI',
-                'attr' => ['formnovalidate' => 'formnovalidate', 'class' => 'btn btn-success'],
             ]);
+            
     }
 
     public function configureOptions(OptionsResolver $resolver): void

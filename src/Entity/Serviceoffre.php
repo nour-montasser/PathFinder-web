@@ -23,9 +23,9 @@ class Serviceoffre
     private ?App_user $user = null;
     
 
-    #[ORM\Column(type: "text")]
-
-    private string $description;
+    #[ORM\Column(type: "text", nullable: true)]
+    private ?string $description = null;
+    
 
     #[ORM\Column(type: "string", length: 25)]
     #[Assert\NotBlank(message: "a titre is required.")]
@@ -47,8 +47,8 @@ class Serviceoffre
 private $priceEstimation;
 
 
-    #[ORM\Column(type: "float")]
-    private float $price;
+    #[ORM\Column(type: "float", nullable: true)]
+    private ?float $price= null;
 
     #[ORM\Column(type: "string", length: 100)]
     private string $required_education;
@@ -86,7 +86,7 @@ private $priceEstimation;
 
 public function setUser(?App_user $user): self { $this->user = $user; return $this; }
 
-    public function getDescription(): string
+    public function getDescription(): ?string
     {
         return $this->description;
     }
@@ -130,12 +130,12 @@ public function setUser(?App_user $user): self { $this->user = $user; return $th
         return $this;
     }
 
-    public function getPrice(): float
+    public function getPrice():  ?float
     {
         return $this->price;
     }
 
-    public function setPrice(float $price): self
+    public function setPrice(?float $price): self
     {
         $this->price = $price;
         return $this;
