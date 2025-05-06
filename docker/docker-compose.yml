@@ -1,0 +1,17 @@
+services:
+  mariadb:
+    image: mariadb:10.6
+    container_name: my-mariadb
+    restart: unless-stopped
+    ports:
+      - "3308:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpass
+      MARIADB_DATABASE: pathfinder
+      MARIADB_USER: pma
+      MARIADB_PASSWORD: pmapass
+    volumes:
+      - mariadb-data:/var/lib/mysql
+
+volumes:
+  mariadb-data:
