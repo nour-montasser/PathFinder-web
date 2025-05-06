@@ -1,22 +1,9 @@
-# ────────────────────────────────────
-# Stage 1: Composer builder
-# ────────────────────────────────────
-FROM composer:2 AS vendor
+# ────────────────────────────────────────────────────
+# Stage 1: Build all PHP dependencies with php-cli
+# ────────────────────────────────────────────────────
+FROM php:8.2-cli AS builder
 
-WORKDIR /app
-
-# Copy only the files Composer needs
-COPY composer.json composer.lock ./
-
-# Install all PHP dependencies (no‐dev, optimized)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
-
-# ────────────────────────────────────
-# Stage 2: PHP + Apache final image
-# ────────────────────────────────────
-FROM php:8.2-apache
-
-# 1) Install system libs & PHP extensions (including sodium)
+# Install system libs & PHP extensions needed by your app
 RUN apt-get update && apt-get install -y \
       git unzip zip curl libicu-dev libonig-dev libxml2-dev \
       libzip-dev libpq-dev libpng-dev libjpeg-dev libfreetype6-dev \
@@ -24,28 +11,45 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install intl pdo pdo_mysql zip opcache sodium \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 2) Enable mod_rewrite
+WORKDIR /app
+
+# Copy only the files needed for composer install
+COPY composer.json composer.lock ./
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php \
+    && mv composer.phar /usr/local/bin/composer
+
+# Run composer (this time inside a fully-featured PHP environment)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+# ────────────────────────────────────────────────────
+# Stage 2: Final image with Apache + PHP-FPM
+# ────────────────────────────────────────────────────
+FROM php:8.2-apache
+
+# Enable rewrite
 RUN a2enmod rewrite
 
-# 3) Set working dir
+# Set working dir
 WORKDIR /var/www/html
 
-# 4) Copy in the already-installed vendor/ and composer.json
-COPY --from=vendor /app/vendor ./vendor
-COPY --from=vendor /app/composer.json ./composer.json
+# Copy built vendor/ and composer.json from builder
+COPY --from=builder /app/vendor ./vendor
+COPY --from=builder /app/composer.json ./composer.json
 
-# 5) Copy the rest of your application
+# Copy the rest of the application
 COPY . .
 
-# 6) Suppress Apache “ServerName” warning
+# Suppress Apache ServerName warning
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# 7) Override your vhost (if you have one)
+# Override vhost if you have one
 COPY docker/vhost.conf /etc/apache2/sites-available/000-default.conf
 
-# 8) Fix permissions
+# Fix permissions
 RUN chown -R www-data:www-data /var/www/html
 
-# 9) Expose & start Apache
+# Expose & start Apache
 EXPOSE 80
 CMD ["apache2-foreground"]
