@@ -21,7 +21,8 @@ RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer
 
 # Run composer (this time inside a fully-featured PHP environment)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist -vvv
+
 
 # ────────────────────────────────────────────────────
 # Stage 2: Final image with Apache + PHP-FPM
