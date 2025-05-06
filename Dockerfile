@@ -9,17 +9,17 @@ RUN a2enmod rewrite
 
 WORKDIR /var/www/html
 
-# Copy your project before running Composer
-COPY . .
-
-# Install Composer globally
+# Install Composer
 RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
 
-# Install dependencies (this time, all files are available)
-RUN composer install
+# Copy and install PHP dependencies
+COPY composer.json composer.lock ./
+RUN composer install --no-interaction --prefer-dist --verbose
 
+# Then copy rest of the app
+COPY . .
 
-# Apache override (if needed)
+# Apache config
 COPY ./docker/vhost.conf /etc/apache2/sites-available/000-default.conf
 
 RUN chown -R www-data:www-data /var/www/html
