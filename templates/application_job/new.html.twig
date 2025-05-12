@@ -96,52 +96,54 @@
 </div>
                 </div>
 
-                <!-- Step 3: Skill Test -->
-                <div class="step step-3 {{ current_step != 3 ? 'd-none' : '' }} animate__animated animate__fadeIn">
-                    <div class="step-header mb-4">
-                        <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">3</div>
-                        <h4 class="d-inline ms-3">Skill Test</h4>
-                    </div>
-                    
-                    {# In your application_job/new.html.twig #}
-
-{% if current_step == 3 and has_skill_test %}
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Skill Test Required</h5>
-            <p class="card-text">You need to complete a skill test for this application.</p>
-            
-            {% set test_result = test_result_repository.findOneBy({'user': app.user, 'test': skill_test}) %}
-            
-            {% if test_result %}
-                {% if test_result.getStatus() %}
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i> You passed the skill test!
-                    </div>
-                {% else %}
-                    <div class="alert alert-danger">
-                        <i class="fas fa-times-circle"></i> You failed the skill test. Your application cannot proceed.
-                    </div>
-                {% endif %}
-            {% else %}
-                <a href="{{ path('app_skilltest_take', {'id': skill_test.id}) }}" 
-                   class="btn btn-primary">
-                    <i class="fas fa-pencil-alt"></i> Take Skill Test
-                </a>
-            {% endif %}
-        </div>
+      <!-- Step 3: Skill Test -->
+<div class="step step-3 {{ current_step != 3 ? 'd-none' : '' }} animate__animated animate__fadeIn">
+    <div class="step-header mb-4">
+        <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">3</div>
+        <h4 class="d-inline ms-3">Skill Test</h4>
     </div>
-{% endif %}
-                    
-                    <div class="d-flex justify-content-between">
-    <button type="submit" class="btn btn-outline-secondary btn-lg px-4" name="action" value="prev">
-        <i class="bi bi-arrow-left me-2"></i> Back
-    </button>
-    <button type="submit" class="btn btn-primary btn-lg px-4" name="action" value="next">
-        Continue <i class="bi bi-arrow-right ms-2"></i>
-    </button>
+    
+    {% if has_skill_test %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Skill Test Required</h5>
+                <p class="card-text">You need to complete a skill test for this application.</p>
+                
+                {% set test_result = test_result_repository.findOneBy({'user': app.user, 'test': skill_test}) %}
+                
+                {% if test_result %}
+                    {% if test_result.getStatus() %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> You passed the skill test!
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i> You failed the skill test. Your application cannot proceed.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ path('app_skilltest_take', {'id': skill_test.id}) }}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-pencil-alt"></i> Take Skill Test
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No skill test required for this position.
+        </div>
+    {% endif %}
+    
+    <div class="d-flex justify-content-between">
+        <button type="submit" class="btn btn-outline-secondary btn-lg px-4" name="action" value="prev">
+            <i class="bi bi-arrow-left me-2"></i> Back
+        </button>
+        <button type="submit" class="btn btn-primary btn-lg px-4" name="action" value="next">
+            Continue <i class="bi bi-arrow-right ms-2"></i>
+        </button>
+    </div>
 </div>
-                </div>
 
                 <!-- Step 4: Review -->
                 <div class="step step-4 {{ current_step != 4 ? 'd-none' : '' }} animate__animated animate__fadeIn">

@@ -43,9 +43,9 @@ class AiCoverLetterGenerator
     // Build applicant details
     $applicantDetails = [];
     if ($applicant->getName()) $applicantDetails[] = "- Name: {$applicant->getName()}";
-    if ($cv->getUser_title()) $applicantDetails[] = "- Professional Title: {$cv->getUser_title()}";
-    if ($applicantProfile && $applicantProfile->getCurrent_Occupation()) {
-        $applicantDetails[] = "- Current Role: {$applicantProfile->getCurrent_Occupation()}";
+    if ($cv->getUserTitle()) $applicantDetails[] = "- Professional Title: {$cv->getUserTitle()}";
+    if ($applicantProfile && $applicantProfile->getCurrentOccupation()) {
+        $applicantDetails[] = "- Current Role: {$applicantProfile->getCurrentOccupation()}";
     }
     if ($cv->getIntroduction()) $applicantDetails[] = "- Summary: {$cv->getIntroduction()}";
     if ($cv->getSkills()) $applicantDetails[] = "- Key Skills: {$cv->getSkills()}";
@@ -56,8 +56,8 @@ class AiCoverLetterGenerator
     // Build company details
     $companyDetails = [];
     if ($company->getName()) $companyDetails[] = "- Company: {$company->getName()}";
-    if ($companyProfile && $companyProfile->getCurrent_Occupation()) {
-        $companyDetails[] = "- Industry: {$companyProfile->getCurrent_Occupation()}";
+    if ($companyProfile && $companyProfile->getCurrentOccupation()) {
+        $companyDetails[] = "- Industry: {$companyProfile->getCurrentOccupation()}";
     }
     if ($jobOffer->getTitle()) $companyDetails[] = "- Position: {$jobOffer->getTitle()}";
 
@@ -68,9 +68,9 @@ class AiCoverLetterGenerator
             fn($exp) => sprintf(
                 "- %s at %s (%s to %s): %s",
                 $exp->getPosition(),
-                $exp->getLocation_name(),
-                $exp->getStart_date()->format('Y'),
-                $exp->getEnd_date()->format('Y'),
+                $exp->getLocationName(),
+                $exp->getStartDate()->format('Y'),
+                $exp->getEndDate()->format('Y'),
                 $exp->getDescription()
             ),
             $cv->getExperiences()->toArray()
@@ -84,8 +84,8 @@ class AiCoverLetterGenerator
             fn($cert) => sprintf(
                 "- %s from %s (issued %s)",
                 $cert->getTitle(),
-                $cert->getIssued_by(),
-                $cert->getIssue_date()->format('Y')
+                $cert->getIssuedBy(),
+                $cert->getIssuedate()->format('Y')
             ),
             $cv->getCertificates()->toArray()
         );
@@ -95,7 +95,7 @@ class AiCoverLetterGenerator
     $languages = [];
     if (!$cv->getLanguages()->isEmpty()) {
         $languages = array_map(
-            fn($lang) => sprintf("- %s (%s)", $lang->getLanguage_name(), $lang->getLevel()),
+            fn($lang) => sprintf("- %s (%s)", $lang->getLanguagename(), $lang->getLevel()),
             $cv->getLanguages()->toArray()
         );
     }
@@ -188,45 +188,47 @@ private function generateFallbackContent(): string
          . "Sincerely,\nApplicant";
 }
     private function callApi(string $prompt): string
-    {
-        try {
-            $response = $this->httpClient->request(
-                'POST',
-                "https://api-inference.huggingface.co/models/{$this->modelName}",
-                [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $this->huggingFaceToken,
-                    ],
-                    'json' => [
-                        'inputs' => $prompt,
-                        'parameters' => [
-                            'max_length' => 400,
-                            'temperature' => 0.7,
-                            'do_sample' => true,
-                            'return_full_text' => false
-                        ]
-                    ],
-                    'timeout' => 30
-                ]
-            );
+{
+    try {
+        $response = $this->httpClient->request(
+            'POST',
+            "https://api-inference.huggingface.co/models/{$this->modelName}",
+            [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->huggingFaceToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'inputs' => $prompt,
+                    'parameters' => [
+                        'max_length' => 400,
+                        'temperature' => 0.7,
+                        'do_sample' => true,
+                        'return_full_text' => false
+                    ]
+                ],
+                'timeout' => 30
+            ]
+        );
 
-            $content = $response->getContent();
+        $content = $response->getContent(false); // Get raw content
 
-            if ($response->getStatusCode() !== Response::HTTP_OK) {
-                throw new HttpException(
-                    $response->getStatusCode(),
-                    "AI Service Error: " . ($content['error'] ?? 'Unknown error')
-                );
-            }
-
-            return $content;
-        } catch (\Exception $e) {
+        if ($response->getStatusCode() !== Response::HTTP_OK) {
+            $errorData = json_decode($content, true);
             throw new HttpException(
-                Response::HTTP_SERVICE_UNAVAILABLE,
-                "Failed to generate cover letter: " . $e->getMessage()
+                $response->getStatusCode(),
+                "AI Service Error: " . ($errorData['error'] ?? 'Unknown error')
             );
         }
+
+        return $content;
+    } catch (\Exception $e) {
+        throw new HttpException(
+            Response::HTTP_SERVICE_UNAVAILABLE,
+            "Failed to generate cover letter: " . $e->getMessage()
+        );
     }
+}
 
    
 }

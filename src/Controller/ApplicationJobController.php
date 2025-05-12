@@ -146,8 +146,31 @@ public function new(Request $request, EntityManagerInterface $entityManager): Re
                 ]);
             }
             
-            $nextStep = min($currentStep + 1, $hasSkillTest ? 4 : 3); // Adjust max step based on skill test
+if ($action === 'prev') {
+    $nextStep = max($currentStep - 1, 1);
+} else {
+    // Always allow progression to step 4, regardless of skill test
+    $nextStep = min($currentStep + 1, 4);
+    
+    // Special handling for skill test step
+    if ($currentStep === 3 && $hasSkillTest) {
+        $testResult = $entityManager->getRepository(Test_result::class)->findOneBy([
+            'user' => $user,
+            'test' => $skillTest
+        ]);
+
+        if (!$testResult) {
+            return $this->redirectToRoute('app_skilltest_take', ['id' => $skillTest->getId()]);
         }
+
+        if (!$testResult->getStatus()) {
+            $application->setStatus('Rejected');
+            $entityManager->flush();
+            $this->addFlash('error', 'Your application was rejected because you failed the required skill test.');
+            return $this->redirectToRoute('app_application_job_index');
+        }
+    }
+}        }
 
         // Process cover letter data when moving forward from step 2
         if ($currentStep === 2 && $action === 'next') {
@@ -190,7 +213,7 @@ public function new(Request $request, EntityManagerInterface $entityManager): Re
         }
 
         // Final submission
-        if (($nextStep === ($hasSkillTest ? 4 : 3)) && $request->request->get('submit_final')) {
+if ($nextStep === 4 && $request->request->get('submit_final')) {
             $application->setStatus('Pending');
             $application->setDateApplication(new \DateTime());
             $entityManager->flush();
@@ -247,24 +270,18 @@ public function edit(Request $request, ApplicationJob $application, EntityManage
         throw $this->createAccessDeniedException("You cannot edit this application.");
     }
 
-    // If status is "Pending", force Step 4
-    if ($application->getStatus() === 'Pending') {
-        $application->setStatus('Applying-4');
-        $entityManager->flush();
-    }
-
     $jobOffer = $application->getJobOffer();
     $userCvs = $entityManager->getRepository(Cv::class)->findBy(['user' => $user]);
     $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
 
-    // Add skill test check (new logic)
+    // Check for skill test
     $skillTest = $entityManager->getRepository(Skilltest::class)->findOneBy(['jobOffer' => $jobOffer]);
     $hasSkillTest = $skillTest !== null;
 
     $form = $this->createForm(ApplicationJobType::class, $application, [
         'available_cvs' => $userCvs,
         'current_step' => $currentStep,
-        'has_skill_test' => $hasSkillTest // Added
+        'has_skill_test' => $hasSkillTest
     ]);
 
     $form->handleRequest($request);
@@ -274,7 +291,7 @@ public function edit(Request $request, ApplicationJob $application, EntityManage
         $currentStep = (int) str_replace('Applying-', '', $application->getStatus());
         $action = $request->request->get('action', 'next');
 
-        // Handle cover letter creation (existing logic)
+        // Handle cover letter creation
         if ($currentStep === 1 && $action === 'next') {
             if (!$application->getCoverletter()) {
                 $coverLetter = new Coverletter();
@@ -284,7 +301,7 @@ public function edit(Request $request, ApplicationJob $application, EntityManage
             }
         }
         
-        // Process cover letter data (existing logic)
+        // Process cover letter data
         if ($currentStep === 2) {
             $coverLetterData = $form->get('coverletter')->getData();
             if ($coverLetterData) {
@@ -298,21 +315,21 @@ public function edit(Request $request, ApplicationJob $application, EntityManage
         }
 
         // Handle skill test step (step 3)
-if ($currentStep === 3 && $action === 'next' && $hasSkillTest) {
-    $testResult = $entityManager->getRepository(Test_result::class)->findOneBy([
-        'user' => $user,
-        'test' => $skillTest
-    ]);
+        if ($currentStep === 3 && $action === 'next' && $hasSkillTest) {
+            $testResult = $entityManager->getRepository(Test_result::class)->findOneBy([
+                'user' => $user,
+                'test' => $skillTest
+            ]);
 
-    if (!$testResult->getStatus()) {
-        $application->setStatus('Rejected');
-        $entityManager->flush();
-        $this->addFlash('error', 'Your application was rejected because you failed the required skill test.');
-        return $this->redirectToRoute('app_application_job_index');
-    }
-}
+            if (!$testResult || !$testResult->getStatus()) {
+                $application->setStatus('Rejected');
+                $entityManager->flush();
+                $this->addFlash('error', 'Your application was rejected because you failed the required skill test.');
+                return $this->redirectToRoute('app_application_job_index');
+            }
+        }
 
-        // Handle final submission (existing logic)
+        // Handle final submission (step 4)
         if ($currentStep === 4 && $request->request->get('submit_final')) {
             $application->setStatus('Pending');
             $application->setDateApplication(new \DateTime());
@@ -321,9 +338,9 @@ if ($currentStep === 3 && $action === 'next' && $hasSkillTest) {
             return $this->redirectToRoute('app_application_job_index');
         }
 
-        // Normal step navigation (existing logic)
+        // Normal step navigation - always allow progression through all 4 steps
         $nextStep = ($action === 'next') 
-            ? min($currentStep + 1, $hasSkillTest ? 4 : 3)
+            ? min($currentStep + 1, 4)  // Always allow up to step 4
             : max($currentStep - 1, 1);
 
         $application->setStatus('Applying-' . $nextStep);
@@ -334,7 +351,6 @@ if ($currentStep === 3 && $action === 'next' && $hasSkillTest) {
         ]);
     }
     
-    // Existing template rendering with added skill test variables
     return $this->render('application_job/new.html.twig', [
         'form' => $form->createView(),
         'job_offer' => $jobOffer,
@@ -345,10 +361,10 @@ if ($currentStep === 3 && $action === 'next' && $hasSkillTest) {
             'content' => $application->getCoverletter()?->getContent() ?? ''
         ],
         'is_editing' => true,
-        // New variables for skill test
         'has_skill_test' => $hasSkillTest,
         'skill_test' => $skillTest,
-        'test_result_repository' => $entityManager->getRepository(Test_result::class)
+        'test_result_repository' => $entityManager->getRepository(Test_result::class),
+        'total_steps' => 4 // Explicitly set to 4 steps for the template
     ]);
 }   
 
@@ -814,6 +830,11 @@ public function generateCoverLetter(
 ): Response {
     $this->ensureUserSession();
     $user = $this->getCurrentUser();
+    
+    // Check if it's an AJAX request
+    if (!$request->isXmlHttpRequest()) {
+        return $this->json(['error' => 'Invalid request type'], Response::HTTP_BAD_REQUEST);
+    }
     
     $jobOffer = $entityManager->getRepository(Job_offer::class)->find($job_offer_id);
     if (!$jobOffer) {
